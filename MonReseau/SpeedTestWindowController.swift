@@ -98,6 +98,7 @@ class LocationService: NSObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
     private var completion: ((String) -> Void)?
     private var hasResult = false
+    private var requestID = 0
 
     override init() {
         super.init()
@@ -110,6 +111,8 @@ class LocationService: NSObject, CLLocationManagerDelegate {
     // sinon on fait fallback sur geolocalisation IP
     // timeout a 5s pour ne pas bloquer indefiniment
     func getLocation(completion: @escaping (String) -> Void) {
+        requestID += 1
+        let currentRequestID = requestID
         self.completion = completion
         self.hasResult = false
 
@@ -126,7 +129,7 @@ class LocationService: NSObject, CLLocationManagerDelegate {
 
         // Timeout after 5 seconds - fallback to IP if no GPS result
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
-            guard let self = self, !self.hasResult else { return }
+            guard let self = self, !self.hasResult, self.requestID == currentRequestID else { return }
             self.hasResult = true
             self.getIPLocation()
         }

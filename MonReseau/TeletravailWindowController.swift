@@ -688,17 +688,13 @@ private class ThemedCardView: NSView {
         wantsLayer = true
         layer?.cornerRadius = 10
         layer?.borderWidth = 1
-        applyColors()
     }
 
     required init?(coder: NSCoder) { fatalError() }
 
-    override func viewDidChangeEffectiveAppearance() {
-        super.viewDidChangeEffectiveAppearance()
-        applyColors()
-    }
+    override var wantsUpdateLayer: Bool { true }
 
-    private func applyColors() {
+    override func updateLayer() {
         layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
         layer?.borderColor = NSColor.separatorColor.cgColor
     }
