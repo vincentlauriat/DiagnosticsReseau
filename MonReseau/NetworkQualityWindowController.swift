@@ -5,7 +5,7 @@
 
 import Cocoa
 import Network
-// Network pour vérifier l'état global si besoin (NWPathMonitor), ici surtout pour cohérence du module.
+import SystemConfiguration
 
 /// Mesure individuelle d'un ping.
 /// - `timestamp`: date de la mesure
@@ -15,6 +15,38 @@ struct PingMeasurement {
     let timestamp: Date
     let latency: Double?     // ms, nil = timeout
     let packetLoss: Bool
+}
+
+/// Snapshot de qualité réseau pour l'historique persisté.
+struct QualitySnapshot: Codable {
+    let date: Date
+    let avgLatency: Double
+    let jitter: Double
+    let lossPercent: Double
+    let quality: String
+}
+
+/// Stockage de l'historique de qualité réseau dans UserDefaults.
+class QualityHistoryStorage {
+    private static let key = "QualityHistory"
+    private static let maxEntries = 2880 // 24h à raison d'un snapshot toutes les 30s
+
+    static func load() -> [QualitySnapshot] {
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let entries = try? JSONDecoder().decode([QualitySnapshot].self, from: data) else {
+            return []
+        }
+        return entries
+    }
+
+    static func add(_ entry: QualitySnapshot) {
+        var entries = load()
+        entries.insert(entry, at: 0)
+        if entries.count > maxEntries { entries = Array(entries.prefix(maxEntries)) }
+        if let data = try? JSONEncoder().encode(entries) {
+            UserDefaults.standard.set(data, forKey: key)
+        }
+    }
 }
 
 /// Contrôleur de fenêtre affichant les mesures et le graphe en direct.
@@ -27,9 +59,20 @@ class NetworkQualityWindowController: NSWindowController {
     // - `pingTimer`: timer 1 Hz déclenchant un ping
     private var graphView: NetworkGraphView!
     private var statsLabel: NSTextField!
+    private var pingModeControl: NSSegmentedControl!
+    private var pingTargetLabel: NSTextField!
     private var measurements: [PingMeasurement] = []
     private let maxPoints = 120 // 2 minutes at 1/s
     private var pingTimer: Timer?
+    private var pingMode: PingMode = .internet
+    private var snapshotCounter = 0
+    private var customHostField: NSTextField!
+
+    enum PingMode: Int {
+        case internet = 0
+        case local = 1
+        case custom = 2
+    }
 
     // Configure la fenetre (taille, titre) puis lance la mesure automatiquement
     convenience init() {
@@ -62,6 +105,41 @@ class NetworkQualityWindowController: NSWindowController {
         statsLabel.maximumNumberOfLines = 2
         contentView.addSubview(statsLabel)
 
+        // Ping mode selector
+        let pingModeRow = NSStackView()
+        pingModeRow.orientation = .horizontal
+        pingModeRow.spacing = 10
+        pingModeRow.alignment = .centerY
+        pingModeRow.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(pingModeRow)
+
+        let pingModeLabel = NSTextField(labelWithString: "Cible :")
+        pingModeLabel.font = NSFont.systemFont(ofSize: 12, weight: .medium)
+
+        pingModeControl = NSSegmentedControl(labels: ["Internet", "Réseau local", "Personnalisé"], trackingMode: .selectOne, target: self, action: #selector(pingModeChanged))
+        pingModeControl.selectedSegment = 0
+
+        pingTargetLabel = NSTextField(labelWithString: "→ 8.8.8.8 (Google DNS)")
+        pingTargetLabel.font = NSFont.monospacedSystemFont(ofSize: 11, weight: .regular)
+        pingTargetLabel.textColor = .tertiaryLabelColor
+
+        customHostField = NSTextField()
+        customHostField.placeholderString = "ex: 192.168.1.100"
+        customHostField.font = NSFont.monospacedSystemFont(ofSize: 11, weight: .regular)
+        customHostField.translatesAutoresizingMaskIntoConstraints = false
+        customHostField.widthAnchor.constraint(equalToConstant: 140).isActive = true
+        customHostField.isHidden = true
+        customHostField.target = self
+        customHostField.action = #selector(customHostChanged)
+
+        let savedCustomHost = UserDefaults.standard.string(forKey: "CustomPingHost") ?? ""
+        customHostField.stringValue = savedCustomHost
+
+        pingModeRow.addArrangedSubview(pingModeLabel)
+        pingModeRow.addArrangedSubview(pingModeControl)
+        pingModeRow.addArrangedSubview(pingTargetLabel)
+        pingModeRow.addArrangedSubview(customHostField)
+
         // Legend
         let legendView = createLegend()
         legendView.translatesAutoresizingMaskIntoConstraints = false
@@ -77,7 +155,11 @@ class NetworkQualityWindowController: NSWindowController {
             statsLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             statsLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
 
-            legendView.topAnchor.constraint(equalTo: statsLabel.bottomAnchor, constant: 8),
+            pingModeRow.topAnchor.constraint(equalTo: statsLabel.bottomAnchor, constant: 8),
+            pingModeRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            pingModeRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+
+            legendView.topAnchor.constraint(equalTo: pingModeRow.bottomAnchor, constant: 8),
             legendView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             legendView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             legendView.heightAnchor.constraint(equalToConstant: 20),
@@ -127,6 +209,47 @@ class NetworkQualityWindowController: NSWindowController {
         return stack
     }
 
+    @objc private func pingModeChanged(_ sender: NSSegmentedControl) {
+        pingMode = PingMode(rawValue: sender.selectedSegment) ?? .internet
+        measurements.removeAll()
+        graphView.measurements = measurements
+        statsLabel.stringValue = "Démarrage des mesures..."
+        customHostField.isHidden = pingMode != .custom
+        pingTargetLabel.isHidden = pingMode == .custom
+        updatePingTargetLabel()
+    }
+
+    @objc private func customHostChanged(_ sender: NSTextField) {
+        UserDefaults.standard.set(sender.stringValue, forKey: "CustomPingHost")
+        measurements.removeAll()
+        graphView.measurements = measurements
+        statsLabel.stringValue = "Démarrage des mesures..."
+    }
+
+    private func updatePingTargetLabel() {
+        switch pingMode {
+        case .internet:
+            pingTargetLabel.stringValue = "→ 8.8.8.8 (Google DNS)"
+        case .local:
+            if let gw = getDefaultGateway() {
+                pingTargetLabel.stringValue = "→ \(gw) (Passerelle)"
+            } else {
+                pingTargetLabel.stringValue = "→ Passerelle introuvable"
+            }
+        case .custom:
+            break
+        }
+    }
+
+    /// Recupere l'adresse de la passerelle par defaut via SCDynamicStore.
+    private func getDefaultGateway() -> String? {
+        guard let config = SCDynamicStoreCopyValue(nil, "State:/Network/Global/IPv4" as CFString) as? [String: Any],
+              let router = config["Router"] as? String else {
+            return nil
+        }
+        return router
+    }
+
     /// Lance le timer de ping à 1 seconde et effectue une première mesure.
     private func startMeasuring() {
         pingTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
@@ -137,8 +260,27 @@ class NetworkQualityWindowController: NSWindowController {
 
     /// Effectue un ping en tâche de fond puis enregistre la mesure sur le thread principal.
     private func performPing() {
+        let host: String
+        switch pingMode {
+        case .internet:
+            host = "8.8.8.8"
+        case .local:
+            guard let gw = getDefaultGateway() else {
+                let measurement = PingMeasurement(timestamp: Date(), latency: nil, packetLoss: true)
+                measurements.append(measurement)
+                if measurements.count > maxPoints { measurements.removeFirst(measurements.count - maxPoints) }
+                graphView.measurements = measurements
+                updateStats()
+                return
+            }
+            host = gw
+        case .custom:
+            let customHost = customHostField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !customHost.isEmpty else { return }
+            host = customHost
+        }
         DispatchQueue.global(qos: .utility).async { [weak self] in
-            let latency = self?.ping(host: "8.8.8.8")
+            let latency = self?.ping(host: host)
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 let measurement = PingMeasurement(
@@ -157,22 +299,23 @@ class NetworkQualityWindowController: NSWindowController {
     }
 
     /// Envoie un ping ICMP natif (non-privilegie) et mesure la latence.
-    /// - Parameter host: Hote a pinguer.
-    /// - Returns: Latence en millisecondes, ou `nil` en cas de timeout/erreur.
+    /// Supporte IPv4 (ICMP) et IPv6 (ICMPv6).
     private func ping(host: String) -> Double? {
-        // Resoudre l'adresse
+        // Resoudre l'adresse (IPv4 d'abord, IPv6 en fallback)
         var hints = addrinfo()
-        hints.ai_family = AF_INET
+        hints.ai_family = AF_UNSPEC
         hints.ai_socktype = SOCK_DGRAM
         var infoPtr: UnsafeMutablePointer<addrinfo>?
         guard getaddrinfo(host, nil, &hints, &infoPtr) == 0, let info = infoPtr else { return nil }
         defer { freeaddrinfo(infoPtr) }
 
+        let family = info.pointee.ai_family
         let destAddr = info.pointee.ai_addr
         let destLen = info.pointee.ai_addrlen
 
-        // Creer socket ICMP non-privilegie
-        let sock = Darwin.socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP)
+        // Creer socket ICMP(v6) non-privilegie
+        let proto = family == AF_INET6 ? IPPROTO_ICMPV6 : IPPROTO_ICMP
+        let sock = Darwin.socket(family, SOCK_DGRAM, proto)
         guard sock >= 0 else { return nil }
         defer { Darwin.close(sock) }
 
@@ -182,26 +325,26 @@ class NetworkQualityWindowController: NSWindowController {
 
         // Construire le paquet ICMP Echo Request
         var packet = [UInt8](repeating: 0, count: 64)
-        packet[0] = 8  // ICMP_ECHO
+        packet[0] = family == AF_INET6 ? 128 : 8  // ICMPv6_ECHO_REQUEST : ICMP_ECHO
         packet[1] = 0  // Code
-        // Identifier (bytes 4-5)
         let ident = UInt16(ProcessInfo.processInfo.processIdentifier & 0xFFFF)
         packet[4] = UInt8(ident >> 8)
         packet[5] = UInt8(ident & 0xFF)
-        // Sequence (bytes 6-7)
         let seq = UInt16.random(in: 0...UInt16.max)
         packet[6] = UInt8(seq >> 8)
         packet[7] = UInt8(seq & 0xFF)
 
-        // Checksum
-        var sum: UInt32 = 0
-        for i in stride(from: 0, to: packet.count - 1, by: 2) {
-            sum += UInt32(packet[i]) << 8 | UInt32(packet[i + 1])
+        // Checksum (pour IPv4 seulement ; ICMPv6 checksum calculé par le kernel)
+        if family == AF_INET {
+            var sum: UInt32 = 0
+            for i in stride(from: 0, to: packet.count - 1, by: 2) {
+                sum += UInt32(packet[i]) << 8 | UInt32(packet[i + 1])
+            }
+            while sum >> 16 != 0 { sum = (sum & 0xFFFF) + (sum >> 16) }
+            let checksum = ~UInt16(sum)
+            packet[2] = UInt8(checksum >> 8)
+            packet[3] = UInt8(checksum & 0xFF)
         }
-        while sum >> 16 != 0 { sum = (sum & 0xFFFF) + (sum >> 16) }
-        let checksum = ~UInt16(sum)
-        packet[2] = UInt8(checksum >> 8)
-        packet[3] = UInt8(checksum & 0xFF)
 
         // Envoyer
         let startTime = CFAbsoluteTimeGetCurrent()
@@ -264,6 +407,14 @@ class NetworkQualityWindowController: NSWindowController {
             "Latence: moy %.1f ms | min %.1f ms | max %.1f ms   Jitter: %.1f ms   Perte: %.1f%%   Qualité: %@",
             avg, minVal, maxVal, jitter, lossPercent, quality
         )
+
+        // Sauvegarder un snapshot toutes les 30 mesures (30s)
+        snapshotCounter += 1
+        if snapshotCounter >= 30 {
+            snapshotCounter = 0
+            let snapshot = QualitySnapshot(date: Date(), avgLatency: avg, jitter: jitter, lossPercent: lossPercent, quality: quality)
+            QualityHistoryStorage.add(snapshot)
+        }
     }
 
     // Arrête proprement le timer à la fermeture de la fenêtre
@@ -283,10 +434,37 @@ class NetworkQualityWindowController: NSWindowController {
 class NetworkGraphView: NSView {
 
     var measurements: [PingMeasurement] = [] {
-        didSet { needsDisplay = true }
+        didSet {
+            needsDisplay = true
+            updateAccessibilityValue()
+        }
     }
 
     override var isFlipped: Bool { true }
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        setAccessibilityRole(.image)
+        setAccessibilityLabel("Graphique de qualité réseau")
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setAccessibilityRole(.image)
+        setAccessibilityLabel("Graphique de qualité réseau")
+    }
+
+    private func updateAccessibilityValue() {
+        guard !measurements.isEmpty else {
+            setAccessibilityValue("Aucune mesure")
+            return
+        }
+        let latencies = measurements.compactMap(\.latency)
+        let avg = latencies.isEmpty ? 0 : latencies.reduce(0, +) / Double(latencies.count)
+        let losses = measurements.filter { $0.latency == nil }.count
+        let lossPercent = Double(losses) / Double(measurements.count) * 100
+        setAccessibilityValue(String(format: "Latence moyenne %.0f ms, perte %.0f%%", avg, lossPercent))
+    }
 
     // Dessin principal: fond, cadre, grille, zones de perte, aire de jitter, courbe de latence et points
     override func draw(_ dirtyRect: NSRect) {

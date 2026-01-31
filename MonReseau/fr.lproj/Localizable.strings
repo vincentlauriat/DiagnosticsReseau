@@ -1,0 +1,188 @@
+/* Mon Réseau — Localizable.strings (Français)
+   Langue de développement. */
+
+/* =========================
+   AppDelegate — Menus
+   ========================= */
+
+/* Status menu */
+"menu.title" = "Mon Réseau";
+"menu.connected" = "Connecté";
+"menu.connected_vpn" = "Connecté (VPN actif)";
+"menu.disconnected" = "Déconnecté";
+"menu.checking" = "Vérification…";
+"menu.details" = "Détails réseau…";
+"menu.quality" = "Qualité réseau…";
+"menu.speedtest" = "Test de débit…";
+"menu.traceroute" = "Traceroute…";
+"menu.dns" = "DNS…";
+"menu.wifi" = "WiFi…";
+"menu.neighborhood" = "Voisinage…";
+"menu.teletravail" = "Télétravail…";
+"menu.guide" = "Guide…";
+"menu.settings" = "Réglages…";
+"menu.about" = "À propos…";
+"menu.quit" = "Quitter";
+
+/* App menu (mode application) */
+"appmenu.about" = "À propos de Mon Réseau";
+"appmenu.settings" = "Réglages…";
+"appmenu.quit" = "Quitter Mon Réseau";
+"appmenu.window" = "Fenêtre";
+"appmenu.home" = "Accueil";
+
+/* Notifications */
+"notification.connection_restored.title" = "Connexion rétablie";
+"notification.connection_restored.body" = "Votre connexion réseau est de nouveau active.";
+"notification.connection_lost.title" = "Connexion perdue";
+"notification.connection_lost.body" = "Votre connexion réseau est interrompue.";
+
+/* About panel */
+"about.title" = "À propos d'Mon Réseau";
+"about.name" = "Mon Réseau";
+"about.version" = "Version %@ (%@)";
+"about.description" = "Surveillance de la connectivité internet\net de la qualité réseau pour macOS.";
+"about.credits" = "Développé par Vincent LAURIAT";
+"about.copyright" = "© %d Vincent LAURIAT. Tous droits réservés.";
+"about.frameworks" = "Cocoa · Network · SystemConfiguration · CoreWLAN · CoreLocation";
+"about.ok" = "OK";
+
+/* Status item */
+"statusitem.tooltip" = "Mon Réseau";
+"statusitem.accessibility_label" = "Mon Réseau";
+"statusitem.accessibility_help" = "État de la connexion réseau";
+
+/* =========================
+   SettingsWindowController
+   ========================= */
+
+"settings.title" = "Mon Réseau — Réglages";
+
+"settings.mode.label" = "Mode d'affichage :";
+"settings.mode.menubar" = "Barre de menus";
+"settings.mode.app" = "Application";
+"settings.mode.description" = "Barre de menus : l'app vit dans la barre de menus avec une icône d'état.\nApplication : l'app apparaît dans le Dock avec une fenêtre d'accueil et une barre de menus classique.";
+
+"settings.login.title" = "Lancer au démarrage";
+"settings.login.description" = "L'application se lance automatiquement à l'ouverture de session.";
+"settings.login.error.title" = "Impossible de modifier le lancement au démarrage";
+"settings.login.error.message" = "L'application doit être dans le dossier Applications pour activer cette option.\n\nErreur : %@";
+
+"settings.notify.title" = "Notifier les changements de connexion";
+"settings.notify.description" = "Recevez une notification lorsque la connexion réseau est perdue ou rétablie.";
+
+"settings.latency.title" = "Afficher la latence dans la barre de menus";
+"settings.latency.description" = "Affiche le ping en temps réel à côté de l'icône (mode barre de menus uniquement).";
+
+"settings.appearance.label" = "Apparence :";
+"settings.appearance.system" = "Système";
+"settings.appearance.light" = "Clair";
+"settings.appearance.dark" = "Sombre";
+"settings.appearance.description" = "Choisissez l'apparence de l'application : suivre le réglage système, forcer le mode clair ou le mode sombre.";
+
+"settings.geek.title" = "Mode Geek";
+"settings.geek.description" = "Affiche les outils techniques dans le menu : détails réseau, qualité, test de débit, traceroute, DNS, WiFi et voisinage.";
+
+/* =========================
+   MainWindowController
+   ========================= */
+
+"main.title" = "Mon Réseau";
+"main.checking" = "Vérification…";
+
+"main.card.details" = "Détails réseau";
+"main.card.quality" = "Qualité réseau";
+"main.card.speedtest" = "Test de débit";
+"main.card.traceroute" = "Traceroute";
+"main.card.dns" = "DNS";
+"main.card.wifi" = "WiFi";
+"main.card.neighborhood" = "Voisinage";
+"main.card.teletravail" = "Télétravail";
+"main.card.guide" = "Guide";
+"main.card.settings" = "Réglages";
+
+/* =========================
+   GuideWindowController
+   ========================= */
+
+"guide.title" = "Mon Réseau — Guide";
+
+"guide.about.title" = "À propos de Mon Réseau";
+"guide.about.intro" = "Mon Réseau est une application macOS qui surveille votre connexion internet et vous donne une vue complète de votre réseau. Elle fonctionne depuis la barre de menus ou en tant qu'application classique.";
+"guide.about.features_intro" = "Fonctionnalités principales :";
+"guide.about.feature.monitoring" = "Surveillance en temps réel de la connectivité";
+"guide.about.feature.details" = "Détails réseau : interfaces, WiFi, routage, DNS, IP publique";
+"guide.about.feature.quality" = "Test de qualité : latence, gigue (jitter) et perte de paquets";
+"guide.about.feature.speed" = "Test de débit : vitesse de téléchargement et d'envoi";
+"guide.about.feature.traceroute" = "Traceroute visuel avec carte géographique";
+"guide.about.feature.dns" = "Requêtes DNS avancées et benchmark de serveurs";
+"guide.about.feature.wifi" = "Informations WiFi et signal en temps réel";
+"guide.about.feature.neighborhood" = "Scanner de voisinage réseau (appareils et ports)";
+"guide.about.feature.teletravail" = "Mode Télétravail : diagnostic rapide de votre connexion";
+
+"guide.concepts.title" = "Comprendre les concepts réseau";
+
+"guide.concepts.latency.title" = "Latence (ping)";
+"guide.concepts.latency.text" = "La latence mesure le temps qu'un petit paquet de données met pour faire l'aller-retour entre votre ordinateur et un serveur distant. Elle s'exprime en millisecondes (ms). Une latence inférieure à 20 ms est excellente, entre 20 et 50 ms est bonne, et au-delà de 100 ms vous pourrez ressentir des ralentissements dans les appels vidéo ou les jeux en ligne.";
+
+"guide.concepts.jitter.title" = "Gigue (jitter)";
+"guide.concepts.jitter.text" = "La gigue représente la variation de la latence dans le temps. Même avec une latence moyenne correcte, une gigue élevée signifie que les paquets arrivent de façon irrégulière. Cela dégrade la qualité des appels audio et vidéo. Un jitter inférieur à 5 ms est idéal.";
+
+"guide.concepts.loss.title" = "Perte de paquets";
+"guide.concepts.loss.text" = "Quand certains paquets de données n'arrivent jamais à destination, on parle de perte de paquets. Même 1 % de perte peut affecter la qualité d'un appel vidéo. Une connexion saine a 0 % de perte. Des pertes fréquentes indiquent un problème de réseau (WiFi instable, câble défectueux, congestion).";
+
+"guide.concepts.speed.title" = "Débit (vitesse)";
+"guide.concepts.speed.text" = "Le débit mesure la quantité de données transférées par seconde. On distingue le débit descendant (téléchargement) et montant (envoi). Il s'exprime en Mbps (mégabits par seconde). Pour le télétravail, un minimum de 10 Mbps en descente et 5 Mbps en montée est recommandé. Le streaming 4K nécessite environ 25 Mbps.";
+
+"guide.concepts.dns.title" = "DNS (Domain Name System)";
+"guide.concepts.dns.text" = "Le DNS est l'annuaire d'internet : il traduit les noms de domaine (comme google.com) en adresses IP. Un serveur DNS lent ralentit le chargement de chaque nouvelle page web. Mon Réseau permet de comparer la vitesse de différents serveurs DNS et d'effectuer des requêtes avancées.";
+
+"guide.concepts.traceroute.title" = "Traceroute";
+"guide.concepts.traceroute.text" = "Le traceroute retrace le chemin emprunté par vos données pour atteindre un serveur. Chaque étape (« saut ») est un routeur intermédiaire. Cela permet d'identifier où se situe un ralentissement ou une coupure sur le parcours réseau.";
+
+"guide.concepts.rssi.title" = "RSSI (signal WiFi)";
+"guide.concepts.rssi.text" = "Le RSSI (Received Signal Strength Indicator) mesure la puissance du signal WiFi en dBm. Les valeurs sont négatives : -30 dBm est un signal excellent, -67 dBm est correct, et en dessous de -80 dBm la connexion devient instable. L'éloignement du routeur, les murs et les interférences réduisent le signal.";
+
+"guide.concepts.nat.title" = "NAT et IP publique / privée";
+"guide.concepts.nat.text" = "Votre box internet attribue des adresses IP privées (192.168.x.x) à vos appareils et utilise le NAT (Network Address Translation) pour les faire communiquer avec internet via une seule adresse IP publique. Connaître votre IP publique est utile pour le dépannage ou l'accès à distance.";
+
+"guide.concepts.ipv.title" = "IPv4 et IPv6";
+"guide.concepts.ipv.text" = "IPv4 utilise des adresses sur 32 bits (ex : 192.168.1.1). Face à la pénurie d'adresses, IPv6 a été créé avec des adresses sur 128 bits (ex : 2001:db8::1). De plus en plus de fournisseurs activent IPv6, qui améliore les performances et simplifie le routage.";
+
+"guide.tips.title" = "Astuces pour optimiser sa connexion";
+
+"guide.tips.router.title" = "Placement du routeur WiFi";
+"guide.tips.router.text" = "Placez votre routeur en position centrale et surélevée, à l'écart des murs épais, des miroirs et des appareils électroniques (micro-ondes, babyphones). Évitez de le mettre dans un placard ou au sol.";
+
+"guide.tips.ethernet.title" = "Préférer le câble Ethernet";
+"guide.tips.ethernet.text" = "Pour le télétravail, les appels vidéo ou le gaming, un câble Ethernet offre une connexion plus stable et rapide que le WiFi. Un câble Cat 6 supporte facilement 1 Gbps sur 50 mètres.";
+
+"guide.tips.channel.title" = "Choisir le bon canal WiFi";
+"guide.tips.channel.text" = "Si vos voisins utilisent le même canal WiFi, les interférences ralentissent tout le monde. Utilisez la bande 5 GHz (moins encombrée, plus rapide mais portée réduite) ou identifiez un canal 2.4 GHz peu utilisé. Les canaux 1, 6 et 11 sont les seuls qui ne se chevauchent pas en 2.4 GHz.";
+
+"guide.tips.dns.title" = "Utiliser un DNS rapide";
+"guide.tips.dns.text" = "Remplacez le DNS de votre fournisseur par un DNS rapide et fiable :";
+"guide.tips.dns.cloudflare" = "Cloudflare : 1.1.1.1 — rapide et respectueux de la vie privée";
+"guide.tips.dns.google" = "Google : 8.8.8.8 — fiable et largement utilisé";
+"guide.tips.dns.quad9" = "Quad9 : 9.9.9.9 — filtre les domaines malveillants";
+"guide.tips.dns.outro" = "Utilisez l'outil DNS de Mon Réseau pour comparer leur vitesse depuis votre réseau.";
+
+"guide.tips.reboot.title" = "Redémarrer régulièrement sa box";
+"guide.tips.reboot.text" = "Un redémarrage hebdomadaire de votre box et routeur peut résoudre des ralentissements liés à la saturation de mémoire ou de connexions accumulées. Débranchez, attendez 30 secondes, puis rebranchez.";
+
+"guide.tips.bandwidth.title" = "Limiter les usages gourmands";
+"guide.tips.bandwidth.text" = "Les mises à jour automatiques, le cloud sync et le streaming en arrière-plan consomment de la bande passante. Pendant un appel vidéo important, mettez en pause les téléchargements lourds. Activez la QoS (Quality of Service) sur votre routeur si disponible pour prioriser le trafic critique.";
+
+"guide.tips.install.title" = "Vérifier son installation";
+"guide.tips.install.text" = "Un câble Ethernet abîmé, un filtre ADSL manquant, un splitter de mauvaise qualité ou un vieux routeur peuvent limiter votre débit. Si vos tests de débit sont bien inférieurs à votre abonnement, contactez votre fournisseur.";
+
+"guide.shortcuts.title" = "Raccourcis clavier";
+"guide.shortcuts.intro" = "En mode barre de menus, les raccourcis globaux utilisent Ctrl+Option+lettre. En mode application, utilisez Cmd+lettre dans les menus.";
+
+/* Accessibility */
+"accessibility.graph.quality" = "Graphique de qualité réseau";
+"accessibility.graph.quality.empty" = "Aucune mesure";
+"accessibility.graph.quality.value" = "Latence moyenne %.0f ms, perte %.0f%%";
+"accessibility.graph.wifi" = "Graphique du signal WiFi";
+"accessibility.graph.wifi.signal" = "Signal %d dBm";
+"accessibility.gauge.wifi" = "Force du signal WiFi";

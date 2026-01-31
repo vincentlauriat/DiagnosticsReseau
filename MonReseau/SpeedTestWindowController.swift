@@ -6,6 +6,7 @@
 
 import Cocoa
 import CoreLocation
+import UniformTypeIdentifiers
 
 // CoreLocation pour obtenir une localisation (ville/pays) a associer aux mesures
 
@@ -212,6 +213,7 @@ class SpeedTestAnimationView: NSView {
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         setupParticles()
+        setAccessibilityElement(false)
     }
 
     required init?(coder: NSCoder) {
@@ -284,10 +286,14 @@ class SpeedTestAnimationView: NSView {
         guard let context = NSGraphicsContext.current?.cgContext else { return }
         let rect = bounds
 
-        // Background gradient
-        let colors = [
+        // Background gradient (adaptatif clair/sombre)
+        let isDark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        let colors = isDark ? [
             NSColor(calibratedRed: 0.1, green: 0.1, blue: 0.2, alpha: 1.0).cgColor,
             NSColor(calibratedRed: 0.05, green: 0.1, blue: 0.15, alpha: 1.0).cgColor
+        ] : [
+            NSColor(calibratedRed: 0.85, green: 0.9, blue: 0.98, alpha: 1.0).cgColor,
+            NSColor(calibratedRed: 0.92, green: 0.95, blue: 1.0, alpha: 1.0).cgColor
         ]
         let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors as CFArray, locations: [0, 1])!
         context.drawLinearGradient(gradient, start: CGPoint(x: 0, y: rect.height), end: CGPoint(x: 0, y: 0), options: [])
@@ -366,7 +372,8 @@ class SpeedTestAnimationView: NSView {
         path.addLine(to: CGPoint(x: 0, y: 0))
         path.addLine(to: CGPoint(x: -size, y: size/2))
 
-        context.setStrokeColor(NSColor.white.withAlphaComponent(alpha * 0.6).cgColor)
+        let arrowColor: NSColor = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? .white : .black
+        context.setStrokeColor(arrowColor.withAlphaComponent(alpha * 0.6).cgColor)
         context.setLineWidth(2)
         context.setLineCap(.round)
         context.setLineJoin(.round)
@@ -564,6 +571,11 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         bottomBar.addArrangedSubview(spacer)
 
+        let exportButton = NSButton(title: "Exporter CSV", target: self, action: #selector(exportCSV))
+        exportButton.bezelStyle = .rounded
+        exportButton.translatesAutoresizingMaskIntoConstraints = false
+        bottomBar.addArrangedSubview(exportButton)
+
         clearHistoryButton = NSButton(title: "Effacer l'historique", target: self, action: #selector(clearHistory))
         clearHistoryButton.bezelStyle = .rounded
         clearHistoryButton.translatesAutoresizingMaskIntoConstraints = false
@@ -665,6 +677,42 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
     }
 
     /// Efface l'historique après confirmation utilisateur.
+    @objc private func exportCSV() {
+        let entries = SpeedTestHistoryStorage.load()
+        guard !entries.isEmpty else {
+            let alert = NSAlert()
+            alert.messageText = "Aucun historique"
+            alert.informativeText = "Il n'y a pas de données à exporter."
+            alert.runModal()
+            return
+        }
+
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = "MonReseau_SpeedTest.csv"
+        panel.allowedContentTypes = [.commaSeparatedText]
+        panel.canCreateDirectories = true
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        let df = DateFormatter()
+        df.dateStyle = .short
+        df.timeStyle = .medium
+
+        var csv = "Date;Download (Mbps);Upload (Mbps);Latence (ms);Localisation\n"
+        for entry in entries {
+            csv += "\(df.string(from: entry.date));\(String(format: "%.1f", entry.downloadMbps));\(String(format: "%.1f", entry.uploadMbps));\(String(format: "%.0f", entry.latencyMs));\(entry.location)\n"
+        }
+
+        do {
+            try csv.write(to: url, atomically: true, encoding: .utf8)
+        } catch {
+            let alert = NSAlert()
+            alert.messageText = "Erreur d'export"
+            alert.informativeText = error.localizedDescription
+            alert.runModal()
+        }
+    }
+
     @objc private func clearHistory() {
         let alert = NSAlert()
         alert.messageText = "Effacer l'historique ?"

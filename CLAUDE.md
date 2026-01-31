@@ -4,7 +4,7 @@ Instructions for Claude Code when working on this repository.
 
 ## Project Overview
 
-**Mon Réseau** — macOS menu bar app (Swift/Cocoa) for monitoring internet connectivity and network quality. Runs as a status bar item without Dock icon (`LSUIElement = true`). All UI is in French. Fully App Store compatible (no shell commands, sandboxed).
+**Mon Réseau** — macOS app (Swift/Cocoa) for monitoring internet connectivity and network quality. Supports two modes: menu bar only (`LSUIElement`) or full application (Dock + main menu). Features a "Geek Mode" to show/hide technical tools. All UI is in French. Fully App Store compatible (no shell commands, sandboxed).
 
 - **Bundle ID:** `com.SmartColibri.MonReseau`
 - **Deployment target:** macOS 13.0+
@@ -38,19 +38,22 @@ These rules **must** be followed for every change:
 
 ## Architecture
 
-10 Swift files in `MonReseau/`, ~6,100 LOC total:
+13 Swift files in `MonReseau/`, ~8,400 LOC total:
 
 | File | LOC | Role |
 |------|-----|------|
 | `main.swift` | 19 | Entry point, NSApplication setup |
-| `AppDelegate.swift` | 338 | Menu bar status item, NWPathMonitor, window coordination |
-| `SettingsWindowController.swift` | 133 | Dock visibility + launch at login |
-| `NetworkDetailWindowController.swift` | 675 | Split-view: interfaces, WiFi, routing, DNS, public IP |
-| `NetworkQualityWindowController.swift` | 531 | Latency/jitter/packet-loss graph (ICMP ping) |
-| `SpeedTestWindowController.swift` | 904 | Download/upload speed test + history + geolocation |
+| `AppDelegate.swift` | 838 | Dual-mode (menubar/app), NWPathMonitor, NSMenuDelegate, window coordination, VPN detection, notifications, uptime tracking, global shortcuts, appearance |
+| `MainWindowController.swift` | 258 | App mode home window with card grid, Geek Mode filtering |
+| `SettingsWindowController.swift` | 303 | App mode, login item, notifications, menu bar latency, appearance (System/Light/Dark), Geek Mode toggle |
+| `GuideWindowController.swift` | 237 | Documentation: app overview, network concepts, optimization tips, keyboard shortcuts |
+| `TeletravailWindowController.swift` | 686 | Remote work diagnostic (latency, jitter, loss, speed, DNS, VPN) |
+| `NetworkDetailWindowController.swift` | 751 | Split-view: interfaces, WiFi, routing, DNS, public IP |
+| `NetworkQualityWindowController.swift` | 709 | Latency/jitter/packet-loss graph (ICMP ping) |
+| `SpeedTestWindowController.swift` | 952 | Download/upload speed test + history + geolocation |
 | `DNSWindowController.swift` | 957 | DNS queries (all record types) + latency benchmarks |
 | `TracerouteWindowController.swift` | 707 | Visual traceroute with MapKit |
-| `WiFiWindowController.swift` | 514 | WiFi details + live RSSI graph |
+| `WiFiWindowController.swift` | 674 | WiFi details + live RSSI graph |
 | `NeighborhoodWindowController.swift` | 1327 | LAN device scanner + port scan + device detail |
 
 ## Frameworks & System APIs
@@ -64,6 +67,7 @@ These rules **must** be followed for every change:
 | CoreLocation | GPS location |
 | MapKit | Traceroute map |
 | ServiceManagement | SMAppService (login item) |
+| UserNotifications | Connection change alerts |
 | dnssd | DNSServiceQueryRecord |
 
 **Native sockets:**
@@ -88,7 +92,12 @@ These rules **must** be followed for every change:
 All via UserDefaults (sandbox-compatible):
 
 - **Speed test history:** Key `SpeedTestHistory`, JSON-encoded, max 50 entries
-- **Dock visibility:** Key `ShowInDock`
+- **App mode:** Key `AppMode`, string (`"menubar"` or `"app"`)
+- **Geek Mode:** Key `GeekMode`, bool — shows/hides technical tools
+- **Notify connection changes:** Key `NotifyConnectionChange`, bool
+- **Menu bar latency:** Key `MenuBarShowLatency`, bool — live ping in status item
+- **Appearance:** Key `AppAppearance`, string (`"system"`, `"light"`, `"dark"`) — app theme
+- **Connection events:** Key `ConnectionEvents`, JSON-encoded, max 500 entries (uptime tracking)
 - **Login item:** Managed by SMAppService (system-level)
 
 Path: `~/Library/Containers/com.SmartColibri.MonReseau/Data/Library/Preferences/com.SmartColibri.MonReseau.plist`
@@ -99,32 +108,36 @@ Path: `~/Library/Containers/com.SmartColibri.MonReseau/Data/Library/Preferences/
 - **RSSIGraphView** — WiFi signal strength graph (Core Graphics, 120 data points)
 - **SpeedTestAnimationView** — Wave/particle animation (CVDisplayLink, 60 fps)
 
+## Implemented Features (from ideas)
+
+- **Notifications** — Connection change alerts via UserNotifications (configurable in Settings)
+- **VPN Detection** — Detects utun (IPv4 only), ppp, ipsec interfaces; shown in status menu
+- **Menu Bar Stats** — Live ping latency displayed next to status icon (configurable in Settings)
+- **Keyboard Shortcuts** — Global Ctrl+Option+letter hotkeys for all windows
+- **Connection Uptime Tracker** — Logs connection events, calculates 24h uptime % and disconnection count
+- **Geek Mode** — Toggle to show/hide technical tools (status menu, app menu, main window grid). Option+click on status item to toggle.
+- **Dual Mode** — Menu bar only or full application (Dock + main menu + home window)
+- **Guide / Documentation** — In-app guide with network concepts, optimization tips, keyboard shortcuts
+- **Appearance Setting** — System/Light/Dark theme toggle in Settings, adaptive SpeedTest gradient
+- **Accessibility** — VoiceOver labels on status item, main window cards, NetworkGraphView, RSSIGraphView, RSSIGaugeView
+- **Localization (Phase 1)** — `fr.lproj` + `en.lproj` Localizable.strings for AppDelegate, Settings, MainWindow, Guide (~180 keys). Remaining windows not yet localized.
+
 ## Feature Ideas
 
 Potential additions that respect all constraints (sandbox, no shell, App Store compatible):
 
-1. **Notifications** — UserNotifications alerts when connection drops, quality degrades, or speed test completes. Configurable thresholds in settings.
+1. **Export / Share** — Export speed test history as CSV, copy network details or traceroute results to clipboard, share via NSSharingServicePicker.
 
-2. **Export / Share** — Export speed test history as CSV, copy network details or traceroute results to clipboard, share via NSSharingServicePicker.
+2. **Network Quality History** — Persist latency/jitter/packet-loss data over time (like speed test history). Show trends across hours/days.
 
-3. **Network Quality History** — Persist latency/jitter/packet-loss data over time (like speed test history). Show trends across hours/days.
+3. **Configurable Ping Target** — Let users choose the ping destination (currently hardcoded 8.8.8.8). Useful for monitoring internal servers or specific hosts.
 
-4. **Configurable Ping Target** — Let users choose the ping destination (currently hardcoded 8.8.8.8). Useful for monitoring internal servers or specific hosts.
+4. **IPv6 Support** — Extend traceroute, ping, and neighborhood scanner to support IPv6 networks (ICMPv6 sockets, IPv6 neighbor discovery).
 
-5. **IPv6 Support** — Extend traceroute, ping, and neighborhood scanner to support IPv6 networks (ICMPv6 sockets, IPv6 neighbor discovery).
+5. **Bandwidth Monitor** — Track per-interface bytes in/out using `getifaddrs()` counters (already available). Display real-time throughput graph and daily/weekly totals.
 
-6. **Connection Uptime Tracker** — Log connection up/down events with timestamps. Display uptime percentage and outage timeline in a dedicated window.
+6. **Localization Phase 2** — Localize remaining windows (NetworkDetail, NetworkQuality, SpeedTest, Traceroute, DNS, WiFi, Neighborhood, Teletravail).
 
-7. **Bandwidth Monitor** — Track per-interface bytes in/out using `getifaddrs()` counters (already available). Display real-time throughput graph and daily/weekly totals.
+7. **iPad / iPhone version** — Port to iOS/iPadOS.
 
-8. **VPN Detection** — Detect active VPN connections via interface names (utun*) and NWPath properties. Show VPN status in the menu bar and detail window.
 
-9. **Menu Bar Stats** — Show live stats directly in the menu bar text (e.g., current latency, download speed, or RSSI) as a user-configurable option.
-
-10. **Keyboard Shortcuts** — Global hotkeys to open specific windows (traceroute, speed test, etc.) via `NSEvent.addGlobalMonitorForEvents`.
-
-11. **Dark/Light Theme Polish** — Ensure all custom Core Graphics views adapt properly to dark mode using `NSAppearance` checks and semantic colors.
-
-12. **Accessibility** — Add VoiceOver labels to custom views, status items, and interactive elements. Support dynamic type where applicable.
-
-13. **Localization Preparation** — Extract hardcoded French strings to `Localizable.strings` to enable future multi-language support without code changes.

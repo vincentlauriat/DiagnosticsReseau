@@ -1,0 +1,188 @@
+/* Mon Réseau — Localizable.strings (English)
+   Translation from French development language. */
+
+/* =========================
+   AppDelegate — Menus
+   ========================= */
+
+/* Status menu */
+"menu.title" = "Mon Réseau";
+"menu.connected" = "Connected";
+"menu.connected_vpn" = "Connected (VPN active)";
+"menu.disconnected" = "Disconnected";
+"menu.checking" = "Checking…";
+"menu.details" = "Network Details…";
+"menu.quality" = "Network Quality…";
+"menu.speedtest" = "Speed Test…";
+"menu.traceroute" = "Traceroute…";
+"menu.dns" = "DNS…";
+"menu.wifi" = "WiFi…";
+"menu.neighborhood" = "Neighborhood…";
+"menu.teletravail" = "Remote Work…";
+"menu.guide" = "Guide…";
+"menu.settings" = "Settings…";
+"menu.about" = "About…";
+"menu.quit" = "Quit";
+
+/* App menu (mode application) */
+"appmenu.about" = "About Mon Réseau";
+"appmenu.settings" = "Settings…";
+"appmenu.quit" = "Quit Mon Réseau";
+"appmenu.window" = "Window";
+"appmenu.home" = "Home";
+
+/* Notifications */
+"notification.connection_restored.title" = "Connection Restored";
+"notification.connection_restored.body" = "Your network connection is active again.";
+"notification.connection_lost.title" = "Connection Lost";
+"notification.connection_lost.body" = "Your network connection is interrupted.";
+
+/* About panel */
+"about.title" = "About Mon Réseau";
+"about.name" = "Mon Réseau";
+"about.version" = "Version %@ (%@)";
+"about.description" = "Internet connectivity monitoring\nand network quality for macOS.";
+"about.credits" = "Developed by Vincent LAURIAT";
+"about.copyright" = "© %d Vincent LAURIAT. All rights reserved.";
+"about.frameworks" = "Cocoa · Network · SystemConfiguration · CoreWLAN · CoreLocation";
+"about.ok" = "OK";
+
+/* Status item */
+"statusitem.tooltip" = "Mon Réseau";
+"statusitem.accessibility_label" = "Mon Réseau";
+"statusitem.accessibility_help" = "Network connection status";
+
+/* =========================
+   SettingsWindowController
+   ========================= */
+
+"settings.title" = "Mon Réseau — Settings";
+
+"settings.mode.label" = "Display mode:";
+"settings.mode.menubar" = "Menu Bar";
+"settings.mode.app" = "Application";
+"settings.mode.description" = "Menu Bar: the app lives in the menu bar with a status icon.\nApplication: the app appears in the Dock with a home window and a classic menu bar.";
+
+"settings.login.title" = "Launch at Login";
+"settings.login.description" = "The application launches automatically when you log in.";
+"settings.login.error.title" = "Unable to change launch at login";
+"settings.login.error.message" = "The application must be in the Applications folder to enable this option.\n\nError: %@";
+
+"settings.notify.title" = "Notify connection changes";
+"settings.notify.description" = "Receive a notification when the network connection is lost or restored.";
+
+"settings.latency.title" = "Show latency in menu bar";
+"settings.latency.description" = "Displays real-time ping next to the icon (menu bar mode only).";
+
+"settings.appearance.label" = "Appearance:";
+"settings.appearance.system" = "System";
+"settings.appearance.light" = "Light";
+"settings.appearance.dark" = "Dark";
+"settings.appearance.description" = "Choose the app appearance: follow system settings, force light mode, or force dark mode.";
+
+"settings.geek.title" = "Geek Mode";
+"settings.geek.description" = "Shows technical tools in the menu: network details, quality, speed test, traceroute, DNS, WiFi, and neighborhood.";
+
+/* =========================
+   MainWindowController
+   ========================= */
+
+"main.title" = "Mon Réseau";
+"main.checking" = "Checking…";
+
+"main.card.details" = "Network Details";
+"main.card.quality" = "Network Quality";
+"main.card.speedtest" = "Speed Test";
+"main.card.traceroute" = "Traceroute";
+"main.card.dns" = "DNS";
+"main.card.wifi" = "WiFi";
+"main.card.neighborhood" = "Neighborhood";
+"main.card.teletravail" = "Remote Work";
+"main.card.guide" = "Guide";
+"main.card.settings" = "Settings";
+
+/* =========================
+   GuideWindowController
+   ========================= */
+
+"guide.title" = "Mon Réseau — Guide";
+
+"guide.about.title" = "About Mon Réseau";
+"guide.about.intro" = "Mon Réseau is a macOS application that monitors your internet connection and gives you a complete view of your network. It works from the menu bar or as a classic application.";
+"guide.about.features_intro" = "Main features:";
+"guide.about.feature.monitoring" = "Real-time connectivity monitoring";
+"guide.about.feature.details" = "Network details: interfaces, WiFi, routing, DNS, public IP";
+"guide.about.feature.quality" = "Quality test: latency, jitter, and packet loss";
+"guide.about.feature.speed" = "Speed test: download and upload speed";
+"guide.about.feature.traceroute" = "Visual traceroute with geographic map";
+"guide.about.feature.dns" = "Advanced DNS queries and server benchmarks";
+"guide.about.feature.wifi" = "WiFi information and real-time signal";
+"guide.about.feature.neighborhood" = "Network neighborhood scanner (devices and ports)";
+"guide.about.feature.teletravail" = "Remote Work mode: quick connection diagnostic";
+
+"guide.concepts.title" = "Understanding Network Concepts";
+
+"guide.concepts.latency.title" = "Latency (ping)";
+"guide.concepts.latency.text" = "Latency measures the time a small data packet takes to make the round trip between your computer and a remote server. It is expressed in milliseconds (ms). Latency below 20 ms is excellent, between 20 and 50 ms is good, and above 100 ms you may notice slowdowns in video calls or online games.";
+
+"guide.concepts.jitter.title" = "Jitter";
+"guide.concepts.jitter.text" = "Jitter represents the variation of latency over time. Even with a good average latency, high jitter means packets arrive irregularly. This degrades the quality of audio and video calls. A jitter below 5 ms is ideal.";
+
+"guide.concepts.loss.title" = "Packet Loss";
+"guide.concepts.loss.text" = "When some data packets never reach their destination, it is called packet loss. Even 1% loss can affect the quality of a video call. A healthy connection has 0% loss. Frequent losses indicate a network problem (unstable WiFi, faulty cable, congestion).";
+
+"guide.concepts.speed.title" = "Throughput (speed)";
+"guide.concepts.speed.text" = "Throughput measures the amount of data transferred per second. It distinguishes between download (downstream) and upload (upstream) speed. It is expressed in Mbps (megabits per second). For remote work, a minimum of 10 Mbps download and 5 Mbps upload is recommended. 4K streaming requires about 25 Mbps.";
+
+"guide.concepts.dns.title" = "DNS (Domain Name System)";
+"guide.concepts.dns.text" = "DNS is the internet's phone book: it translates domain names (like google.com) into IP addresses. A slow DNS server slows down the loading of every new web page. Mon Réseau lets you compare the speed of different DNS servers and perform advanced queries.";
+
+"guide.concepts.traceroute.title" = "Traceroute";
+"guide.concepts.traceroute.text" = "Traceroute traces the path your data takes to reach a server. Each step (\"hop\") is an intermediate router. This helps identify where a slowdown or break occurs along the network path.";
+
+"guide.concepts.rssi.title" = "RSSI (WiFi signal)";
+"guide.concepts.rssi.text" = "RSSI (Received Signal Strength Indicator) measures WiFi signal strength in dBm. Values are negative: -30 dBm is an excellent signal, -67 dBm is decent, and below -80 dBm the connection becomes unstable. Distance from the router, walls, and interference reduce the signal.";
+
+"guide.concepts.nat.title" = "NAT and Public/Private IP";
+"guide.concepts.nat.text" = "Your internet router assigns private IP addresses (192.168.x.x) to your devices and uses NAT (Network Address Translation) to make them communicate with the internet via a single public IP address. Knowing your public IP is useful for troubleshooting or remote access.";
+
+"guide.concepts.ipv.title" = "IPv4 and IPv6";
+"guide.concepts.ipv.text" = "IPv4 uses 32-bit addresses (e.g., 192.168.1.1). Facing address shortage, IPv6 was created with 128-bit addresses (e.g., 2001:db8::1). More and more providers are enabling IPv6, which improves performance and simplifies routing.";
+
+"guide.tips.title" = "Tips to Optimize Your Connection";
+
+"guide.tips.router.title" = "WiFi Router Placement";
+"guide.tips.router.text" = "Place your router in a central, elevated position, away from thick walls, mirrors, and electronic devices (microwaves, baby monitors). Avoid placing it in a closet or on the floor.";
+
+"guide.tips.ethernet.title" = "Prefer Ethernet Cable";
+"guide.tips.ethernet.text" = "For remote work, video calls, or gaming, an Ethernet cable offers a more stable and faster connection than WiFi. A Cat 6 cable easily supports 1 Gbps over 50 meters.";
+
+"guide.tips.channel.title" = "Choose the Right WiFi Channel";
+"guide.tips.channel.text" = "If your neighbors use the same WiFi channel, interference slows everyone down. Use the 5 GHz band (less crowded, faster but shorter range) or identify a less-used 2.4 GHz channel. Channels 1, 6, and 11 are the only non-overlapping channels in 2.4 GHz.";
+
+"guide.tips.dns.title" = "Use a Fast DNS";
+"guide.tips.dns.text" = "Replace your ISP's DNS with a fast and reliable DNS:";
+"guide.tips.dns.cloudflare" = "Cloudflare: 1.1.1.1 — fast and privacy-friendly";
+"guide.tips.dns.google" = "Google: 8.8.8.8 — reliable and widely used";
+"guide.tips.dns.quad9" = "Quad9: 9.9.9.9 — filters malicious domains";
+"guide.tips.dns.outro" = "Use Mon Réseau's DNS tool to compare their speed from your network.";
+
+"guide.tips.reboot.title" = "Regularly Restart Your Router";
+"guide.tips.reboot.text" = "A weekly restart of your router can resolve slowdowns caused by memory saturation or accumulated connections. Unplug, wait 30 seconds, then plug back in.";
+
+"guide.tips.bandwidth.title" = "Limit Bandwidth-Heavy Usage";
+"guide.tips.bandwidth.text" = "Automatic updates, cloud sync, and background streaming consume bandwidth. During an important video call, pause heavy downloads. Enable QoS (Quality of Service) on your router if available to prioritize critical traffic.";
+
+"guide.tips.install.title" = "Check Your Setup";
+"guide.tips.install.text" = "A damaged Ethernet cable, missing ADSL filter, poor-quality splitter, or old router can limit your speed. If your speed tests are well below your plan, contact your provider.";
+
+"guide.shortcuts.title" = "Keyboard Shortcuts";
+"guide.shortcuts.intro" = "In menu bar mode, global shortcuts use Ctrl+Option+letter. In application mode, use Cmd+letter in the menus.";
+
+/* Accessibility */
+"accessibility.graph.quality" = "Network quality graph";
+"accessibility.graph.quality.empty" = "No measurements";
+"accessibility.graph.quality.value" = "Average latency %.0f ms, loss %.0f%%";
+"accessibility.graph.wifi" = "WiFi signal graph";
+"accessibility.graph.wifi.signal" = "Signal %d dBm";
+"accessibility.gauge.wifi" = "WiFi signal strength";

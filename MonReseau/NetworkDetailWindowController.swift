@@ -23,6 +23,8 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
     private var refreshTimer: Timer?
 
     private var sections: [(section: String, icon: String, items: [(String, String)])] = []
+    private var previousByteCounters: [String: (bytesIn: UInt64, bytesOut: UInt64, time: Date)] = [:]
+    private var throughputCache: [String: (inRate: String, outRate: String)] = [:]
 
     convenience init() {
         let window = NSWindow(
@@ -202,7 +204,7 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
 
         let section = sections[row]
         cell.textField?.stringValue = section.section
-        if let img = NSImage(systemSymbolName: section.icon, accessibilityDescription: nil) {
+        if let img = NSImage(systemSymbolName: section.icon, accessibilityDescription: section.section) {
             cell.imageView?.image = img
             cell.imageView?.contentTintColor = .controlAccentColor
         }
@@ -268,10 +270,51 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
 
     // MARK: - Gather Network Info
 
+    /// Lit les compteurs d'octets par interface via getifaddrs (AF_LINK / sockaddr_dl).
+    private func updateByteCounters() {
+        var ifaddr: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&ifaddr) == 0, let firstAddr = ifaddr else { return }
+        defer { freeifaddrs(ifaddr) }
+
+        let now = Date()
+        var cursor: UnsafeMutablePointer<ifaddrs>? = firstAddr
+        while let addr = cursor {
+            let name = String(cString: addr.pointee.ifa_name)
+            if let data = addr.pointee.ifa_data, addr.pointee.ifa_addr?.pointee.sa_family == UInt8(AF_LINK) {
+                let ifData = data.assumingMemoryBound(to: if_data.self).pointee
+                let bytesIn = UInt64(ifData.ifi_ibytes)
+                let bytesOut = UInt64(ifData.ifi_obytes)
+
+                if let prev = previousByteCounters[name] {
+                    let dt = now.timeIntervalSince(prev.time)
+                    if dt > 0 {
+                        let inRate = Double(bytesIn &- prev.bytesIn) / dt
+                        let outRate = Double(bytesOut &- prev.bytesOut) / dt
+                        throughputCache[name] = (formatRate(inRate), formatRate(outRate))
+                    }
+                }
+                previousByteCounters[name] = (bytesIn, bytesOut, now)
+            }
+            cursor = addr.pointee.ifa_next
+        }
+    }
+
+    private func formatRate(_ bytesPerSec: Double) -> String {
+        if bytesPerSec >= 1_000_000 {
+            return String(format: "%.1f Mo/s", bytesPerSec / 1_000_000)
+        } else if bytesPerSec >= 1_000 {
+            return String(format: "%.1f Ko/s", bytesPerSec / 1_000)
+        } else {
+            return String(format: "%.0f o/s", bytesPerSec)
+        }
+    }
+
     private func gatherNetworkInfo() -> [(section: String, icon: String, items: [(String, String)])] {
         var result: [(section: String, icon: String, items: [(String, String)])] = []
 
         result.append((section: "État de la connexion", icon: "network", items: getConnectionStatus()))
+
+        updateByteCounters()
 
         let interfaces = getNetworkInterfaces()
         let grouped = Dictionary(grouping: interfaces, by: { $0.name })
@@ -309,6 +352,11 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
                 if let netmask = iface.netmask {
                     items.append(("Masque", netmask))
                 }
+            }
+
+            if let tp = throughputCache[name] {
+                items.append(("Débit entrant", tp.inRate))
+                items.append(("Débit sortant", tp.outRate))
             }
 
             let icon: String
@@ -373,7 +421,35 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
             items.append(("Supporte IPv6", path.supportsIPv6 ? "Oui" : "Non"))
         }
 
+        // Uptime (24h)
+        let uptime = UptimeTracker.uptimePercent24h()
+        items.append(("Disponibilité 24h", String(format: "%.1f%%", uptime)))
+        let disconnections = UptimeTracker.disconnectionCount24h()
+        items.append(("Déconnexions 24h", "\(disconnections)"))
+
+        // VPN
+        if detectActiveVPN() {
+            items.append(("VPN", "Actif"))
+        }
+
         return items
+    }
+
+    private func detectActiveVPN() -> Bool {
+        var ifaddr: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&ifaddr) == 0, let firstAddr = ifaddr else { return false }
+        defer { freeifaddrs(ifaddr) }
+
+        var cursor: UnsafeMutablePointer<ifaddrs>? = firstAddr
+        while let addr = cursor {
+            let name = String(cString: addr.pointee.ifa_name)
+            let family = addr.pointee.ifa_addr?.pointee.sa_family
+            if name.hasPrefix("utun") && (family == UInt8(AF_INET) || family == UInt8(AF_INET6)) {
+                return true
+            }
+            cursor = addr.pointee.ifa_next
+        }
+        return false
     }
 
     // MARK: - Network Interfaces

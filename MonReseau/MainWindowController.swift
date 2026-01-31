@@ -11,6 +11,8 @@ class MainWindowController: NSWindowController {
     private var connectionDot: NSView!
     private let monitor = NWPathMonitor()
     private let monitorQueue = DispatchQueue(label: "MainWindowMonitor")
+    private var gridStack: NSStackView!
+    private var allCards: [(view: NSView, isGeek: Bool)] = []
 
     convenience init() {
         let window = NSWindow(
@@ -19,7 +21,7 @@ class MainWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "Mon Réseau"
+        window.title = NSLocalizedString("main.title", comment: "")
         window.center()
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 420, height: 360)
@@ -64,11 +66,11 @@ class MainWindowController: NSWindowController {
             connectionDot.heightAnchor.constraint(equalToConstant: 12),
         ])
 
-        connectionLabel = NSTextField(labelWithString: "Vérification…")
+        connectionLabel = NSTextField(labelWithString: NSLocalizedString("main.checking", comment: ""))
         connectionLabel.font = NSFont.systemFont(ofSize: 13)
         connectionLabel.textColor = .secondaryLabelColor
 
-        let titleLabel = NSTextField(labelWithString: "Mon Réseau")
+        let titleLabel = NSTextField(labelWithString: NSLocalizedString("main.title", comment: ""))
         titleLabel.font = NSFont.systemFont(ofSize: 22, weight: .bold)
 
         headerStack.addArrangedSubview(connectionDot)
@@ -77,61 +79,41 @@ class MainWindowController: NSWindowController {
         stack.addArrangedSubview(titleLabel)
         stack.addArrangedSubview(headerStack)
 
-        // Grille de boutons
-        let items: [(String, String, Selector)] = [
-            ("Détails réseau", "network", #selector(openDetails)),
-            ("Qualité réseau", "chart.bar.fill", #selector(openQuality)),
-            ("Test de débit", "speedometer", #selector(openSpeedTest)),
-            ("Traceroute", "point.topleft.down.to.point.bottomright.curvepath.fill", #selector(openTraceroute)),
-            ("DNS", "magnifyingglass", #selector(openDNS)),
-            ("WiFi", "wifi", #selector(openWiFi)),
-            ("Voisinage", "desktopcomputer", #selector(openNeighborhood)),
+        // Grille de boutons : (titre, icône, action, geek?)
+        let items: [(String, String, Selector, Bool)] = [
+            (NSLocalizedString("main.card.details", comment: ""), "network", #selector(openDetails), true),
+            (NSLocalizedString("main.card.quality", comment: ""), "chart.bar.fill", #selector(openQuality), true),
+            (NSLocalizedString("main.card.speedtest", comment: ""), "speedometer", #selector(openSpeedTest), true),
+            (NSLocalizedString("main.card.traceroute", comment: ""), "point.topleft.down.to.point.bottomright.curvepath.fill", #selector(openTraceroute), true),
+            (NSLocalizedString("main.card.dns", comment: ""), "magnifyingglass", #selector(openDNS), true),
+            (NSLocalizedString("main.card.wifi", comment: ""), "wifi", #selector(openWiFi), true),
+            (NSLocalizedString("main.card.neighborhood", comment: ""), "desktopcomputer", #selector(openNeighborhood), true),
+            (NSLocalizedString("main.card.teletravail", comment: ""), "person.and.arrow.left.and.arrow.right", #selector(openTeletravail), false),
+            (NSLocalizedString("main.card.guide", comment: ""), "book.fill", #selector(openGuide), false),
+            (NSLocalizedString("main.card.settings", comment: ""), "gearshape.fill", #selector(openSettings), false),
         ]
 
         // 2 colonnes
-        let gridStack = NSStackView()
+        gridStack = NSStackView()
         gridStack.orientation = .vertical
         gridStack.spacing = 12
         gridStack.translatesAutoresizingMaskIntoConstraints = false
 
-        var row: NSStackView?
-        for (i, item) in items.enumerated() {
-            if i % 2 == 0 {
-                row = NSStackView()
-                row!.orientation = .horizontal
-                row!.spacing = 12
-                row!.distribution = .fillEqually
-                gridStack.addArrangedSubview(row!)
-                row!.translatesAutoresizingMaskIntoConstraints = false
-                row!.widthAnchor.constraint(equalTo: gridStack.widthAnchor).isActive = true
-            }
-            let card = makeCard(title: item.0, symbolName: item.1, action: item.2)
-            row?.addArrangedSubview(card)
-        }
-
-        // Si nombre impair, ajouter un espace vide
-        if items.count % 2 != 0 {
-            let spacer = NSView()
-            spacer.translatesAutoresizingMaskIntoConstraints = false
-            row?.addArrangedSubview(spacer)
-        }
+        allCards = items.map { (makeCard(title: $0.0, symbolName: $0.1, action: $0.2), $0.3) }
 
         stack.addArrangedSubview(gridStack)
         gridStack.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
+
+        NotificationCenter.default.addObserver(self, selector: #selector(updateGeekModeGrid), name: Notification.Name("GeekModeChanged"), object: nil)
+        updateGeekModeGrid()
     }
 
     private func makeCard(title: String, symbolName: String, action: Selector) -> NSView {
-        let button = NSButton()
-        button.title = ""
-        button.bezelStyle = .rounded
-        button.isBordered = false
-        button.wantsLayer = true
-        button.layer?.cornerRadius = 10
-        button.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
-        button.layer?.borderWidth = 1
-        button.layer?.borderColor = NSColor.separatorColor.cgColor
+        let button = ThemedCardButton()
         button.target = self
         button.action = action
+        button.setAccessibilityLabel(title)
+        button.setAccessibilityRole(.button)
         button.translatesAutoresizingMaskIntoConstraints = false
 
         let cardStack = NSStackView()
@@ -181,6 +163,50 @@ class MainWindowController: NSWindowController {
         return button
     }
 
+    @objc private func updateGeekModeGrid() {
+        let geekMode = UserDefaults.standard.bool(forKey: "GeekMode")
+        let visibleCards = allCards.filter { !$0.isGeek || geekMode }.map(\.view)
+
+        // Retirer les anciennes lignes
+        for view in gridStack.arrangedSubviews {
+            gridStack.removeArrangedSubview(view)
+            view.removeFromSuperview()
+        }
+
+        // Reconstruire en lignes de 2
+        var row: NSStackView?
+        for (i, card) in visibleCards.enumerated() {
+            if i % 2 == 0 {
+                row = NSStackView()
+                row!.orientation = .horizontal
+                row!.spacing = 12
+                row!.distribution = .fillEqually
+                gridStack.addArrangedSubview(row!)
+                row!.translatesAutoresizingMaskIntoConstraints = false
+                row!.widthAnchor.constraint(equalTo: gridStack.widthAnchor).isActive = true
+            }
+            row?.addArrangedSubview(card)
+        }
+        if visibleCards.count % 2 != 0 {
+            let spacer = NSView()
+            spacer.translatesAutoresizingMaskIntoConstraints = false
+            row?.addArrangedSubview(spacer)
+        }
+
+        // Ajuster la taille de la fenêtre au contenu
+        if let window = self.window, let contentView = window.contentView {
+            contentView.layoutSubtreeIfNeeded()
+            let fittingSize = contentView.fittingSize
+            let newHeight = max(fittingSize.height + 20, 200)
+            var frame = window.frame
+            let delta = newHeight - frame.height
+            frame.origin.y -= delta
+            frame.size.height = newHeight
+            frame.size.width = max(frame.size.width, 420)
+            window.setFrame(frame, display: true, animate: true)
+        }
+    }
+
     // MARK: - Monitoring
 
     private func startMonitoring() {
@@ -188,7 +214,7 @@ class MainWindowController: NSWindowController {
             DispatchQueue.main.async {
                 let connected = path.status == .satisfied
                 self?.connectionDot.layer?.backgroundColor = (connected ? NSColor.systemGreen : NSColor.systemRed).cgColor
-                self?.connectionLabel.stringValue = connected ? "Connecté" : "Déconnecté"
+                self?.connectionLabel.stringValue = connected ? NSLocalizedString("menu.connected", comment: "") : NSLocalizedString("menu.disconnected", comment: "")
             }
         }
         monitor.start(queue: monitorQueue)
@@ -207,13 +233,45 @@ class MainWindowController: NSWindowController {
     @objc private func openDNS() { appDelegate?.performShowDNS() }
     @objc private func openWiFi() { appDelegate?.performShowWiFi() }
     @objc private func openNeighborhood() { appDelegate?.performShowNeighborhood() }
+    @objc private func openTeletravail() { appDelegate?.performShowTeletravail() }
+    @objc private func openGuide() { appDelegate?.performShowGuide() }
+    @objc private func openSettings() { appDelegate?.performShowSettings() }
 
     override func close() {
+        NotificationCenter.default.removeObserver(self)
         monitor.cancel()
         super.close()
     }
 
     deinit {
+        NotificationCenter.default.removeObserver(self)
         monitor.cancel()
+    }
+}
+
+// MARK: - Bouton carte adaptatif (apparence)
+
+private class ThemedCardButton: NSButton {
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        title = ""
+        bezelStyle = .rounded
+        isBordered = false
+        wantsLayer = true
+        layer?.cornerRadius = 10
+        layer?.borderWidth = 1
+        applyColors()
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    override func viewDidChangeEffectiveAppearance() {
+        super.viewDidChangeEffectiveAppearance()
+        applyColors()
+    }
+
+    private func applyColors() {
+        layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
+        layer?.borderColor = NSColor.separatorColor.cgColor
     }
 }

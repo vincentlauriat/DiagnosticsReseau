@@ -11,10 +11,27 @@ import CoreWLAN
 class RSSIGraphView: NSView {
 
     var rssiValues: [Int] = [] {
-        didSet { needsDisplay = true }
+        didSet {
+            needsDisplay = true
+            if let last = rssiValues.last {
+                setAccessibilityValue("Signal \(last) dBm")
+            }
+        }
     }
 
     override var isFlipped: Bool { true }
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        setAccessibilityRole(.image)
+        setAccessibilityLabel("Graphique du signal WiFi")
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setAccessibilityRole(.image)
+        setAccessibilityLabel("Graphique du signal WiFi")
+    }
 
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
@@ -239,10 +256,26 @@ class RSSIGraphView: NSView {
 class RSSIGaugeView: NSView {
 
     /// Valeur entre 0 et 100.
-    var value: Double = 0 { didSet { needsDisplay = true } }
+    var value: Double = 0 { didSet { needsDisplay = true; updateAccessibilityValue() } }
 
     /// RSSI brut pour determiner la couleur.
-    var rssi: Int = -100 { didSet { needsDisplay = true } }
+    var rssi: Int = -100 { didSet { needsDisplay = true; updateAccessibilityValue() } }
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        setAccessibilityRole(.levelIndicator)
+        setAccessibilityLabel("Force du signal WiFi")
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setAccessibilityRole(.levelIndicator)
+        setAccessibilityLabel("Force du signal WiFi")
+    }
+
+    private func updateAccessibilityValue() {
+        setAccessibilityValue("\(rssi) dBm, \(Int(value))%")
+    }
 
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)

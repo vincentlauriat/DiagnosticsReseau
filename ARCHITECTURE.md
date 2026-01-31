@@ -1,31 +1,45 @@
-# InternetCheck — Documentation technique
+# Mon Réseau — Documentation technique
 
 ## Vue d'ensemble
 
-InternetCheck est une application macOS de barre de menus qui surveille la connectivite internet et fournit des outils d'analyse reseau. L'application fonctionne sans icone dans le dock (`LSUIElement = true`) et est entierement compatible App Store (aucun appel shell).
+Mon Réseau est une application macOS qui surveille la connectivite internet et fournit des outils d'analyse reseau. Elle supporte deux modes : barre de menus (sans icone Dock) ou application classique (Dock + fenetre d'accueil). Un « Mode Geek » permet d'afficher ou masquer les outils techniques. L'application est entierement compatible App Store (aucun appel shell).
 
 ## Schema d'architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        InternetCheck.app                        │
-│                     (macOS Menu Bar App)                        │
+│                         Mon Réseau.app                          │
+│              (macOS — mode barre de menus ou app)               │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  main.swift ──> AppDelegate                                     │
+│  main.swift ──> AppDelegate (NSMenuDelegate)                    │
 │                    │                                            │
 │                    ├── NWPathMonitor (surveillance connexion)   │
-│                    ├── NSStatusItem (icone barre de menus)      │
+│                    ├── UNUserNotificationCenter (alertes)       │
+│                    ├── UptimeTracker (suivi connexion)          │
+│                    ├── VPN detection (utun/ppp/ipsec)           │
+│                    ├── Global shortcuts (Ctrl+Option+lettre)    │
 │                    │                                            │
-│                    └── Menu ──┬── Details reseau                │
-│                               ├── Qualite reseau                │
-│                               ├── Test de debit                 │
-│                               ├── Traceroute                    │
-│                               ├── DNS                           │
-│                               ├── WiFi                          │
-│                               ├── Voisinage                     │
-│                               ├── A propos                      │
-│                               └── Quitter                       │
+│                    ├── Mode barre de menus :                    │
+│                    │   ├── NSStatusItem (icone vert/rouge)      │
+│                    │   ├── Option+clic = toggle Mode Geek       │
+│                    │   └── Ping latence en temps reel            │
+│                    │                                            │
+│                    ├── Mode application :                       │
+│                    │   ├── MainWindowController (grille)        │
+│                    │   └── NSMenu (barre de menus macOS)        │
+│                    │                                            │
+│                    └── Fenetres ──┬── Details reseau  [geek]    │
+│                                   ├── Qualite reseau  [geek]    │
+│                                   ├── Test de debit   [geek]    │
+│                                   ├── Traceroute      [geek]    │
+│                                   ├── DNS             [geek]    │
+│                                   ├── WiFi            [geek]    │
+│                                   ├── Voisinage       [geek]    │
+│                                   ├── Teletravail               │
+│                                   ├── Guide                     │
+│                                   ├── Reglages                  │
+│                                   └── A propos                  │
 │                                                                 │
 ├─────────────────────────────────────────────────────────────────┤
 │                      Fenetres (NSWindowController)              │
@@ -79,23 +93,29 @@ InternetCheck est une application macOS de barre de menus qui surveille la conne
 │  Cocoa   │ Network  │ SysConf  │ CoreWLAN │ CoreLoc  │  MapKit  │
 │  (AppKit)│ (NWPath) │ (SCDyn)  │ (WiFi)   │ (GPS)    │ (Carte)  │
 ├──────────┴──────────┴──────────┴──────────┴──────────┴──────────┤
-│  Darwin (BSD sockets, ioctl, ICMP)  │  dnssd (DNS Service)      │
-└─────────────────────────────────────┴───────────────────────────┘
+│  UserNotifications  │  ServiceManagement   │  dnssd              │
+├─────────────────────┴──────────────────────┴────────────────────┤
+│  Darwin (BSD sockets, ioctl, ICMP, getifaddrs)                  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ## Fichiers source
 
 | Fichier | Lignes | Description |
 |---------|--------|-------------|
-| `main.swift` | ~10 | Point d'entree, configure NSApplication |
-| `AppDelegate.swift` | ~330 | Barre de menus, surveillance reseau, menu, fenetres |
-| `NetworkDetailWindowController.swift` | ~550 | Details reseau complets (interfaces, WiFi, routage, DNS, IP publique) |
-| `NetworkQualityWindowController.swift` | ~530 | Graphe qualite reseau temps reel (latence, jitter, pertes, moyenne mobile) |
-| `SpeedTestWindowController.swift` | ~900 | Test de debit HTTP avec historique et localisation |
-| `DNSWindowController.swift` | ~960 | Requetes DNS multi-types, test latence serveurs, config systeme |
-| `TracerouteWindowController.swift` | ~580 | Traceroute visuel ICMP avec carte MapKit interactive |
-| `WiFiWindowController.swift` | ~510 | Informations WiFi temps reel avec graphe RSSI |
-| `NeighborhoodWindowController.swift` | ~1300 | Scan voisinage (ARP+ICMP+Bonjour), details machine, scan de ports |
+| `main.swift` | ~19 | Point d'entree, configure NSApplication |
+| `AppDelegate.swift` | ~838 | Double mode (menubar/app), NWPathMonitor, NSMenuDelegate, coordination fenetres, VPN, notifications, uptime, raccourcis globaux, apparence |
+| `MainWindowController.swift` | ~256 | Fenetre d'accueil mode app, grille de cartes avec filtrage Mode Geek |
+| `SettingsWindowController.swift` | ~303 | Mode affichage, login item, notifications, latence barre de menus, apparence (Systeme/Clair/Sombre), Mode Geek |
+| `GuideWindowController.swift` | ~237 | Documentation : presentation app, concepts reseau, astuces optimisation, raccourcis |
+| `TeletravailWindowController.swift` | ~686 | Diagnostic teletravail (latence, jitter, pertes, debit, DNS, VPN) |
+| `NetworkDetailWindowController.swift` | ~751 | Details reseau complets (interfaces, WiFi, routage, DNS, IP publique) |
+| `NetworkQualityWindowController.swift` | ~709 | Graphe qualite reseau temps reel (latence, jitter, pertes, moyenne mobile) |
+| `SpeedTestWindowController.swift` | ~952 | Test de debit HTTP avec historique et localisation |
+| `DNSWindowController.swift` | ~957 | Requetes DNS multi-types, test latence serveurs, config systeme |
+| `TracerouteWindowController.swift` | ~707 | Traceroute visuel ICMP avec carte MapKit interactive |
+| `WiFiWindowController.swift` | ~674 | Informations WiFi temps reel avec graphe RSSI |
+| `NeighborhoodWindowController.swift` | ~1327 | Scan voisinage (ARP+ICMP+Bonjour), details machine, scan de ports |
 
 ## APIs et protocoles reseau
 
@@ -175,9 +195,17 @@ RPM estime : `60000 / max(latence_ms, 5)`
 - **Limite** : 50 entrees maximum
 - **Champs** : date, downloadMbps, uploadMbps, latencyMs, rpm, location, isFallback
 
+### Autres cles UserDefaults
+- `AppMode` : `"menubar"` ou `"app"` — mode d'affichage
+- `GeekMode` : bool — affiche/masque les outils techniques
+- `NotifyConnectionChange` : bool — notifications connexion/deconnexion
+- `MenuBarShowLatency` : bool — ping en temps reel dans la barre de menus
+- `AppAppearance` : `"system"`, `"light"` ou `"dark"` — theme de l'application
+- `ConnectionEvents` : JSON `[ConnectionEvent]`, max 500 — suivi d'uptime
+
 ### Sandbox
 ```
-~/Library/Containers/com.vincent.InternetCheck/Data/Library/Preferences/
+~/Library/Containers/com.SmartColibri.MonReseau/Data/Library/Preferences/
 ```
 
 ## Vues personnalisees (Core Graphics)
@@ -199,15 +227,40 @@ RPM estime : `60000 / max(latence_ms, 5)`
 - Animation de vague/particules pendant le test de debit
 - Pilotee par CVDisplayLink (60 fps)
 
+## Localisation
+
+- **Langues** : francais (langue de developpement), anglais
+- **Fichiers** : `fr.lproj/Localizable.strings`, `en.lproj/Localizable.strings`
+- **Pattern** : `NSLocalizedString("key", comment: "")`
+- **Phase 1 (fait)** : AppDelegate, SettingsWindowController, MainWindowController, GuideWindowController (~180 cles)
+- **Phase 2 (a faire)** : fenetres techniques (NetworkDetail, NetworkQuality, SpeedTest, Traceroute, DNS, WiFi, Neighborhood, Teletravail)
+
+## Accessibilite
+
+- **Status item** : accessibilityLabel, accessibilityHelp, accessibilityValue dynamique (connecte/deconnecte)
+- **MainWindow cartes** : accessibilityLabel(title), accessibilityRole(.button)
+- **NetworkGraphView** : accessibilityRole(.image), accessibilityValue dynamique (latence moyenne, % perte)
+- **RSSIGraphView** : accessibilityRole(.image), accessibilityValue dynamique (signal dBm)
+- **RSSIGaugeView** : accessibilityRole(.levelIndicator), accessibilityValue dynamique
+- **SpeedTestAnimationView** : accessibilityElement(false) (decoratif)
+- **NetworkDetailWindowController** : accessibilityDescription sur les icones de section
+
+## Apparence
+
+- **Reglage** : Systeme / Clair / Sombre (NSSegmentedControl dans Settings)
+- **Stockage** : UserDefaults cle `AppAppearance`
+- **Application** : `AppDelegate.applyAppearance()` via `NSApp.appearance`
+- **SpeedTestAnimationView** : gradient adaptatif (clair/sombre via `effectiveAppearance`)
+
 ## Entitlements et permissions
 
 ```xml
-<!-- InternetCheck.entitlements -->
+<!-- MonReseau.entitlements -->
 App Sandbox = YES
 Outgoing Connections (Client) = YES
 
 <!-- Info.plist -->
-LSUIElement = true                    (pas d'icone dock)
+LSUIElement = true                    (mode barre de menus par defaut, bascule via setActivationPolicy)
 NSLocationWhenInUseUsageDescription   (localisation pour tests de debit)
 ```
 
