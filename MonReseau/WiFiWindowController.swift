@@ -38,7 +38,8 @@ class RSSIGraphView: NSView {
         context.setLineWidth(1)
         context.stroke(graphRect)
 
-        guard rssiValues.count > 1 else {
+        let hasRealValues = rssiValues.contains(where: { $0 != WiFiWindowController.noSignalValue })
+        guard rssiValues.count > 1 && hasRealValues else {
             drawCenteredText("En attente de donnees...", in: graphRect, context: context)
             return
         }
@@ -51,17 +52,62 @@ class RSSIGraphView: NSView {
         // Grille
         drawGrid(in: graphRect, minRSSI: minRSSI, maxRSSI: maxRSSI, context: context)
 
+        let noSig = WiFiWindowController.noSignalValue
         let pointSpacing = graphRect.width / CGFloat(max(rssiValues.count - 1, 1))
 
-        // Aire remplie sous la courbe
-        let areaPath = CGMutablePath()
+        // --- Zones grisees pour les points deconnectes ---
+        var disconnectStart: Int? = nil
+        for i in 0...rssiValues.count {
+            let isDisconnected = i < rssiValues.count && rssiValues[i] == noSig
+            if isDisconnected && disconnectStart == nil {
+                disconnectStart = i
+            } else if !isDisconnected, let start = disconnectStart {
+                let x0 = graphRect.minX + CGFloat(start) * pointSpacing - pointSpacing / 2
+                let x1 = graphRect.minX + CGFloat(i - 1) * pointSpacing + pointSpacing / 2
+                let zoneRect = CGRect(
+                    x: max(x0, graphRect.minX),
+                    y: graphRect.minY,
+                    width: min(x1, graphRect.maxX) - max(x0, graphRect.minX),
+                    height: graphRect.height
+                )
+                context.setFillColor(NSColor.systemGray.withAlphaComponent(0.12).cgColor)
+                context.fill(zoneRect)
+
+                // Hachures diagonales
+                context.saveGState()
+                context.clip(to: zoneRect)
+                context.setStrokeColor(NSColor.systemGray.withAlphaComponent(0.18).cgColor)
+                context.setLineWidth(0.5)
+                let step: CGFloat = 8
+                var lx = zoneRect.minX - zoneRect.height
+                while lx < zoneRect.maxX {
+                    context.move(to: CGPoint(x: lx, y: zoneRect.maxY))
+                    context.addLine(to: CGPoint(x: lx + zoneRect.height, y: zoneRect.minY))
+                    lx += step
+                }
+                context.strokePath()
+                context.restoreGState()
+
+                disconnectStart = nil
+            }
+        }
+
+        // --- Aire remplie sous la courbe (segments connectes uniquement) ---
+        var areaPath = CGMutablePath()
         var started = false
 
         for (i, rssi) in rssiValues.enumerated() {
             let x = graphRect.minX + CGFloat(i) * pointSpacing
+            if rssi == noSig {
+                if started {
+                    areaPath.addLine(to: CGPoint(x: graphRect.minX + CGFloat(i - 1) * pointSpacing, y: graphRect.maxY))
+                    areaPath.closeSubpath()
+                    started = false
+                }
+                continue
+            }
             let normalized = (Double(rssi) - minRSSI) / range
             let y = graphRect.maxY - CGFloat(normalized) * (graphRect.height - 20)
-
             if !started {
                 areaPath.move(to: CGPoint(x: x, y: graphRect.maxY))
                 areaPath.addLine(to: CGPoint(x: x, y: y))
@@ -70,24 +116,28 @@ class RSSIGraphView: NSView {
                 areaPath.addLine(to: CGPoint(x: x, y: y))
             }
         }
-        // Fermer vers le bas
-        let lastX = graphRect.minX + CGFloat(rssiValues.count - 1) * pointSpacing
-        areaPath.addLine(to: CGPoint(x: lastX, y: graphRect.maxY))
-        areaPath.closeSubpath()
+        if started {
+            let lastValid = rssiValues.lastIndex(where: { $0 != noSig }) ?? 0
+            areaPath.addLine(to: CGPoint(x: graphRect.minX + CGFloat(lastValid) * pointSpacing, y: graphRect.maxY))
+            areaPath.closeSubpath()
+        }
 
         context.setFillColor(NSColor.systemBlue.withAlphaComponent(0.1).cgColor)
         context.addPath(areaPath)
         context.fillPath()
 
-        // Courbe RSSI
+        // --- Courbe RSSI (interrompue sur les deconnexions) ---
         let linePath = CGMutablePath()
         started = false
 
         for (i, rssi) in rssiValues.enumerated() {
+            if rssi == noSig {
+                started = false
+                continue
+            }
             let x = graphRect.minX + CGFloat(i) * pointSpacing
             let normalized = (Double(rssi) - minRSSI) / range
             let y = graphRect.maxY - CGFloat(normalized) * (graphRect.height - 20)
-
             if !started {
                 linePath.move(to: CGPoint(x: x, y: y))
                 started = true
@@ -101,8 +151,9 @@ class RSSIGraphView: NSView {
         context.addPath(linePath)
         context.strokePath()
 
-        // Points avec couleur selon le niveau
+        // --- Points avec couleur selon le niveau (connectes uniquement) ---
         for (i, rssi) in rssiValues.enumerated() {
+            if rssi == noSig { continue }
             let x = graphRect.minX + CGFloat(i) * pointSpacing
             let normalized = (Double(rssi) - minRSSI) / range
             let y = graphRect.maxY - CGFloat(normalized) * (graphRect.height - 20)
@@ -182,6 +233,49 @@ class RSSIGraphView: NSView {
     }
 }
 
+// MARK: - RSSI Gauge View
+
+/// Barre horizontale coloree selon la force du signal (memes couleurs que le graphe).
+class RSSIGaugeView: NSView {
+
+    /// Valeur entre 0 et 100.
+    var value: Double = 0 { didSet { needsDisplay = true } }
+
+    /// RSSI brut pour determiner la couleur.
+    var rssi: Int = -100 { didSet { needsDisplay = true } }
+
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        guard let context = NSGraphicsContext.current?.cgContext else { return }
+
+        let rect = bounds
+
+        // Fond
+        context.setFillColor(NSColor.separatorColor.withAlphaComponent(0.2).cgColor)
+        let bgPath = CGPath(roundedRect: rect, cornerWidth: rect.height / 2, cornerHeight: rect.height / 2, transform: nil)
+        context.addPath(bgPath)
+        context.fillPath()
+
+        // Barre remplie
+        let fillWidth = max(0, min(rect.width, rect.width * CGFloat(value / 100.0)))
+        guard fillWidth > 0 else { return }
+
+        let fillRect = CGRect(x: rect.origin.x, y: rect.origin.y, width: fillWidth, height: rect.height)
+        let color: NSColor
+        if rssi >= -50 {
+            color = .systemGreen
+        } else if rssi >= -70 {
+            color = .systemOrange
+        } else {
+            color = .systemRed
+        }
+        context.setFillColor(color.cgColor)
+        let fillPath = CGPath(roundedRect: fillRect, cornerWidth: rect.height / 2, cornerHeight: rect.height / 2, transform: nil)
+        context.addPath(fillPath)
+        context.fillPath()
+    }
+}
+
 // MARK: - WiFi Window Controller
 
 class WiFiWindowController: NSWindowController {
@@ -203,7 +297,7 @@ class WiFiWindowController: NSWindowController {
     private var countryLabel: NSTextField!
 
     // Jauge RSSI
-    private var rssiGauge: NSProgressIndicator!
+    private var rssiGaugeView: RSSIGaugeView!
     private var rssiGaugeLabel: NSTextField!
 
     // Graphe
@@ -257,14 +351,9 @@ class WiFiWindowController: NSWindowController {
         gaugeTitle.translatesAutoresizingMaskIntoConstraints = false
         gaugeContainer.addSubview(gaugeTitle)
 
-        rssiGauge = NSProgressIndicator()
-        rssiGauge.style = .bar
-        rssiGauge.isIndeterminate = false
-        rssiGauge.minValue = 0
-        rssiGauge.maxValue = 100
-        rssiGauge.doubleValue = 0
-        rssiGauge.translatesAutoresizingMaskIntoConstraints = false
-        gaugeContainer.addSubview(rssiGauge)
+        rssiGaugeView = RSSIGaugeView()
+        rssiGaugeView.translatesAutoresizingMaskIntoConstraints = false
+        gaugeContainer.addSubview(rssiGaugeView)
 
         rssiGaugeLabel = NSTextField(labelWithString: "— dBm")
         rssiGaugeLabel.font = NSFont.monospacedDigitSystemFont(ofSize: 11, weight: .regular)
@@ -274,10 +363,11 @@ class WiFiWindowController: NSWindowController {
         NSLayoutConstraint.activate([
             gaugeTitle.leadingAnchor.constraint(equalTo: gaugeContainer.leadingAnchor),
             gaugeTitle.centerYAnchor.constraint(equalTo: gaugeContainer.centerYAnchor),
-            rssiGauge.leadingAnchor.constraint(equalTo: gaugeTitle.trailingAnchor, constant: 8),
-            rssiGauge.centerYAnchor.constraint(equalTo: gaugeContainer.centerYAnchor),
-            rssiGauge.widthAnchor.constraint(greaterThanOrEqualToConstant: 200),
-            rssiGaugeLabel.leadingAnchor.constraint(equalTo: rssiGauge.trailingAnchor, constant: 8),
+            rssiGaugeView.leadingAnchor.constraint(equalTo: gaugeTitle.trailingAnchor, constant: 8),
+            rssiGaugeView.centerYAnchor.constraint(equalTo: gaugeContainer.centerYAnchor),
+            rssiGaugeView.heightAnchor.constraint(equalToConstant: 12),
+            rssiGaugeView.widthAnchor.constraint(greaterThanOrEqualToConstant: 200),
+            rssiGaugeLabel.leadingAnchor.constraint(equalTo: rssiGaugeView.trailingAnchor, constant: 8),
             rssiGaugeLabel.trailingAnchor.constraint(equalTo: gaugeContainer.trailingAnchor),
             rssiGaugeLabel.centerYAnchor.constraint(equalTo: gaugeContainer.centerYAnchor),
             gaugeContainer.heightAnchor.constraint(equalToConstant: 20),
@@ -393,6 +483,17 @@ class WiFiWindowController: NSWindowController {
         return grid
     }
 
+    /// Valeur sentinelle indiquant "pas de signal" dans l'historique.
+    static let noSignalValue = Int.min
+
+    private func appendDisconnectedPoint() {
+        rssiHistory.append(WiFiWindowController.noSignalValue)
+        if rssiHistory.count > maxPoints {
+            rssiHistory.removeFirst(rssiHistory.count - maxPoints)
+        }
+        graphView.rssiValues = rssiHistory
+    }
+
     // MARK: - Rafraichissement
 
     private func startAutoRefresh() {
@@ -415,14 +516,37 @@ class WiFiWindowController: NSWindowController {
             txRateLabel.stringValue = "—"
             modeLabel.stringValue = "—"
             countryLabel.stringValue = "—"
-            rssiGauge.doubleValue = 0
+            rssiGaugeView.value = 0
+            rssiGaugeView.rssi = -100
             rssiGaugeLabel.stringValue = "— dBm"
+            appendDisconnectedPoint()
             window?.title = "Mon Réseau — WiFi (deconnecte)"
             return
         }
 
-        // SSID
-        let ssid = client.ssid() ?? "Inconnu"
+        // Verifier que le WiFi est associe a un reseau
+        let ssid = client.ssid()
+        guard let ssid = ssid, !ssid.isEmpty else {
+            ssidLabel.stringValue = "Non connecte"
+            bssidLabel.stringValue = "—"
+            securityLabel.stringValue = "—"
+            rssiLabel.stringValue = "—"
+            noiseLabel.stringValue = "—"
+            snrLabel.stringValue = "—"
+            channelLabel.stringValue = "—"
+            bandLabel.stringValue = "—"
+            widthLabel.stringValue = "—"
+            txRateLabel.stringValue = "—"
+            modeLabel.stringValue = "—"
+            countryLabel.stringValue = "—"
+            rssiGaugeView.value = 0
+            rssiGaugeView.rssi = -100
+            rssiGaugeLabel.stringValue = "— dBm"
+            appendDisconnectedPoint()
+            window?.title = "Mon Réseau — WiFi (deconnecte)"
+            return
+        }
+
         ssidLabel.stringValue = ssid
         window?.title = "Mon Réseau — WiFi — \(ssid)"
 
@@ -457,7 +581,8 @@ class WiFiWindowController: NSWindowController {
 
         // Jauge RSSI : mapper -100..-20 vers 0..100
         let gaugeValue = max(0, min(100, Double(rssi + 100) * (100.0 / 80.0)))
-        rssiGauge.doubleValue = gaugeValue
+        rssiGaugeView.value = gaugeValue
+        rssiGaugeView.rssi = rssi
         rssiGaugeLabel.stringValue = "\(rssi) dBm"
 
         // Canal
@@ -494,12 +619,14 @@ class WiFiWindowController: NSWindowController {
         // Code pays
         countryLabel.stringValue = client.countryCode() ?? "—"
 
-        // Historique RSSI pour le graphe
-        rssiHistory.append(rssi)
-        if rssiHistory.count > maxPoints {
-            rssiHistory.removeFirst(rssiHistory.count - maxPoints)
+        // Historique RSSI pour le graphe (ignorer les valeurs incoherentes)
+        if rssi < 0 && rssi >= -100 {
+            rssiHistory.append(rssi)
+            if rssiHistory.count > maxPoints {
+                rssiHistory.removeFirst(rssiHistory.count - maxPoints)
+            }
+            graphView.rssiValues = rssiHistory
         }
-        graphView.rssiValues = rssiHistory
     }
 
     override func close() {
