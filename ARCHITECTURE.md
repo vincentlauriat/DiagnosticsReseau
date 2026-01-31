@@ -9,15 +9,15 @@ InternetCheck est une application macOS de barre de menus qui surveille la conne
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        InternetCheck.app                        │
-│                     (macOS Menu Bar App)                         │
+│                     (macOS Menu Bar App)                        │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  main.swift ──> AppDelegate                                     │
 │                    │                                            │
-│                    ├── NWPathMonitor (surveillance connexion)    │
-│                    ├── NSStatusItem (icone barre de menus)       │
+│                    ├── NWPathMonitor (surveillance connexion)   │
+│                    ├── NSStatusItem (icone barre de menus)      │
 │                    │                                            │
-│                    └── Menu ──┬── Details reseau                 │
+│                    └── Menu ──┬── Details reseau                │
 │                               ├── Qualite reseau                │
 │                               ├── Test de debit                 │
 │                               ├── Traceroute                    │
@@ -34,44 +34,44 @@ InternetCheck est une application macOS de barre de menus qui surveille la conne
 │  NetworkDetail │  NetworkQuality│  SpeedTest                    │
 │  WindowCtrl    │  WindowCtrl    │  WindowCtrl                   │
 │                │                │                               │
-│  ┌──────────┐  │  ┌──────────┐  │  ┌──────────────────┐        │
-│  │ ifaddrs  │  │  │ ICMP     │  │  │ HTTP (Cloudflare)│        │
-│  │ CoreWLAN │  │  │ Socket   │  │  │ Download/Upload  │        │
-│  │ ioctl    │  │  │ (ping)   │  │  │ HEAD latence     │        │
-│  │ SCDynamic│  │  └──────────┘  │  ├──────────────────┤        │
-│  │ ipify.org│  │                │  │ LocationService  │        │
-│  └──────────┘  │  NetworkGraph  │  │ (CoreLocation +  │        │
-│                │  View (CG)     │  │  ipapi.co)       │        │
-│                │                │  ├──────────────────┤        │
-│                │                │  │ HistoryStorage   │        │
-│                │                │  │ (UserDefaults)   │        │
-│                │                │  ├──────────────────┤        │
-│                │                │  │ AnimationView    │        │
-│                │                │  │ (CVDisplayLink)  │        │
-│                │                │  └──────────────────┘        │
+│  ┌──────────┐  │  ┌──────────┐  │  ┌──────────────────┐         │
+│  │ ifaddrs  │  │  │ ICMP     │  │  │ HTTP (Cloudflare)│         │
+│  │ CoreWLAN │  │  │ Socket   │  │  │ Download/Upload  │         │
+│  │ ioctl    │  │  │ (ping)   │  │  │ HEAD latence     │         │
+│  │ SCDynamic│  │  └──────────┘  │  ├──────────────────┤         │
+│  │ ipify.org│  │                │  │ LocationService  │         │
+│  └──────────┘  │  NetworkGraph  │  │ (CoreLocation +  │         │
+│                │  View (CG)     │  │  ipapi.co)       │         │
+│                │                │  ├──────────────────┤         │
+│                │                │  │ HistoryStorage   │         │
+│                │                │  │ (UserDefaults)   │         │
+│                │                │  ├──────────────────┤         │
+│                │                │  │ AnimationView    │         │
+│                │                │  │ (CVDisplayLink)  │         │
+│                │                │  └──────────────────┘         │
 │                │                │                               │
 ├────────────────┼────────────────┼───────────────────────────────┤
 │                │                │                               │
-│  Traceroute    │  DNS           │  WiFi           │ Neighborhood  │
-│  WindowCtrl    │  WindowCtrl    │  WindowCtrl     │ WindowCtrl    │
-│                │                │                 │               │
+│  Traceroute    │  DNS           │  WiFi          │ Neighborhood │
+│  WindowCtrl    │  WindowCtrl    │  WindowCtrl    │ WindowCtrl   │
+│                │                │                │              │
 │  ┌──────────┐  │  ┌──────────┐  │  ┌──────────┐  │ ┌───────────┐│
 │  │ ICMP +   │  │  │ dnssd    │  │  │ CoreWLAN │  │ │ UDP sweep ││
 │  │ TTL      │  │  │ (system) │  │  │ CWWiFi   │  │ │ (ARP trig)││
 │  │ Socket   │  │  │ UDP raw  │  │  │ Client   │  │ ├───────────┤│
 │  └──────────┘  │  │ (custom) │  │  └──────────┘  │ │ ICMP ping ││
-│  ┌──────────┐  │  └──────────┘  │                 │ │ sweep     ││
-│  │ ipwho.is │  │                │  RSSIGraphView  │ ├───────────┤│
-│  │ (geoloc) │  │                │  (Core Graphics)│ │ ARP table ││
-│  └──────────┘  │                │                 │ │ (sysctl)  ││
-│  ┌──────────┐  │                │                 │ ├───────────┤│
-│  │ MapKit   │  │                │                 │ │ NWBrowser ││
-│  │ (carte)  │  │                │                 │ │ (Bonjour) ││
-│  └──────────┘  │                │                 │ ├───────────┤│
-│                │                │                 │ │ OUI table ││
-│                │                │                 │ │ Port scan ││
-│                │                │                 │ └───────────┘│
-└────────────────┴────────────────┴─────────────────┴─────────────┘
+│  ┌──────────┐  │  └──────────┘  │                │ │ sweep     ││
+│  │ ipwho.is │  │                │  RSSIGraphView │ ├───────────┤│
+│  │ (geoloc) │  │                │  Core Graphics │ │ ARP table ││
+│  └──────────┘  │                │                │ │ (sysctl)  ││
+│  ┌──────────┐  │                │                │ ├───────────┤│
+│  │ MapKit   │  │                │                │ │ NWBrowser ││
+│  │ (carte)  │  │                │                │ │ (Bonjour) ││
+│  └──────────┘  │                │                │ ├───────────┤│
+│                │                │                │ │ OUI table ││
+│                │                │                │ │ Port scan ││
+│                │                │                │ └───────────┘│
+└────────────────┴────────────────┴────────────────┴───── ────────┘
 
 ┌─────────────────────────────────────────────────────────────────┐
 │                     Frameworks systeme                          │

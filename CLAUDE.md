@@ -1,69 +1,130 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Instructions for Claude Code when working on this repository.
 
 ## Project Overview
 
-**Mon Réseau** — application macOS de barre de menus (Swift/Cocoa) qui surveille la connectivité internet et la qualité réseau. Tourne comme élément de barre d'état sans icône Dock (`LSUIElement = true`). Toute l'interface est en français. Compatible App Store (aucune commande shell, entièrement sandboxée).
+**Mon Réseau** — macOS menu bar app (Swift/Cocoa) for monitoring internet connectivity and network quality. Runs as a status bar item without Dock icon (`LSUIElement = true`). All UI is in French. Fully App Store compatible (no shell commands, sandboxed).
 
-## Build Commands
+- **Bundle ID:** `com.SmartColibri.MonReseau`
+- **Deployment target:** macOS 13.0+
+- **Dependencies:** None — system frameworks only
+
+## Build & Run
 
 ```bash
-# Build
+# Debug build
 xcodebuild -project MonReseau.xcodeproj -scheme MonReseau -configuration Debug build
 
-# Build release
+# Release build
 xcodebuild -project MonReseau.xcodeproj -scheme MonReseau -configuration Release build
 
-# Run the app (after build)
+# Run (after build)
 open ~/Library/Developer/Xcode/DerivedData/MonReseau-*/Build/Products/Debug/MonReseau.app
 ```
 
-No external dependencies — uses only system frameworks (Network, SystemConfiguration, CoreWLAN, CoreLocation, MapKit, Cocoa, ServiceManagement, dnssd).
+CLI arguments: `--traceroute`, `--speedtest`, `--details`, `--quality`
+
+## Constraints
+
+These rules **must** be followed for every change:
+
+1. **No shell commands** — never use `Process()` or `NSTask`. All functionality via system APIs only.
+2. **App Sandbox** — outgoing network connections allowed, nothing else. No file system access outside container.
+3. **French UI** — all user-facing strings in French.
+4. **No external dependencies** — no SPM, CocoaPods, or Carthage. Only system frameworks.
+5. **Programmatic UI** — no storyboards, no XIBs. All views built in code.
+6. **HTTPS only** — all external URLs must use HTTPS (ATS compliance).
 
 ## Architecture
 
-Ten Swift source files in `MonReseau/`, no storyboards — all UI is built programmatically:
+10 Swift files in `MonReseau/`, ~6,100 LOC total:
 
-- **main.swift** — App entry point, sets up NSApplication with AppDelegate.
-- **AppDelegate.swift** — Manages the menu bar status item and NWPathMonitor for connectivity state. Color-coded icon: green (connected), red (disconnected). Hosts menu with links to all feature windows, settings, and About. Supports command-line arguments (`--traceroute`, `--speedtest`, `--details`, `--quality`).
-- **SettingsWindowController.swift** — Settings window with two options: show/hide Dock icon (`NSApp.setActivationPolicy`) and launch at login (`SMAppService`).
-- **NetworkDetailWindowController.swift** — Split-view window (sidebar + detail pane) showing comprehensive network info: connection status, interfaces (ifaddrs API), WiFi details (CoreWLAN), routing (SCDynamicStore), interface flags/MTU (ioctl), DNS (SystemConfiguration), public IP (ipify.org). Auto-refreshes every 5 seconds.
-- **NetworkQualityWindowController.swift** — Real-time latency/jitter/packet-loss graph with 60-second moving average. Pings 8.8.8.8 every second via native ICMP socket (`SOCK_DGRAM, IPPROTO_ICMP`), keeps 120 data points. Contains `NetworkGraphView` (custom NSView with Core Graphics drawing). Quality ratings: Excellente / Bonne / Moyenne / Mauvaise.
-- **SpeedTestWindowController.swift** — Speed test with history and location tracking. Contains:
-  - `SpeedTestResult` / `SpeedTestHistoryEntry` — Data models (Codable)
-  - `SpeedTestHistoryStorage` — Persists history to UserDefaults (max 50 entries)
-  - `LocationService` — Gets location via CoreLocation (GPS) with fallback to IP geolocation (ipapi.co)
-  - `SpeedTestAnimationView` — Animated waves/particles via CVDisplayLink during test
-  - HTTP-based: download from `speed.cloudflare.com/__down`, upload to `speed.cloudflare.com/__up`, latency via HEAD requests to `one.one.one.one`
-- **DNSWindowController.swift** — DNS query module. Query any record type (A, AAAA, MX, NS, TXT, CNAME, SOA, PTR, ANY, or all at once). Uses `DNSServiceQueryRecord` (dnssd) for system DNS, raw UDP packets for custom DNS servers. Includes DNS latency test across public servers, system DNS config display, and cache flush command clipboard copy.
-- **TracerouteWindowController.swift** — Visual traceroute with MapKit. Native ICMP implementation with TTL manipulation via `setsockopt(IP_TTL)`. 2 queries per hop, max 30 hops. Geolocates hops in real-time via ipwho.is and displays route on an interactive map. Clicking a table row highlights the hop on the map.
-- **WiFiWindowController.swift** — Real-time WiFi information window. Displays SSID, BSSID, security, RSSI, noise, SNR, channel, band, width, TX rate, PHY mode, and country code via CoreWLAN. Includes RSSI signal gauge and live RSSI graph (120 data points, refreshed every 2 seconds). Contains `RSSIGraphView` (custom NSView with Core Graphics).
-- **NeighborhoodWindowController.swift** — Network neighborhood scanner. 3-phase discovery: UDP sweep (ARP solicitation), ICMP ping sweep, ARP table analysis (sysctl). Enriches results with DNS reverse lookup (getnameinfo), Bonjour/mDNS service discovery (NWBrowser), and MAC vendor lookup (OUI table). Double-click opens device detail window with ping x10 stats, TCP port scan (16 common ports), and device type inference. Contains `NetworkDevice` model, `NetworkScanner` service, and `DeviceDetailWindowController`.
+| File | LOC | Role |
+|------|-----|------|
+| `main.swift` | 19 | Entry point, NSApplication setup |
+| `AppDelegate.swift` | 338 | Menu bar status item, NWPathMonitor, window coordination |
+| `SettingsWindowController.swift` | 133 | Dock visibility + launch at login |
+| `NetworkDetailWindowController.swift` | 675 | Split-view: interfaces, WiFi, routing, DNS, public IP |
+| `NetworkQualityWindowController.swift` | 531 | Latency/jitter/packet-loss graph (ICMP ping) |
+| `SpeedTestWindowController.swift` | 904 | Download/upload speed test + history + geolocation |
+| `DNSWindowController.swift` | 957 | DNS queries (all record types) + latency benchmarks |
+| `TracerouteWindowController.swift` | 707 | Visual traceroute with MapKit |
+| `WiFiWindowController.swift` | 514 | WiFi details + live RSSI graph |
+| `NeighborhoodWindowController.swift` | 1327 | LAN device scanner + port scan + device detail |
 
-## Key Implementation Details
+## Frameworks & System APIs
 
-- No shell commands or `Process()` calls — fully App Store compatible
-- Native ICMP sockets: `socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP)` (non-privileged on macOS). Note: macOS returns IP header before ICMP payload on SOCK_DGRAM.
-- ARP table reading via `sysctl(CTL_NET, PF_ROUTE, 0, AF_INET, NET_RT_FLAGS, RTF_LLINFO)` — read-only, sandbox compatible
-- TCP port scanning via non-blocking `connect()` + `poll()`
-- Network info via BSD sockets ioctl (`0xc0206911` for SIOCGIFFLAGS, `0xc0206933` for SIOCGIFMTU)
-- Routing info via `SCDynamicStoreCopyValue` with key `State:/Network/Global/IPv4`
-- DNS queries via `DNSServiceQueryRecord` and raw UDP DNS packets with manual response parsing
-- WiFi info via `CWWiFiClient.shared().interface()` (CoreWLAN)
-- All external URLs use HTTPS (ATS compliant)
-- Geolocation APIs: ipwho.is (traceroute), ipapi.co (speed test location)
-- App Sandbox enabled with outgoing network connections allowed
-- Location permission required for GPS (fallback to IP geolocation if denied)
-- Launch at login via `SMAppService.mainApp` (ServiceManagement framework)
-- Dock visibility toggle via `NSApp.setActivationPolicy(.regular / .accessory)`
-- Deployment target: macOS 13.0+
+| Framework | Usage |
+|-----------|-------|
+| Cocoa (AppKit) | All UI |
+| Network | NWPathMonitor, NWBrowser (Bonjour) |
+| SystemConfiguration | SCDynamicStore (routing, DNS config) |
+| CoreWLAN | WiFi interface info |
+| CoreLocation | GPS location |
+| MapKit | Traceroute map |
+| ServiceManagement | SMAppService (login item) |
+| dnssd | DNSServiceQueryRecord |
+
+**Native sockets:**
+- ICMP: `socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP)` — ping, traceroute
+- UDP: ARP solicitation, raw DNS queries
+- TCP: Non-blocking `connect()` + `poll()` for port scanning
+- ioctl: `SIOCGIFFLAGS` (0xc0206911), `SIOCGIFMTU` (0xc0206933)
+- sysctl: ARP table via `CTL_NET/PF_ROUTE/NET_RT_FLAGS/RTF_LLINFO`
+
+## External APIs
+
+| Service | Purpose | Used in |
+|---------|---------|---------|
+| `speed.cloudflare.com` | Speed test (download/upload) | SpeedTest |
+| `one.one.one.one` | Latency measurement (HEAD) | SpeedTest |
+| `ipify.org` / `api6.ipify.org` | Public IP detection | NetworkDetail |
+| `ipwho.is` | Hop geolocation | Traceroute |
+| `ipapi.co` | IP geolocation fallback | SpeedTest |
 
 ## Data Storage
 
-Speed test history stored in UserDefaults (sandbox-compatible):
-```
-~/Library/Containers/com.SmartColibri.MonReseau/Data/Library/Preferences/com.SmartColibri.MonReseau.plist
-```
+All via UserDefaults (sandbox-compatible):
 
-Max 50 entries, JSON-encoded under key `SpeedTestHistory`.
+- **Speed test history:** Key `SpeedTestHistory`, JSON-encoded, max 50 entries
+- **Dock visibility:** Key `ShowInDock`
+- **Login item:** Managed by SMAppService (system-level)
+
+Path: `~/Library/Containers/com.SmartColibri.MonReseau/Data/Library/Preferences/com.SmartColibri.MonReseau.plist`
+
+## Custom Views
+
+- **NetworkGraphView** — Latency/jitter/packet-loss graph (Core Graphics, 120 data points)
+- **RSSIGraphView** — WiFi signal strength graph (Core Graphics, 120 data points)
+- **SpeedTestAnimationView** — Wave/particle animation (CVDisplayLink, 60 fps)
+
+## Feature Ideas
+
+Potential additions that respect all constraints (sandbox, no shell, App Store compatible):
+
+1. **Notifications** — UserNotifications alerts when connection drops, quality degrades, or speed test completes. Configurable thresholds in settings.
+
+2. **Export / Share** — Export speed test history as CSV, copy network details or traceroute results to clipboard, share via NSSharingServicePicker.
+
+3. **Network Quality History** — Persist latency/jitter/packet-loss data over time (like speed test history). Show trends across hours/days.
+
+4. **Configurable Ping Target** — Let users choose the ping destination (currently hardcoded 8.8.8.8). Useful for monitoring internal servers or specific hosts.
+
+5. **IPv6 Support** — Extend traceroute, ping, and neighborhood scanner to support IPv6 networks (ICMPv6 sockets, IPv6 neighbor discovery).
+
+6. **Connection Uptime Tracker** — Log connection up/down events with timestamps. Display uptime percentage and outage timeline in a dedicated window.
+
+7. **Bandwidth Monitor** — Track per-interface bytes in/out using `getifaddrs()` counters (already available). Display real-time throughput graph and daily/weekly totals.
+
+8. **VPN Detection** — Detect active VPN connections via interface names (utun*) and NWPath properties. Show VPN status in the menu bar and detail window.
+
+9. **Menu Bar Stats** — Show live stats directly in the menu bar text (e.g., current latency, download speed, or RSSI) as a user-configurable option.
+
+10. **Keyboard Shortcuts** — Global hotkeys to open specific windows (traceroute, speed test, etc.) via `NSEvent.addGlobalMonitorForEvents`.
+
+11. **Dark/Light Theme Polish** — Ensure all custom Core Graphics views adapt properly to dark mode using `NSAppearance` checks and semantic colors.
+
+12. **Accessibility** — Add VoiceOver labels to custom views, status items, and interactive elements. Support dynamic type where applicable.
+
+13. **Localization Preparation** — Extract hardcoded French strings to `Localizable.strings` to enable future multi-language support without code changes.
