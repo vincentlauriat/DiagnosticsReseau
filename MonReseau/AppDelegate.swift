@@ -1,5 +1,5 @@
 // AppDelegate.swift
-// Point central de l'application (menu bar app): icône d'état, menu, fenêtres et surveillance de connectivité.
+// Point central de l'application: gere le mode barre de menus et le mode application normale.
 // Utilise NWPathMonitor pour suivre l'état du réseau et met à jour l'icône (vert/rouge).
 
 // Vincent
@@ -9,15 +9,11 @@ import Network
 import ServiceManagement
 // Network pour NWPathMonitor (état connecté/déconnecté)
 
-/// AppDelegate d'une application barre de menus: configure l'icône d'état, le menu et les fenêtres,
-/// et surveille la connectivité avec `NWPathMonitor`.
+/// AppDelegate gerant deux modes : barre de menus (status item) ou application normale (Dock + barre de menus macOS).
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     // Fenêtres et surveillance
-    // - `statusItem`: icône dans la barre de menus
-    // - `monitor`: surveille l'état réseau
-    // - `detailWindowController` / `qualityWindowController` / `speedTestWindowController` / `tracerouteWindowController`: fenêtres secondaires
-    private var statusItem: NSStatusItem!
+    private var statusItem: NSStatusItem?
     private let monitor = NWPathMonitor()
     private let monitorQueue = DispatchQueue(label: "NetworkMonitor")
     private var detailWindowController: NetworkDetailWindowController?
@@ -29,6 +25,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var neighborhoodWindowController: NeighborhoodWindowController?
     private var settingsWindowController: SettingsWindowController?
     private var aboutWindow: NSWindow?
+    private var mainWindowController: MainWindowController?
+
+    /// Mode courant de l'application.
+    private(set) var currentMode: AppMode = .menubar
+
+    /// Dernier etat de connexion connu (pour la barre de menus macOS).
+    private var lastConnected = false
+
+    enum AppMode: String {
+        case menubar
+        case app
+    }
 
     // Icônes pré-générées pour l'état connecté/déconnecté
     private lazy var greenIcon: NSImage = makeStatusIcon(color: .systemGreen)
@@ -46,23 +54,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         return image
     }
 
-    /// Point d'entrée après lancement: prépare le menu, l'icône et démarre la surveillance.
+    /// Point d'entrée après lancement: applique le mode sauvegarde.
     func applicationDidFinishLaunching(_ notification: Notification) {
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        statusItem.button?.toolTip = "Mon Réseau"
-
-        // Pas besoin de forcer l'icone — l'asset catalog s'en charge
-
-        // Appliquer le mode Dock sauvegarde
-        if UserDefaults.standard.bool(forKey: "ShowInDock") {
-            NSApp.setActivationPolicy(.regular)
+        let savedMode = UserDefaults.standard.string(forKey: "AppMode") ?? "menubar"
+        // Migration de l'ancien reglage ShowInDock
+        if UserDefaults.standard.object(forKey: "AppMode") == nil && UserDefaults.standard.bool(forKey: "ShowInDock") {
+            applyMode(.app)
+        } else {
+            applyMode(AppMode(rawValue: savedMode) ?? .menubar)
         }
-
-        setupMenu()
-        updateIcon(isConnected: false)
 
         monitor.pathUpdateHandler = { [weak self] path in
             DispatchQueue.main.async {
+                self?.lastConnected = path.status == .satisfied
                 self?.updateIcon(isConnected: path.status == .satisfied)
             }
         }
@@ -78,6 +82,143 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
+    }
+
+    /// Quand l'utilisateur clique sur l'icone Dock (mode app), ouvrir la fenetre d'accueil.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if currentMode == .app && !flag {
+            showMainWindow()
+        }
+        return true
+    }
+
+    // MARK: - Gestion des modes
+
+    /// Bascule vers le mode indique.
+    func applyMode(_ mode: AppMode) {
+        currentMode = mode
+        UserDefaults.standard.set(mode.rawValue, forKey: "AppMode")
+
+        switch mode {
+        case .menubar:
+            teardownAppMode()
+            setupMenubarMode()
+        case .app:
+            teardownMenubarMode()
+            setupAppMode()
+        }
+    }
+
+    private func setupMenubarMode() {
+        // Passer en mode accessory seulement si on n'y est pas deja (LSUIElement gere le lancement)
+        if NSApp.activationPolicy() != .accessory {
+            NSApp.setActivationPolicy(.accessory)
+            DispatchQueue.main.async {
+                NSApp.activate(ignoringOtherApps: true)
+            }
+        }
+        if statusItem == nil {
+            statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+            statusItem?.button?.toolTip = "Mon Réseau"
+        }
+        setupStatusMenu()
+        updateIcon(isConnected: lastConnected)
+    }
+
+    private func teardownMenubarMode() {
+        if let item = statusItem {
+            NSStatusBar.system.removeStatusItem(item)
+            statusItem = nil
+        }
+    }
+
+    private func setupAppMode() {
+        NSApp.setActivationPolicy(.regular)
+        setupMainMenu()
+        showMainWindow()
+    }
+
+    private func teardownAppMode() {
+        mainWindowController?.close()
+        mainWindowController = nil
+        NSApp.mainMenu = nil
+    }
+
+    private func showMainWindow() {
+        if mainWindowController == nil {
+            mainWindowController = MainWindowController()
+        }
+        mainWindowController?.showWindow(nil)
+        mainWindowController?.window?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    // MARK: - Barre de menus macOS (mode app)
+
+    private func setupMainMenu() {
+        let mainMenu = NSMenu()
+
+        // Menu "Mon Reseau"
+        let appMenuItem = NSMenuItem()
+        let appMenu = NSMenu()
+        appMenu.addItem(NSMenuItem(title: "À propos de Mon Réseau", action: #selector(showAboutPanel), keyEquivalent: ""))
+        appMenu.addItem(NSMenuItem.separator())
+        appMenu.addItem(NSMenuItem(title: "Réglages…", action: #selector(showSettings), keyEquivalent: ","))
+        appMenu.addItem(NSMenuItem.separator())
+        appMenu.addItem(NSMenuItem(title: "Quitter Mon Réseau", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        appMenuItem.submenu = appMenu
+        mainMenu.addItem(appMenuItem)
+
+        // Menu "Fenetre"
+        let windowMenuItem = NSMenuItem()
+        let windowMenu = NSMenu(title: "Fenêtre")
+        windowMenu.addItem(NSMenuItem(title: "Accueil", action: #selector(showMainWindowAction), keyEquivalent: "0"))
+        windowMenu.addItem(NSMenuItem.separator())
+        windowMenu.addItem(NSMenuItem(title: "Détails réseau", action: #selector(showDetails), keyEquivalent: "d"))
+        windowMenu.addItem(NSMenuItem(title: "Qualité réseau", action: #selector(showQuality), keyEquivalent: "g"))
+        windowMenu.addItem(NSMenuItem(title: "Test de débit", action: #selector(showSpeedTest), keyEquivalent: "t"))
+        windowMenu.addItem(NSMenuItem(title: "Traceroute", action: #selector(showTraceroute), keyEquivalent: "r"))
+        windowMenu.addItem(NSMenuItem(title: "DNS", action: #selector(showDNS), keyEquivalent: "n"))
+        windowMenu.addItem(NSMenuItem(title: "WiFi", action: #selector(showWiFi), keyEquivalent: "w"))
+        windowMenu.addItem(NSMenuItem(title: "Voisinage", action: #selector(showNeighborhood), keyEquivalent: "b"))
+        windowMenuItem.submenu = windowMenu
+        mainMenu.addItem(windowMenuItem)
+
+        NSApp.mainMenu = mainMenu
+    }
+
+    @objc private func showMainWindowAction() {
+        showMainWindow()
+    }
+
+    // MARK: - Menu du status item (mode barre de menus)
+
+    private func setupStatusMenu() {
+        let menu = NSMenu()
+        let titleItem = NSMenuItem(title: "Mon Réseau", action: nil, keyEquivalent: "")
+        titleItem.isEnabled = false
+        menu.addItem(titleItem)
+        menu.addItem(NSMenuItem.separator())
+
+        let statusMenuItem = NSMenuItem(title: "Vérification…", action: nil, keyEquivalent: "")
+        statusMenuItem.tag = 1
+        menu.addItem(statusMenuItem)
+
+        menu.addItem(NSMenuItem.separator())
+        menu.addItem(NSMenuItem(title: "Détails réseau…", action: #selector(showDetails), keyEquivalent: "d"))
+        menu.addItem(NSMenuItem(title: "Qualité réseau…", action: #selector(showQuality), keyEquivalent: "g"))
+        menu.addItem(NSMenuItem(title: "Test de débit…", action: #selector(showSpeedTest), keyEquivalent: "t"))
+        menu.addItem(NSMenuItem(title: "Traceroute…", action: #selector(showTraceroute), keyEquivalent: "r"))
+        menu.addItem(NSMenuItem(title: "DNS…", action: #selector(showDNS), keyEquivalent: "n"))
+        menu.addItem(NSMenuItem(title: "WiFi…", action: #selector(showWiFi), keyEquivalent: "w"))
+        menu.addItem(NSMenuItem(title: "Voisinage…", action: #selector(showNeighborhood), keyEquivalent: "b"))
+        menu.addItem(NSMenuItem.separator())
+        menu.addItem(NSMenuItem(title: "Réglages…", action: #selector(showSettings), keyEquivalent: ","))
+        menu.addItem(NSMenuItem(title: "À propos…", action: #selector(showAboutPanel), keyEquivalent: "i"))
+        menu.addItem(NSMenuItem.separator())
+        menu.addItem(NSMenuItem(title: "Quitter", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+
+        statusItem?.menu = menu
     }
 
     /// Analyse les arguments en ligne de commande pour déclencher des actions.
@@ -149,51 +290,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         speedTestWindowController?.startTest()
     }
 
-    /// Construit le menu de la barre de menus (items et raccourcis).
-    private func setupMenu() {
-        let menu = NSMenu()
-        let titleItem = NSMenuItem(title: "Mon Réseau", action: nil, keyEquivalent: "")
-        titleItem.isEnabled = false
-        menu.addItem(titleItem)
-        menu.addItem(NSMenuItem.separator())
+    // MARK: - Actions (accessibles depuis le menu et MainWindowController)
 
-        let statusMenuItem = NSMenuItem(title: "Vérification…", action: nil, keyEquivalent: "")
-        statusMenuItem.tag = 1
-        menu.addItem(statusMenuItem)
-
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Détails réseau…", action: #selector(showDetails), keyEquivalent: "d"))
-        menu.addItem(NSMenuItem(title: "Qualité réseau…", action: #selector(showQuality), keyEquivalent: "g"))
-        menu.addItem(NSMenuItem(title: "Test de débit…", action: #selector(showSpeedTest), keyEquivalent: "t"))
-        menu.addItem(NSMenuItem(title: "Traceroute…", action: #selector(showTraceroute), keyEquivalent: "r"))
-        menu.addItem(NSMenuItem(title: "DNS…", action: #selector(showDNS), keyEquivalent: "n"))
-        menu.addItem(NSMenuItem(title: "WiFi…", action: #selector(showWiFi), keyEquivalent: "w"))
-        menu.addItem(NSMenuItem(title: "Voisinage…", action: #selector(showNeighborhood), keyEquivalent: "b"))
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Réglages…", action: #selector(showSettings), keyEquivalent: ","))
-        menu.addItem(NSMenuItem(title: "À propos…", action: #selector(showAboutPanel), keyEquivalent: "i"))
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Quitter", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
-
-        statusItem.menu = menu
-    }
-
-    /// Affiche la fenêtre correspondante et l'active au premier plan.
     @objc private func showQuality() {
         present(&qualityWindowController) { NetworkQualityWindowController() }
     }
 
-    /// Affiche la fenêtre correspondante et l'active au premier plan.
     @objc private func showSpeedTest() {
         present(&speedTestWindowController) { SpeedTestWindowController() }
     }
 
-    /// Affiche la fenêtre correspondante et l'active au premier plan.
     @objc private func showTraceroute() {
         present(&tracerouteWindowController) { TracerouteWindowController() }
     }
 
-    /// Affiche la fenêtre DNS et l'active au premier plan.
     @objc private func showDNS() {
         present(&dnsWindowController) { DNSWindowController() }
     }
@@ -313,20 +423,28 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         aboutWindow?.close()
     }
 
-    /// Affiche la fenêtre correspondante et l'active au premier plan.
     @objc private func showDetails() {
         present(&detailWindowController) { NetworkDetailWindowController() }
     }
 
     /// Met à jour l'icône d'état (vert si connecté, rouge sinon) et le texte de statut.
-    /// - Parameter isConnected: État de connectivité.
     private func updateIcon(isConnected: Bool) {
-        statusItem.button?.image = isConnected ? greenIcon : redIcon
+        statusItem?.button?.image = isConnected ? greenIcon : redIcon
 
-        if let item = statusItem.menu?.item(withTag: 1) {
+        if let item = statusItem?.menu?.item(withTag: 1) {
             item.title = isConnected ? "Connecté" : "Déconnecté"
         }
     }
+
+    // MARK: - API publique pour MainWindowController
+
+    func performShowDetails() { showDetails() }
+    func performShowQuality() { showQuality() }
+    func performShowSpeedTest() { showSpeedTest() }
+    func performShowTraceroute() { showTraceroute() }
+    func performShowDNS() { showDNS() }
+    func performShowWiFi() { showWiFi() }
+    func performShowNeighborhood() { showNeighborhood() }
 }
 
 extension AppDelegate {

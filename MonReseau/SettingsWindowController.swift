@@ -2,21 +2,21 @@
 // Mon Réseau
 //
 // Fenêtre de réglages proposant deux options :
-//   1. Afficher/masquer l'icône dans le Dock (via NSApp.setActivationPolicy)
+//   1. Mode d'affichage : barre de menus ou application normale
 //   2. Lancer l'app au démarrage de session (via SMAppService.mainApp)
-// Les préférences sont persistées dans UserDefaults (ShowInDock) et le système (Login Item).
+// Les préférences sont persistées dans UserDefaults (AppMode) et le système (Login Item).
 
 import Cocoa
 import ServiceManagement
 
 class SettingsWindowController: NSWindowController {
 
-    private var dockCheckbox: NSButton!
+    private var modePopup: NSPopUpButton!
     private var loginCheckbox: NSButton!
 
     convenience init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 360, height: 200),
+            contentRect: NSRect(x: 0, y: 0, width: 400, height: 220),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -31,21 +31,29 @@ class SettingsWindowController: NSWindowController {
     private func setupUI() {
         guard let contentView = window?.contentView else { return }
 
-        let showInDock = UserDefaults.standard.bool(forKey: "ShowInDock")
+        let appDelegate = NSApp.delegate as? AppDelegate
+        let currentMode = appDelegate?.currentMode ?? .menubar
 
-        // --- Afficher dans le Dock ---
-        dockCheckbox = NSButton(checkboxWithTitle: "Afficher dans le Dock", target: self, action: #selector(dockCheckboxChanged))
-        dockCheckbox.translatesAutoresizingMaskIntoConstraints = false
-        dockCheckbox.state = showInDock ? .on : .off
-        dockCheckbox.font = NSFont.systemFont(ofSize: 13, weight: .medium)
-        contentView.addSubview(dockCheckbox)
+        // --- Mode d'affichage ---
+        let modeLabel = NSTextField(labelWithString: "Mode d'affichage :")
+        modeLabel.font = NSFont.systemFont(ofSize: 13, weight: .medium)
+        modeLabel.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(modeLabel)
 
-        let dockDesc = NSTextField(wrappingLabelWithString: "L'application apparait dans le Dock comme une app classique en plus de la barre de menus.")
-        dockDesc.translatesAutoresizingMaskIntoConstraints = false
-        dockDesc.font = NSFont.systemFont(ofSize: 11)
-        dockDesc.textColor = .secondaryLabelColor
-        dockDesc.isSelectable = false
-        contentView.addSubview(dockDesc)
+        modePopup = NSPopUpButton()
+        modePopup.addItems(withTitles: ["Barre de menus", "Application"])
+        modePopup.translatesAutoresizingMaskIntoConstraints = false
+        modePopup.target = self
+        modePopup.action = #selector(modeChanged)
+        modePopup.selectItem(at: currentMode == .menubar ? 0 : 1)
+        contentView.addSubview(modePopup)
+
+        let modeDesc = NSTextField(wrappingLabelWithString: "Barre de menus : l'app vit dans la barre de menus avec une icône d'état.\nApplication : l'app apparaît dans le Dock avec une fenêtre d'accueil et une barre de menus classique.")
+        modeDesc.translatesAutoresizingMaskIntoConstraints = false
+        modeDesc.font = NSFont.systemFont(ofSize: 11)
+        modeDesc.textColor = .secondaryLabelColor
+        modeDesc.isSelectable = false
+        contentView.addSubview(modeDesc)
 
         // --- Separator ---
         let separator = NSBox()
@@ -71,15 +79,18 @@ class SettingsWindowController: NSWindowController {
         contentView.addSubview(loginDesc)
 
         NSLayoutConstraint.activate([
-            dockCheckbox.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
-            dockCheckbox.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
-            dockCheckbox.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -24),
+            modeLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
+            modeLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
 
-            dockDesc.topAnchor.constraint(equalTo: dockCheckbox.bottomAnchor, constant: 4),
-            dockDesc.leadingAnchor.constraint(equalTo: dockCheckbox.leadingAnchor, constant: 18),
-            dockDesc.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
+            modePopup.centerYAnchor.constraint(equalTo: modeLabel.centerYAnchor),
+            modePopup.leadingAnchor.constraint(equalTo: modeLabel.trailingAnchor, constant: 8),
+            modePopup.widthAnchor.constraint(equalToConstant: 160),
 
-            separator.topAnchor.constraint(equalTo: dockDesc.bottomAnchor, constant: 16),
+            modeDesc.topAnchor.constraint(equalTo: modeLabel.bottomAnchor, constant: 8),
+            modeDesc.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
+            modeDesc.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
+
+            separator.topAnchor.constraint(equalTo: modeDesc.bottomAnchor, constant: 16),
             separator.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             separator.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
 
@@ -94,20 +105,11 @@ class SettingsWindowController: NSWindowController {
         ])
     }
 
-    /// Bascule la politique d'activation de l'app entre .regular (Dock visible) et .accessory (barre de menus seule).
-    @objc private func dockCheckboxChanged(_ sender: NSButton) {
-        let showInDock = sender.state == .on
-        UserDefaults.standard.set(showInDock, forKey: "ShowInDock")
-
-        if showInDock {
-            NSApp.setActivationPolicy(.regular)
-        } else {
-            NSApp.setActivationPolicy(.accessory)
-            // Reactiver l'app pour garder le focus sur la fenetre reglages
-            DispatchQueue.main.async {
-                NSApp.activate(ignoringOtherApps: true)
-            }
-        }
+    /// Bascule le mode d'affichage de l'application.
+    @objc private func modeChanged(_ sender: NSPopUpButton) {
+        guard let appDelegate = NSApp.delegate as? AppDelegate else { return }
+        let mode: AppDelegate.AppMode = sender.indexOfSelectedItem == 0 ? .menubar : .app
+        appDelegate.applyMode(mode)
     }
 
     /// Enregistre ou désenregistre l'app comme Login Item via SMAppService (macOS 13+).
