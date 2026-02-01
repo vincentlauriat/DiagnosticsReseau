@@ -8,6 +8,8 @@ import Cocoa
 import Network
 import ServiceManagement
 import UserNotifications
+import WidgetKit
+import CoreWLAN
 
 /// AppDelegate gerant deux modes : barre de menus (status item) ou application normale (Dock + barre de menus macOS).
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDelegate {
@@ -107,6 +109,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                     }
                 }
                 self.hasReceivedFirstNetworkEvent = true
+                self.updateWidgetData()
             }
         }
         monitor.start(queue: monitorQueue)
@@ -610,6 +613,41 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
             }
         }
         return false
+    }
+
+    // MARK: - Mise a jour du widget
+
+    /// Ecrit les donnees partagees pour le widget via App Group.
+    func updateWidgetData() {
+        // WiFi info
+        let wifiClient = CWWiFiClient.shared()
+        let iface = wifiClient.interface()
+        let ssid = iface?.ssid()
+        let rssi = iface != nil ? iface!.rssiValue() : 0
+
+        // Speed test history
+        let history = SpeedTestHistoryStorage.load()
+        let recentTests = history.prefix(3).map {
+            SpeedTestSummary(date: $0.date, downloadMbps: $0.downloadMbps, uploadMbps: $0.uploadMbps, latencyMs: $0.latencyMs, location: $0.location)
+        }
+        let lastTest = recentTests.first
+
+        let data = WidgetData(
+            isConnected: lastConnected,
+            latencyMs: nil,
+            vpnActive: detectVPN(),
+            wifiSSID: ssid,
+            wifiRSSI: ssid != nil ? rssi : nil,
+            uptimePercent: UptimeTracker.uptimePercent24h(),
+            disconnections24h: UptimeTracker.disconnectionCount24h(),
+            lastSpeedTest: lastTest,
+            recentSpeedTests: Array(recentTests),
+            latencyHistory: [],
+            qualityRating: nil,
+            updatedAt: Date()
+        )
+        saveWidgetData(data)
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     // MARK: - Raccourcis clavier globaux

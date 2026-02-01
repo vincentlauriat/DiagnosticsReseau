@@ -176,6 +176,32 @@
 "guide.tips.install.title" = "Check Your Setup";
 "guide.tips.install.text" = "A damaged Ethernet cable, missing ADSL filter, poor-quality splitter, or old router can limit your speed. If your speed tests are well below your plan, contact your provider.";
 
+/* Guide — Remote Work */
+"guide.teletravail.title" = "Remote Work: Thresholds per Usage";
+"guide.teletravail.intro" = "The Remote Work screen evaluates your connection in real time for each professional use case. Here are the minimum thresholds used:";
+"guide.teletravail.header.usage" = "Usage";
+"guide.teletravail.header.download" = "↓ Mbps";
+"guide.teletravail.header.upload" = "↑ Mbps";
+"guide.teletravail.header.latency" = "Latency";
+"guide.teletravail.header.jitter" = "Jitter";
+"guide.teletravail.header.loss" = "Loss";
+"guide.teletravail.usage.visio" = "Video Conferencing";
+"guide.teletravail.usage.visiohd" = "HD Video + Sharing";
+"guide.teletravail.usage.email" = "Email";
+"guide.teletravail.usage.citrix" = "Citrix / Remote Desktop";
+"guide.teletravail.usage.transfer" = "File Transfer";
+"guide.teletravail.usage.streaming" = "Video Streaming";
+"guide.teletravail.verdicts" = "Verdicts are assigned according to these rules:";
+"guide.teletravail.verdict.excellent" = "Excellent (green): speed ≥ 2× threshold, latency and jitter ≤ 50% of threshold";
+"guide.teletravail.verdict.ok" = "OK (blue): all thresholds met with comfortable margin";
+"guide.teletravail.verdict.degraded" = "Degraded (orange): thresholds met but a metric is within 30% of the limit";
+"guide.teletravail.verdict.insufficient" = "Insufficient (red): at least one threshold is not met";
+"guide.teletravail.indicators.title" = "The Three Indicators";
+"guide.teletravail.indicator.wifi" = "WiFi: signal in dBm. Green ≥ -50, orange ≥ -70, red < -70";
+"guide.teletravail.indicator.latency" = "Latency: ping to 8.8.8.8. Green ≤ 30 ms and jitter ≤ 10 ms, orange ≤ 80 ms and jitter ≤ 30 ms, red beyond";
+"guide.teletravail.indicator.speed" = "Speed: uses last test result. Green ≥ 50 Mbps, blue ≥ 10 Mbps, orange ≥ 5 Mbps, red < 5 Mbps";
+"guide.teletravail.note" = "WiFi and latency indicators are measured continuously (1 measurement/second). Speed comes from the last test run in the Speed Test window. For up-to-date results, run a speed test before your meeting.";
+
 "guide.shortcuts.title" = "Keyboard Shortcuts";
 "guide.shortcuts.intro" = "In menu bar mode, global shortcuts use Ctrl+Option+letter. In application mode, use Cmd+letter in the menus.";
 

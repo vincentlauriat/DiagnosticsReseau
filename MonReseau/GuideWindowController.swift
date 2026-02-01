@@ -146,6 +146,75 @@ class GuideWindowController: NSWindowController {
 
         addSpacer(to: stack)
 
+        // ── Télétravail ──
+        addSectionTitle(NSLocalizedString("guide.teletravail.title", comment: ""), to: stack)
+        addParagraph(NSLocalizedString("guide.teletravail.intro", comment: ""), to: stack)
+
+        // Tableau des seuils par usage
+        let usageGrid = NSGridView(numberOfColumns: 6, rows: 0)
+        usageGrid.translatesAutoresizingMaskIntoConstraints = false
+        usageGrid.columnSpacing = 10
+        usageGrid.rowSpacing = 4
+
+        // En-tetes
+        let headers = [
+            NSLocalizedString("guide.teletravail.header.usage", comment: ""),
+            NSLocalizedString("guide.teletravail.header.download", comment: ""),
+            NSLocalizedString("guide.teletravail.header.upload", comment: ""),
+            NSLocalizedString("guide.teletravail.header.latency", comment: ""),
+            NSLocalizedString("guide.teletravail.header.jitter", comment: ""),
+            NSLocalizedString("guide.teletravail.header.loss", comment: ""),
+        ]
+        let headerViews = headers.map { text -> NSTextField in
+            let l = NSTextField(labelWithString: text)
+            l.font = NSFont.systemFont(ofSize: 11, weight: .semibold)
+            l.textColor = .secondaryLabelColor
+            return l
+        }
+        usageGrid.addRow(with: headerViews)
+
+        // Donnees
+        let usageData: [(String, String, String, String, String, String)] = [
+            (NSLocalizedString("guide.teletravail.usage.visio", comment: ""), "5", "3", "100", "30", "2"),
+            (NSLocalizedString("guide.teletravail.usage.visiohd", comment: ""), "15", "8", "50", "20", "1"),
+            (NSLocalizedString("guide.teletravail.usage.email", comment: ""), "1", "0.5", "300", "100", "5"),
+            (NSLocalizedString("guide.teletravail.usage.citrix", comment: ""), "5", "2", "80", "20", "1"),
+            (NSLocalizedString("guide.teletravail.usage.transfer", comment: ""), "10", "5", "500", "100", "3"),
+            (NSLocalizedString("guide.teletravail.usage.streaming", comment: ""), "25", "1", "200", "50", "2"),
+        ]
+
+        for (name, dl, ul, lat, jit, loss) in usageData {
+            let views = [name, "≥ \(dl)", "≥ \(ul)", "≤ \(lat)", "≤ \(jit)", "≤ \(loss)"].map { text -> NSTextField in
+                let l = NSTextField(labelWithString: text)
+                l.font = NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .regular)
+                return l
+            }
+            views[0].font = NSFont.systemFont(ofSize: 12)
+            usageGrid.addRow(with: views)
+        }
+
+        stack.addArrangedSubview(usageGrid)
+        usageGrid.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -56).isActive = true
+
+        addParagraph(NSLocalizedString("guide.teletravail.verdicts", comment: ""), to: stack)
+        addBulletList([
+            NSLocalizedString("guide.teletravail.verdict.excellent", comment: ""),
+            NSLocalizedString("guide.teletravail.verdict.ok", comment: ""),
+            NSLocalizedString("guide.teletravail.verdict.degraded", comment: ""),
+            NSLocalizedString("guide.teletravail.verdict.insufficient", comment: ""),
+        ], to: stack)
+
+        addSubTitle(NSLocalizedString("guide.teletravail.indicators.title", comment: ""), to: stack)
+        addBulletList([
+            NSLocalizedString("guide.teletravail.indicator.wifi", comment: ""),
+            NSLocalizedString("guide.teletravail.indicator.latency", comment: ""),
+            NSLocalizedString("guide.teletravail.indicator.speed", comment: ""),
+        ], to: stack)
+
+        addParagraph(NSLocalizedString("guide.teletravail.note", comment: ""), to: stack)
+
+        addSpacer(to: stack)
+
         // ── Raccourcis ──
         addSectionTitle(NSLocalizedString("guide.shortcuts.title", comment: ""), to: stack)
         addParagraph(NSLocalizedString("guide.shortcuts.intro", comment: ""), to: stack)
@@ -170,6 +239,8 @@ class GuideWindowController: NSWindowController {
         shortcutGrid.columnSpacing = 16
         shortcutGrid.rowSpacing = 4
         shortcutGrid.column(at: 0).xPlacement = .trailing
+        shortcutGrid.column(at: 0).width = 50
+        shortcutGrid.column(at: 1).xPlacement = .leading
 
         for (key, desc) in shortcuts {
             let keyLabel = NSTextField(labelWithString: "⌘\(key)")
@@ -181,6 +252,7 @@ class GuideWindowController: NSWindowController {
         }
 
         stack.addArrangedSubview(shortcutGrid)
+        shortcutGrid.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -56).isActive = true
     }
 
     // MARK: - Helpers

@@ -176,6 +176,32 @@
 "guide.tips.install.title" = "Vérifier son installation";
 "guide.tips.install.text" = "Un câble Ethernet abîmé, un filtre ADSL manquant, un splitter de mauvaise qualité ou un vieux routeur peuvent limiter votre débit. Si vos tests de débit sont bien inférieurs à votre abonnement, contactez votre fournisseur.";
 
+/* Guide — Télétravail */
+"guide.teletravail.title" = "Télétravail : seuils par usage";
+"guide.teletravail.intro" = "L'écran Télétravail évalue votre connexion en temps réel pour chaque usage professionnel. Voici les seuils minimaux retenus pour chacun :";
+"guide.teletravail.header.usage" = "Usage";
+"guide.teletravail.header.download" = "↓ Mbps";
+"guide.teletravail.header.upload" = "↑ Mbps";
+"guide.teletravail.header.latency" = "Latence";
+"guide.teletravail.header.jitter" = "Jitter";
+"guide.teletravail.header.loss" = "Perte";
+"guide.teletravail.usage.visio" = "Visioconférence";
+"guide.teletravail.usage.visiohd" = "Visio HD + Partage";
+"guide.teletravail.usage.email" = "Email";
+"guide.teletravail.usage.citrix" = "Citrix / Bureau dist.";
+"guide.teletravail.usage.transfer" = "Transfert fichiers";
+"guide.teletravail.usage.streaming" = "Vidéo streaming";
+"guide.teletravail.verdicts" = "Les verdicts sont attribués selon ces règles :";
+"guide.teletravail.verdict.excellent" = "Excellent (vert) : débit ≥ 2× le seuil, latence et jitter ≤ 50% du seuil";
+"guide.teletravail.verdict.ok" = "OK (bleu) : tous les seuils sont respectés avec une marge confortable";
+"guide.teletravail.verdict.degraded" = "Dégradé (orange) : seuils respectés mais une métrique est à moins de 30% de la limite";
+"guide.teletravail.verdict.insufficient" = "Insuffisant (rouge) : au moins un seuil n'est pas atteint";
+"guide.teletravail.indicators.title" = "Les trois indicateurs";
+"guide.teletravail.indicator.wifi" = "WiFi : signal en dBm. Vert ≥ -50, orange ≥ -70, rouge < -70";
+"guide.teletravail.indicator.latency" = "Latence : ping vers 8.8.8.8. Vert ≤ 30 ms et jitter ≤ 10 ms, orange ≤ 80 ms et jitter ≤ 30 ms, rouge au-delà";
+"guide.teletravail.indicator.speed" = "Débit : utilise le dernier test effectué. Vert ≥ 50 Mbps, bleu ≥ 10 Mbps, orange ≥ 5 Mbps, rouge < 5 Mbps";
+"guide.teletravail.note" = "Les indicateurs WiFi et latence sont mesurés en continu (1 mesure/seconde). Le débit provient du dernier test réalisé dans la fenêtre Test de débit. Pour des résultats actualisés, relancez un test de débit avant votre réunion.";
+
 "guide.shortcuts.title" = "Raccourcis clavier";
 "guide.shortcuts.intro" = "En mode barre de menus, les raccourcis globaux utilisent Ctrl+Option+lettre. En mode application, utilisez Cmd+lettre dans les menus.";
 

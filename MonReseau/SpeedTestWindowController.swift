@@ -77,6 +77,8 @@ class SpeedTestHistoryStorage {
         var entries = load()
         entries.insert(entry, at: 0)
         save(entries)
+        // Mettre a jour les donnees widget
+        (NSApp.delegate as? AppDelegate)?.updateWidgetData()
     }
 
     static func clear() {
