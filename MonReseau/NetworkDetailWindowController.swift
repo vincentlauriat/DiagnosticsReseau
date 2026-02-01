@@ -33,7 +33,7 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
             backing: .buffered,
             defer: false
         )
-        window.title = "Mon Réseau — Détails réseau"
+        window.title = NSLocalizedString("details.title", comment: "")
         window.center()
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 600, height: 400)
@@ -87,13 +87,20 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
         let rightPane = NSView(frame: NSRect(x: 0, y: 0, width: 500, height: 500))
         rightPane.autoresizingMask = [.width, .height]
 
-        // Toolbar with refresh button
+        // Toolbar with refresh + copy buttons
         let refreshButton = NSButton(image: NSImage(systemSymbolName: "arrow.clockwise", accessibilityDescription: "Rafraîchir")!, target: self, action: #selector(refreshClicked))
         refreshButton.translatesAutoresizingMaskIntoConstraints = false
         refreshButton.bezelStyle = .rounded
         refreshButton.isBordered = false
-        refreshButton.toolTip = "Rafraîchir"
+        refreshButton.toolTip = NSLocalizedString("Rafraîchir", comment: "Refresh button tooltip")
         rightPane.addSubview(refreshButton)
+
+        let copyButton = NSButton(image: NSImage(systemSymbolName: "doc.on.doc", accessibilityDescription: "Copier")!, target: self, action: #selector(copyAllInfo))
+        copyButton.translatesAutoresizingMaskIntoConstraints = false
+        copyButton.bezelStyle = .rounded
+        copyButton.isBordered = false
+        copyButton.toolTip = NSLocalizedString("Copier les informations réseau", comment: "Copy button tooltip")
+        rightPane.addSubview(copyButton)
 
         detailScrollView = NSScrollView()
         detailScrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -119,6 +126,11 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
             refreshButton.trailingAnchor.constraint(equalTo: rightPane.trailingAnchor, constant: -8),
             refreshButton.widthAnchor.constraint(equalToConstant: 24),
             refreshButton.heightAnchor.constraint(equalToConstant: 24),
+
+            copyButton.topAnchor.constraint(equalTo: rightPane.topAnchor, constant: 6),
+            copyButton.trailingAnchor.constraint(equalTo: refreshButton.leadingAnchor, constant: -4),
+            copyButton.widthAnchor.constraint(equalToConstant: 24),
+            copyButton.heightAnchor.constraint(equalToConstant: 24),
 
             detailScrollView.topAnchor.constraint(equalTo: refreshButton.bottomAnchor, constant: 4),
             detailScrollView.leadingAnchor.constraint(equalTo: rightPane.leadingAnchor),
@@ -312,7 +324,7 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
     private func gatherNetworkInfo() -> [(section: String, icon: String, items: [(String, String)])] {
         var result: [(section: String, icon: String, items: [(String, String)])] = []
 
-        result.append((section: "État de la connexion", icon: "network", items: getConnectionStatus()))
+        result.append((section: NSLocalizedString("details.section.connection", comment: ""), icon: "network", items: getConnectionStatus()))
 
         updateByteCounters()
 
@@ -371,12 +383,17 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
         }
 
         if let wifiInfo = getWiFiInfo() {
-            result.append((section: "WiFi", icon: "wifi", items: wifiInfo))
+            result.append((section: NSLocalizedString("details.section.wifi", comment: ""), icon: "wifi", items: wifiInfo))
         }
 
-        result.append((section: "Routage", icon: "arrow.triangle.branch", items: getRoutingInfo()))
-        result.append((section: "DNS", icon: "text.magnifyingglass", items: getDNSInfo()))
-        result.append((section: "IP Publique", icon: "globe", items: getPublicIP()))
+        result.append((section: NSLocalizedString("details.section.routing", comment: ""), icon: "arrow.triangle.branch", items: getRoutingInfo()))
+        result.append((section: NSLocalizedString("details.section.dns", comment: ""), icon: "text.magnifyingglass", items: getDNSInfo()))
+        result.append((section: NSLocalizedString("details.section.public_ip", comment: ""), icon: "globe", items: getPublicIP()))
+
+        let vpnInfo = getVPNInfo()
+        if !vpnInfo.isEmpty {
+            result.insert((section: NSLocalizedString("details.section.vpn", comment: ""), icon: "lock.shield.fill", items: vpnInfo), at: 1)
+        }
 
         return result
     }
@@ -427,29 +444,105 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
         let disconnections = UptimeTracker.disconnectionCount24h()
         items.append(("Déconnexions 24h", "\(disconnections)"))
 
-        // VPN
-        if detectActiveVPN() {
-            items.append(("VPN", "Actif"))
-        }
-
         return items
     }
 
     private func detectActiveVPN() -> Bool {
+        return !getVPNInfo().isEmpty
+    }
+
+    /// Détecte les interfaces VPN actives et retourne les détails (interface, type, adresses).
+    private func getVPNInfo() -> [(String, String)] {
+        var items: [(String, String)] = []
         var ifaddr: UnsafeMutablePointer<ifaddrs>?
-        guard getifaddrs(&ifaddr) == 0, let firstAddr = ifaddr else { return false }
+        guard getifaddrs(&ifaddr) == 0, let firstAddr = ifaddr else { return items }
         defer { freeifaddrs(ifaddr) }
+
+        // Collect VPN interfaces and their addresses
+        struct VPNInterface {
+            let name: String
+            let type: String
+            var ipv4: [String] = []
+            var ipv6: [String] = []
+        }
+
+        var vpnMap: [String: VPNInterface] = [:]
 
         var cursor: UnsafeMutablePointer<ifaddrs>? = firstAddr
         while let addr = cursor {
+            defer { cursor = addr.pointee.ifa_next }
             let name = String(cString: addr.pointee.ifa_name)
-            let family = addr.pointee.ifa_addr?.pointee.sa_family
-            if name.hasPrefix("utun") && (family == UInt8(AF_INET) || family == UInt8(AF_INET6)) {
-                return true
+            let flags = Int32(addr.pointee.ifa_flags)
+            guard flags & IFF_UP != 0, flags & IFF_RUNNING != 0 else { continue }
+            guard let sa = addr.pointee.ifa_addr else { continue }
+            let family = sa.pointee.sa_family
+
+            let isVPN: Bool
+            let vpnType: String
+            if name.hasPrefix("utun") {
+                // Only consider utun with IPv4 as VPN (system utun only have IPv6 link-local)
+                if family == UInt8(AF_INET) {
+                    isVPN = true
+                    vpnType = "Tunnel (utun)"
+                } else {
+                    continue
+                }
+            } else if name.hasPrefix("ipsec") {
+                isVPN = true
+                vpnType = "IPSec"
+            } else if name.hasPrefix("ppp") {
+                isVPN = true
+                vpnType = "PPP"
+            } else {
+                continue
             }
-            cursor = addr.pointee.ifa_next
+
+            guard isVPN else { continue }
+
+            if vpnMap[name] == nil {
+                vpnMap[name] = VPNInterface(name: name, type: vpnType)
+            }
+
+            if family == UInt8(AF_INET) {
+                var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                getnameinfo(sa, socklen_t(sa.pointee.sa_len), &hostname, socklen_t(hostname.count), nil, 0, NI_NUMERICHOST)
+                vpnMap[name]?.ipv4.append(String(cString: hostname))
+            } else if family == UInt8(AF_INET6) {
+                var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                getnameinfo(sa, socklen_t(sa.pointee.sa_len), &hostname, socklen_t(hostname.count), nil, 0, NI_NUMERICHOST)
+                vpnMap[name]?.ipv6.append(String(cString: hostname))
+            }
+
+            // Get destination address (point-to-point)
+            if flags & IFF_POINTOPOINT != 0, let dstAddr = addr.pointee.ifa_dstaddr {
+                let dstFamily = dstAddr.pointee.sa_family
+                if dstFamily == UInt8(AF_INET) || dstFamily == UInt8(AF_INET6) {
+                    var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                    getnameinfo(dstAddr, socklen_t(dstAddr.pointee.sa_len), &hostname, socklen_t(hostname.count), nil, 0, NI_NUMERICHOST)
+                    let dst = String(cString: hostname)
+                    if !dst.isEmpty {
+                        vpnMap[name]?.ipv4.append("→ " + dst)
+                    }
+                }
+            }
         }
-        return false
+
+        guard !vpnMap.isEmpty else { return items }
+
+        items.append(("Statut", "VPN actif"))
+
+        for vpn in vpnMap.values.sorted(by: { $0.name < $1.name }) {
+            items.append(("Interface", vpn.name))
+            items.append(("Type", vpn.type))
+            for ip in vpn.ipv4 {
+                items.append(("Adresse IPv4", ip))
+            }
+            for ip in vpn.ipv6 {
+                items.append(("Adresse IPv6", ip))
+            }
+        }
+
+        return items
     }
 
     // MARK: - Network Interfaces
@@ -729,6 +822,27 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
         }
 
         return items
+    }
+
+    // MARK: - Copier
+
+    @objc private func copyAllInfo() {
+        var text = "Mon Réseau — Détails réseau\n"
+        text += String(repeating: "═", count: 50) + "\n\n"
+
+        for section in sections {
+            text += "[\(section.section)]\n"
+            let maxLen = section.items.map { $0.0.count }.max() ?? 0
+            for (label, value) in section.items {
+                let padded = label.padding(toLength: maxLen + 3, withPad: " ", startingAt: 0)
+                text += "  \(padded)\(value)\n"
+            }
+            text += "\n"
+        }
+
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
     }
 
     deinit {

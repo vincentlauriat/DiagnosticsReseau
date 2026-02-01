@@ -33,6 +33,67 @@ class RSSIGraphView: NSView {
         setAccessibilityLabel("Graphique du signal WiFi")
     }
 
+    // MARK: - Tooltip interactif
+
+    private var tooltipView: NSTextField?
+    private var cursorLineX: CGFloat?
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        for area in trackingAreas { removeTrackingArea(area) }
+        addTrackingArea(NSTrackingArea(rect: bounds, options: [.mouseMoved, .mouseEnteredAndExited, .activeInKeyWindow], owner: self, userInfo: nil))
+    }
+
+    override func mouseMoved(with event: NSEvent) {
+        let point = convert(event.locationInWindow, from: nil)
+        let margin = CGFloat(45)
+        let graphRect = NSRect(x: margin, y: 10, width: bounds.width - margin - 10, height: bounds.height - 30)
+        guard graphRect.contains(point), rssiValues.count > 1 else { hideTooltip(); return }
+
+        let spacing = graphRect.width / CGFloat(max(rssiValues.count - 1, 1))
+        let index = Int(round((point.x - graphRect.minX) / spacing))
+        guard index >= 0, index < rssiValues.count else { hideTooltip(); return }
+
+        cursorLineX = graphRect.minX + CGFloat(index) * spacing
+        needsDisplay = true
+
+        let rssi = rssiValues[index]
+        let text: String
+        if rssi == WiFiWindowController.noSignalValue {
+            text = "Mesure \(index + 1)/\(rssiValues.count)\nDéconnecté"
+        } else {
+            text = "Mesure \(index + 1)/\(rssiValues.count)\nRSSI: \(rssi) dBm"
+        }
+
+        if tooltipView == nil {
+            let label = NSTextField(labelWithString: "")
+            label.font = NSFont.systemFont(ofSize: 10)
+            label.backgroundColor = NSColor.windowBackgroundColor
+            label.drawsBackground = true
+            label.isBezeled = true
+            label.bezelStyle = .roundedBezel
+            label.maximumNumberOfLines = 2
+            addSubview(label)
+            tooltipView = label
+        }
+        tooltipView?.stringValue = text
+        tooltipView?.sizeToFit()
+        var origin = NSPoint(x: cursorLineX! + 8, y: point.y - 16)
+        if let tv = tooltipView, origin.x + tv.frame.width > bounds.maxX - 10 {
+            origin.x = cursorLineX! - tv.frame.width - 8
+        }
+        tooltipView?.frame.origin = origin
+        tooltipView?.isHidden = false
+    }
+
+    override func mouseExited(with event: NSEvent) { hideTooltip() }
+
+    private func hideTooltip() {
+        tooltipView?.isHidden = true
+        cursorLineX = nil
+        needsDisplay = true
+    }
+
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
 
@@ -190,6 +251,17 @@ class RSSIGraphView: NSView {
 
         // Zones de qualite (fond colore)
         drawQualityZones(in: graphRect, minRSSI: minRSSI, maxRSSI: maxRSSI, context: context)
+
+        // Cursor line
+        if let cx = cursorLineX {
+            context.setStrokeColor(NSColor.labelColor.withAlphaComponent(0.4).cgColor)
+            context.setLineWidth(1)
+            context.setLineDash(phase: 0, lengths: [4, 3])
+            context.move(to: CGPoint(x: cx, y: graphRect.minY))
+            context.addLine(to: CGPoint(x: cx, y: graphRect.maxY))
+            context.strokePath()
+            context.setLineDash(phase: 0, lengths: [])
+        }
     }
 
     private func drawGrid(in graphRect: NSRect, minRSSI: Double, maxRSSI: Double, context: CGContext) {

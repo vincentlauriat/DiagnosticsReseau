@@ -29,11 +29,11 @@ private enum UsageVerdict {
 
     var label: String {
         switch self {
-        case .excellent: return "Excellent"
-        case .ok: return "OK"
-        case .degraded: return "Dégradé"
-        case .insufficient: return "Insuffisant"
-        case .unknown: return "Inconnu"
+        case .excellent: return NSLocalizedString("teletravail.verdict.excellent", comment: "")
+        case .ok: return NSLocalizedString("teletravail.verdict.ok", comment: "")
+        case .degraded: return NSLocalizedString("teletravail.verdict.degraded", comment: "")
+        case .insufficient: return NSLocalizedString("teletravail.verdict.insufficient", comment: "")
+        case .unknown: return NSLocalizedString("teletravail.verdict.unknown", comment: "")
         }
     }
 
@@ -110,7 +110,7 @@ class TeletravailWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "Mon Réseau — Télétravail"
+        window.title = NSLocalizedString("teletravail.title", comment: "")
         window.center()
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 520, height: 480)
@@ -165,14 +165,19 @@ class TeletravailWindowController: NSWindowController {
         ])
 
         // Titre
-        let title = NSTextField(labelWithString: "Télétravail")
+        let title = NSTextField(labelWithString: NSLocalizedString("teletravail.heading", comment: ""))
         title.font = NSFont.systemFont(ofSize: 20, weight: .bold)
         stack.addArrangedSubview(title)
 
-        let subtitle = NSTextField(labelWithString: "Diagnostic en temps réel de votre connexion pour le travail à distance.")
+        let subtitle = NSTextField(labelWithString: NSLocalizedString("teletravail.subtitle", comment: ""))
         subtitle.font = NSFont.systemFont(ofSize: 12)
         subtitle.textColor = .secondaryLabelColor
         stack.addArrangedSubview(subtitle)
+
+        let copyReportButton = NSButton(title: NSLocalizedString("Copier rapport", comment: "Copy report button"), target: self, action: #selector(copyReport))
+        copyReportButton.bezelStyle = .rounded
+        copyReportButton.controlSize = .small
+        stack.addArrangedSubview(copyReportButton)
 
         // --- Indicateurs ---
         let cardsRow = NSStackView()
@@ -185,14 +190,20 @@ class TeletravailWindowController: NSWindowController {
 
         let (wc, wd, wv, wdet) = makeIndicatorCard(title: "WiFi", icon: "wifi", value: "—", detail: "")
         wifiCard = wc; wifiStatusDot = wd; wifiValueLabel = wv; wifiDetailLabel = wdet
+        wc.setAccessibilityRole(.group)
+        wc.setAccessibilityLabel("Indicateur signal WiFi")
         cardsRow.addArrangedSubview(wc)
 
         let (lc, ld, lv, ldet) = makeIndicatorCard(title: "Latence", icon: "gauge.with.dots.needle.50percent", value: "—", detail: "")
         latencyCard = lc; latencyStatusDot = ld; latencyValueLabel = lv; latencyDetailLabel = ldet
+        lc.setAccessibilityRole(.group)
+        lc.setAccessibilityLabel("Indicateur de latence")
         cardsRow.addArrangedSubview(lc)
 
         let (sc, sd, sv, sdet) = makeIndicatorCard(title: "Débit", icon: "speedometer", value: "—", detail: "")
         speedCard = sc; speedStatusDot = sd; speedValueLabel = sv; speedDetailLabel = sdet
+        sc.setAccessibilityRole(.group)
+        sc.setAccessibilityLabel("Indicateur de débit")
         cardsRow.addArrangedSubview(sc)
 
         // --- Separator ---
@@ -203,7 +214,7 @@ class TeletravailWindowController: NSWindowController {
         sep.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
 
         // --- Compatibilite usages ---
-        let usagesTitle = NSTextField(labelWithString: "Compatibilité des usages")
+        let usagesTitle = NSTextField(labelWithString: NSLocalizedString("teletravail.usages.title", comment: ""))
         usagesTitle.font = NSFont.systemFont(ofSize: 15, weight: .semibold)
         stack.addArrangedSubview(usagesTitle)
 
@@ -243,7 +254,7 @@ class TeletravailWindowController: NSWindowController {
         globalTextStack.spacing = 2
         globalTextStack.alignment = .leading
 
-        globalVerdictLabel = NSTextField(labelWithString: "Analyse en cours…")
+        globalVerdictLabel = NSTextField(labelWithString: NSLocalizedString("teletravail.verdict.analyzing", comment: ""))
         globalVerdictLabel.font = NSFont.systemFont(ofSize: 14, weight: .semibold)
 
         globalVerdictDetail = NSTextField(labelWithString: "")
@@ -401,8 +412,8 @@ class TeletravailWindowController: NSWindowController {
             hasSpeedData = true
             updateSpeedCard()
         } else {
-            speedValueLabel.stringValue = "Aucun test"
-            speedDetailLabel.stringValue = "Lancez un test de débit"
+            speedValueLabel.stringValue = NSLocalizedString("teletravail.speed.no_test", comment: "")
+            speedDetailLabel.stringValue = NSLocalizedString("teletravail.speed.run_test", comment: "")
             speedStatusDot.layer?.backgroundColor = NSColor.systemGray.cgColor
         }
     }
@@ -410,7 +421,7 @@ class TeletravailWindowController: NSWindowController {
     private func refreshWiFi() {
         guard let client = CWWiFiClient.shared().interface(),
               let ssid = client.ssid(), !ssid.isEmpty else {
-            wifiValueLabel.stringValue = "Déconnecté"
+            wifiValueLabel.stringValue = NSLocalizedString("teletravail.wifi.disconnected", comment: "")
             wifiDetailLabel.stringValue = ""
             wifiStatusDot.layer?.backgroundColor = NSColor.systemRed.cgColor
             return
@@ -580,8 +591,8 @@ class TeletravailWindowController: NSWindowController {
     private func updateGlobalVerdict(_ verdicts: [UsageVerdict]) {
         if verdicts.allSatisfy({ $0 == .unknown }) {
             globalVerdictDot.layer?.backgroundColor = NSColor.systemGray.cgColor
-            globalVerdictLabel.stringValue = "Analyse en cours…"
-            globalVerdictDetail.stringValue = "En attente de données suffisantes."
+            globalVerdictLabel.stringValue = NSLocalizedString("teletravail.verdict.analyzing", comment: "")
+            globalVerdictDetail.stringValue = NSLocalizedString("teletravail.verdict.waiting", comment: "")
             return
         }
 
@@ -591,22 +602,22 @@ class TeletravailWindowController: NSWindowController {
 
         if hasInsufficient {
             globalVerdictDot.layer?.backgroundColor = NSColor.systemRed.cgColor
-            globalVerdictLabel.stringValue = "Connexion insuffisante"
+            globalVerdictLabel.stringValue = NSLocalizedString("teletravail.global.insufficient", comment: "")
             let problematic = zip(usages, verdicts).filter { $0.1 == .insufficient }.map { $0.0.name }
             globalVerdictDetail.stringValue = "Usages impactés : \(problematic.joined(separator: ", "))"
         } else if hasDegraded {
             globalVerdictDot.layer?.backgroundColor = NSColor.systemOrange.cgColor
-            globalVerdictLabel.stringValue = "Connexion dégradée"
+            globalVerdictLabel.stringValue = NSLocalizedString("teletravail.global.degraded", comment: "")
             let problematic = zip(usages, verdicts).filter { $0.1 == .degraded }.map { $0.0.name }
             globalVerdictDetail.stringValue = "À surveiller : \(problematic.joined(separator: ", "))"
         } else if allExcellent {
             globalVerdictDot.layer?.backgroundColor = NSColor.systemGreen.cgColor
-            globalVerdictLabel.stringValue = "Connexion excellente"
-            globalVerdictDetail.stringValue = "Votre réseau est parfaitement adapté au télétravail."
+            globalVerdictLabel.stringValue = NSLocalizedString("teletravail.global.excellent", comment: "")
+            globalVerdictDetail.stringValue = NSLocalizedString("teletravail.global.excellent_detail", comment: "")
         } else {
             globalVerdictDot.layer?.backgroundColor = NSColor.systemBlue.cgColor
-            globalVerdictLabel.stringValue = "Connexion adaptée au télétravail"
-            globalVerdictDetail.stringValue = "Tous les usages courants sont fonctionnels."
+            globalVerdictLabel.stringValue = NSLocalizedString("teletravail.global.ok", comment: "")
+            globalVerdictDetail.stringValue = NSLocalizedString("teletravail.global.ok_detail", comment: "")
         }
     }
 
@@ -665,6 +676,47 @@ class TeletravailWindowController: NSWindowController {
 
         let elapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
         return elapsed
+    }
+
+    // MARK: - Copier rapport
+
+    @objc private func copyReport() {
+        var text = "Mon Réseau — Rapport Télétravail\n"
+        text += String(repeating: "═", count: 50) + "\n\n"
+
+        // WiFi
+        text += "WiFi : \(wifiValueLabel.stringValue)\n"
+        if !wifiDetailLabel.stringValue.isEmpty {
+            text += "  \(wifiDetailLabel.stringValue)\n"
+        }
+
+        // Latence
+        text += "Latence : \(latencyValueLabel.stringValue)\n"
+        if !latencyDetailLabel.stringValue.isEmpty {
+            text += "  \(latencyDetailLabel.stringValue)\n"
+        }
+
+        // Debit
+        text += "Débit : \(speedValueLabel.stringValue)\n"
+        if !speedDetailLabel.stringValue.isEmpty {
+            text += "  \(speedDetailLabel.stringValue)\n"
+        }
+
+        text += "\nCompatibilité des usages :\n"
+        text += String(repeating: "─", count: 40) + "\n"
+        for (i, usage) in usages.enumerated() {
+            let verdict = usageRows[i].label.stringValue
+            text += "  \(usage.name.padding(toLength: 30, withPad: " ", startingAt: 0)) \(verdict)\n"
+        }
+
+        text += "\nVerdict global : \(globalVerdictLabel.stringValue)\n"
+        if !globalVerdictDetail.stringValue.isEmpty {
+            text += "\(globalVerdictDetail.stringValue)\n"
+        }
+
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
     }
 
     // MARK: - Lifecycle

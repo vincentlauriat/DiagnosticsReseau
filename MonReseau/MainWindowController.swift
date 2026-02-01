@@ -88,6 +88,8 @@ class MainWindowController: NSWindowController {
             (NSLocalizedString("main.card.dns", comment: ""), "magnifyingglass", #selector(openDNS), true),
             (NSLocalizedString("main.card.wifi", comment: ""), "wifi", #selector(openWiFi), true),
             (NSLocalizedString("main.card.neighborhood", comment: ""), "desktopcomputer", #selector(openNeighborhood), true),
+            (NSLocalizedString("main.card.bandwidth", comment: ""), "arrow.up.arrow.down", #selector(openBandwidth), true),
+            (NSLocalizedString("main.card.whois", comment: ""), "globe.desk", #selector(openWhois), true),
             (NSLocalizedString("main.card.teletravail", comment: ""), "person.and.arrow.left.and.arrow.right", #selector(openTeletravail), false),
             (NSLocalizedString("main.card.guide", comment: ""), "book.fill", #selector(openGuide), false),
             (NSLocalizedString("main.card.settings", comment: ""), "gearshape.fill", #selector(openSettings), false),
@@ -233,6 +235,8 @@ class MainWindowController: NSWindowController {
     @objc private func openDNS() { appDelegate?.performShowDNS() }
     @objc private func openWiFi() { appDelegate?.performShowWiFi() }
     @objc private func openNeighborhood() { appDelegate?.performShowNeighborhood() }
+    @objc private func openBandwidth() { appDelegate?.performShowBandwidth() }
+    @objc private func openWhois() { appDelegate?.performShowWhois() }
     @objc private func openTeletravail() { appDelegate?.performShowTeletravail() }
     @objc private func openGuide() { appDelegate?.performShowGuide() }
     @objc private func openSettings() { appDelegate?.performShowSettings() }

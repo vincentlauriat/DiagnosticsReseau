@@ -36,6 +36,8 @@ Mon Réseau est une application macOS qui surveille la connectivite internet et 
 │                                   ├── DNS             [geek]    │
 │                                   ├── WiFi            [geek]    │
 │                                   ├── Voisinage       [geek]    │
+│                                   ├── Bande passante  [geek]    │
+│                                   ├── Whois           [geek]    │
 │                                   ├── Teletravail               │
 │                                   ├── Guide                     │
 │                                   ├── Reglages                  │
@@ -106,7 +108,7 @@ Mon Réseau est une application macOS qui surveille la connectivite internet et 
 | `main.swift` | ~19 | Point d'entree, configure NSApplication |
 | `AppDelegate.swift` | ~838 | Double mode (menubar/app), NWPathMonitor, NSMenuDelegate, coordination fenetres, VPN, notifications, uptime, raccourcis globaux, apparence |
 | `MainWindowController.swift` | ~256 | Fenetre d'accueil mode app, grille de cartes avec filtrage Mode Geek |
-| `SettingsWindowController.swift` | ~303 | Mode affichage, login item, notifications, latence barre de menus, apparence (Systeme/Clair/Sombre), Mode Geek |
+| `SettingsWindowController.swift` | ~520 | Reglages par onglets (General, Notifications, Avance) : mode affichage, login item, apparence, notifications, barre de menus, ping, Mode Geek |
 | `GuideWindowController.swift` | ~237 | Documentation : presentation app, concepts reseau, astuces optimisation, raccourcis |
 | `TeletravailWindowController.swift` | ~686 | Diagnostic teletravail (latence, jitter, pertes, debit, DNS, VPN) |
 | `NetworkDetailWindowController.swift` | ~751 | Details reseau complets (interfaces, WiFi, routage, DNS, IP publique) |
@@ -116,6 +118,8 @@ Mon Réseau est une application macOS qui surveille la connectivite internet et 
 | `TracerouteWindowController.swift` | ~707 | Traceroute visuel ICMP avec carte MapKit interactive |
 | `WiFiWindowController.swift` | ~674 | Informations WiFi temps reel avec graphe RSSI |
 | `NeighborhoodWindowController.swift` | ~1327 | Scan voisinage (ARP+ICMP+Bonjour), details machine, scan de ports |
+| `BandwidthWindowController.swift` | ~400 | Moniteur bande passante temps reel (getifaddrs), graphe debit, totaux session |
+| `WhoisWindowController.swift` | ~370 | Recherche WHOIS via NWConnection TCP port 43, redirection auto, 27 TLDs |
 
 ## APIs et protocoles reseau
 
@@ -168,6 +172,26 @@ socket(AF_INET, SOCK_STREAM, 0) + poll()    // Scan de ports TCP (non-bloquant)
 - **Enrichissement** : DNS inverse, Bonjour (17 types de services), OUI vendor lookup
 - **Detail machine** : ping x10 (stats min/max/avg/med/jitter), 16 ports TCP, type d'appareil
 
+### WHOIS (NWConnection TCP)
+```
+NWConnection(host: whoisServer, port: 43, using: .tcp)
+connection.send(content: query)            // Envoi domaine ou IP
+connection.receive(...)                     // Lecture recursive de la reponse
+```
+- Detection automatique du serveur WHOIS selon le TLD (27 TLDs supportes)
+- Suivi des redirections (ReferralServer, refer, Registrar WHOIS Server)
+- Support IP (ARIN) et domaines
+- Encodage : UTF-8, Latin-1, ASCII (fallback)
+
+### Bande passante (getifaddrs)
+```
+getifaddrs()                               // Compteurs octets in/out par interface
+ifi_ibytes / ifi_obytes                     // Via if_data dans ifaddrs
+```
+- Echantillonnage toutes les secondes, calcul du debit instantane
+- Graphe temps reel (Core Graphics, 120 points)
+- Totaux session par interface
+
 ### Test de debit (HTTP)
 | Phase | URL | Methode |
 |-------|-----|---------|
@@ -200,6 +224,13 @@ RPM estime : `60000 / max(latence_ms, 5)`
 - `GeekMode` : bool — affiche/masque les outils techniques
 - `NotifyConnectionChange` : bool — notifications connexion/deconnexion
 - `MenuBarShowLatency` : bool — ping en temps reel dans la barre de menus
+- `MenuBarDisplayMode` : `"none"`, `"latency"`, `"throughput"` ou `"rssi"` — stat affichee dans la barre de menus
+- `NotifyQualityDegradation` : bool — notifications degradation qualite
+- `NotifyLatencyThreshold` : double — seuil latence (defaut 100 ms)
+- `NotifyLossThreshold` : double — seuil perte de paquets (defaut 5%)
+- `NotifySpeedTestComplete` : bool — notification fin test de debit
+- `CustomPingTarget` : string — cible ping personnalisee (defaut 8.8.8.8)
+- `QualityHistory` : JSON — historique qualite reseau 24h
 - `AppAppearance` : `"system"`, `"light"` ou `"dark"` — theme de l'application
 - `ConnectionEvents` : JSON `[ConnectionEvent]`, max 500 — suivi d'uptime
 
@@ -227,13 +258,23 @@ RPM estime : `60000 / max(latence_ms, 5)`
 - Animation de vague/particules pendant le test de debit
 - Pilotee par CVDisplayLink (60 fps)
 
+### BandwidthGraphView
+- Graphe debit temps reel (120 points, 1/seconde)
+- Deux courbes : reception (bleu) et envoi (vert)
+- Echelle auto-adaptative
+
+### Tooltips interactifs (NetworkGraphView, RSSIGraphView)
+- NSTrackingArea + mouseMoved pour affichage valeurs sous le curseur
+- Ligne verticale et bulle tooltip avec valeurs exactes
+
 ## Localisation
 
 - **Langues** : francais (langue de developpement), anglais
 - **Fichiers** : `fr.lproj/Localizable.strings`, `en.lproj/Localizable.strings`
 - **Pattern** : `NSLocalizedString("key", comment: "")`
 - **Phase 1 (fait)** : AppDelegate, SettingsWindowController, MainWindowController, GuideWindowController (~180 cles)
-- **Phase 2 (a faire)** : fenetres techniques (NetworkDetail, NetworkQuality, SpeedTest, Traceroute, DNS, WiFi, Neighborhood, Teletravail)
+- **Phase 2 (fait)** : fenetres techniques partiellement localisees (NetworkDetail, NetworkQuality, SpeedTest, Traceroute, Teletravail, WhoisWindowController)
+- **Cles totales** : ~400+ cles fr/en
 
 ## Accessibilite
 
@@ -262,7 +303,21 @@ Outgoing Connections (Client) = YES
 <!-- Info.plist -->
 LSUIElement = true                    (mode barre de menus par defaut, bascule via setActivationPolicy)
 NSLocationWhenInUseUsageDescription   (localisation pour tests de debit)
+CFBundleURLTypes                      (monreseau:// URL scheme pour deep links)
 ```
+
+## URL Scheme
+
+L'application enregistre le scheme `monreseau://` pour les liens profonds (widgets, liens externes) :
+- `monreseau://speedtest`, `monreseau://details`, `monreseau://quality`, `monreseau://traceroute`
+- `monreseau://dns`, `monreseau://wifi`, `monreseau://neighborhood`, `monreseau://bandwidth`
+- `monreseau://whois`, `monreseau://teletravail`, `monreseau://settings`
+
+## Widgets (WidgetKit)
+
+- **SmallWidget** : icone connexion + statut
+- **MediumWidget** : statut + dernier test de debit (lien `monreseau://details`)
+- **LargeWidget** : statut detaille + bouton « Lancer un test de debit » (`monreseau://speedtest`)
 
 ## Build
 

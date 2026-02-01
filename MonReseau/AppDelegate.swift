@@ -26,6 +26,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
     private var dnsWindowController: DNSWindowController?
     private var wifiWindowController: WiFiWindowController?
     private var neighborhoodWindowController: NeighborhoodWindowController?
+    private var bandwidthWindowController: BandwidthWindowController?
+    private var whoisWindowController: WhoisWindowController?
     private var teletravailWindowController: TeletravailWindowController?
     private var guideWindowController: GuideWindowController?
     private var settingsWindowController: SettingsWindowController?
@@ -250,6 +252,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         windowMenu.addItem(NSMenuItem(title: NSLocalizedString("menu.dns", comment: ""), action: #selector(showDNS), keyEquivalent: "n"))
         windowMenu.addItem(NSMenuItem(title: NSLocalizedString("menu.wifi", comment: ""), action: #selector(showWiFi), keyEquivalent: "w"))
         windowMenu.addItem(NSMenuItem(title: NSLocalizedString("menu.neighborhood", comment: ""), action: #selector(showNeighborhood), keyEquivalent: "b"))
+        windowMenu.addItem(NSMenuItem(title: NSLocalizedString("menu.bandwidth", comment: ""), action: #selector(showBandwidth), keyEquivalent: "u"))
+        windowMenu.addItem(NSMenuItem(title: NSLocalizedString("menu.whois", comment: ""), action: #selector(showWhois), keyEquivalent: "o"))
         windowMenu.addItem(NSMenuItem.separator())
         windowMenu.addItem(NSMenuItem(title: NSLocalizedString("menu.teletravail", comment: ""), action: #selector(showTeletravail), keyEquivalent: "e"))
         windowMenu.addItem(NSMenuItem(title: NSLocalizedString("menu.guide", comment: ""), action: #selector(showGuide), keyEquivalent: "h"))
@@ -293,6 +297,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
             (NSLocalizedString("menu.dns", comment: ""), #selector(showDNS), "n"),
             (NSLocalizedString("menu.wifi", comment: ""), #selector(showWiFi), "w"),
             (NSLocalizedString("menu.neighborhood", comment: ""), #selector(showNeighborhood), "b"),
+            (NSLocalizedString("menu.bandwidth", comment: ""), #selector(showBandwidth), "u"),
+            (NSLocalizedString("menu.whois", comment: ""), #selector(showWhois), "o"),
         ] as [(String, Selector, String)] {
             let item = NSMenuItem(title: title, action: action, keyEquivalent: key)
             item.tag = 100
@@ -404,6 +410,29 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         }
     }
 
+    // MARK: - URL Scheme (monreseau://)
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls {
+            guard url.scheme == "monreseau" else { continue }
+            let command = url.host ?? ""
+            switch command {
+            case "speedtest": performShowSpeedTest()
+            case "details": performShowDetails()
+            case "quality": performShowQuality()
+            case "traceroute": performShowTraceroute()
+            case "dns": performShowDNS()
+            case "wifi": performShowWiFi()
+            case "neighborhood": performShowNeighborhood()
+            case "bandwidth": performShowBandwidth()
+            case "whois": performShowWhois()
+            case "teletravail": performShowTeletravail()
+            case "settings": performShowSettings()
+            default: break
+            }
+        }
+    }
+
     /// Présente une fenêtre associée à un contrôleur, en l'instanciant si nécessaire, puis l'active au premier plan.
     private func present<T: NSWindowController>(_ controller: inout T?, factory: () -> T) {
         if controller == nil { controller = factory() }
@@ -448,6 +477,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
 
     @objc private func showNeighborhood() {
         present(&neighborhoodWindowController) { NeighborhoodWindowController() }
+    }
+
+    @objc private func showBandwidth() {
+        present(&bandwidthWindowController) { BandwidthWindowController() }
+    }
+
+    @objc private func showWhois() {
+        present(&whoisWindowController) { WhoisWindowController() }
     }
 
     @objc private func showTeletravail() {
@@ -665,6 +702,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
             case "n": DispatchQueue.main.async { self.showDNS() }
             case "w": DispatchQueue.main.async { self.showWiFi() }
             case "b": DispatchQueue.main.async { self.showNeighborhood() }
+            case "u": DispatchQueue.main.async { self.showBandwidth() }
+            case "o": DispatchQueue.main.async { self.showWhois() }
             case "e": DispatchQueue.main.async { self.showTeletravail() }
             case "h": DispatchQueue.main.async { self.showGuide() }
             default: break
@@ -682,13 +721,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
 
     // MARK: - Stats barre de menus
 
-    /// Demarre ou arrete le ping periodique pour afficher la latence dans la barre de menus.
+    /// Dernière date d'envoi d'une notification de dégradation qualité (cooldown 5 min).
+    private var lastQualityNotificationDate = Date.distantPast
+    /// Bytes précédents pour le calcul du débit.
+    private var previousBytes: (inBytes: UInt64, outBytes: UInt64, date: Date)?
+
+    /// Demarre ou arrete le timer periodique pour afficher des stats dans la barre de menus.
     func startMenuBarPingIfNeeded() {
         menuBarPingTimer?.invalidate()
         menuBarPingTimer = nil
 
-        guard UserDefaults.standard.bool(forKey: "MenuBarShowLatency") else {
-            // Remettre le status item en mode icône seule
+        let mode = UserDefaults.standard.string(forKey: "MenuBarDisplayMode") ?? (UserDefaults.standard.bool(forKey: "MenuBarShowLatency") ? "latency" : "none")
+
+        guard mode != "none" else {
             if let item = statusItem {
                 item.length = NSStatusItem.squareLength
                 item.button?.title = ""
@@ -701,22 +746,115 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         statusItem?.button?.imagePosition = .imageLeading
 
         menuBarPingTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
-            self?.performMenuBarPing()
+            self?.performMenuBarUpdate()
         }
-        performMenuBarPing()
+        performMenuBarUpdate()
     }
 
-    private func performMenuBarPing() {
-        DispatchQueue.global(qos: .utility).async { [weak self] in
-            let latency = self?.quickPing(host: "8.8.8.8")
-            DispatchQueue.main.async {
-                guard let self = self, let button = self.statusItem?.button else { return }
-                if let lat = latency {
-                    button.title = String(format: " %.0f ms", lat)
-                } else {
-                    button.title = " —"
+    private func performMenuBarUpdate() {
+        let mode = UserDefaults.standard.string(forKey: "MenuBarDisplayMode") ?? "latency"
+
+        switch mode {
+        case "latency":
+            let pingTarget = UserDefaults.standard.string(forKey: "CustomPingTarget") ?? "8.8.8.8"
+            DispatchQueue.global(qos: .utility).async { [weak self] in
+                let latency = self?.quickPing(host: pingTarget)
+                DispatchQueue.main.async {
+                    guard let self = self, let button = self.statusItem?.button else { return }
+                    if let lat = latency {
+                        button.title = String(format: " %.0f ms", lat)
+                        self.checkQualityThresholds(latencyMs: lat)
+                    } else {
+                        button.title = " —"
+                    }
                 }
             }
+
+        case "throughput":
+            DispatchQueue.global(qos: .utility).async { [weak self] in
+                let bytes = self?.readInterfaceBytes()
+                DispatchQueue.main.async {
+                    guard let self = self, let button = self.statusItem?.button, let current = bytes else { return }
+                    if let prev = self.previousBytes {
+                        let elapsed = Date().timeIntervalSince(prev.date)
+                        guard elapsed > 0 else { return }
+                        let inRate = Double(current.0 &- prev.inBytes) / elapsed
+                        let outRate = Double(current.1 &- prev.outBytes) / elapsed
+                        button.title = String(format: " ↓%@ ↑%@", self.formatRate(inRate), self.formatRate(outRate))
+                    } else {
+                        button.title = " ↓— ↑—"
+                    }
+                    self.previousBytes = (current.0, current.1, Date())
+                }
+            }
+
+        case "rssi":
+            DispatchQueue.global(qos: .utility).async { [weak self] in
+                let wifiClient = CWWiFiClient.shared()
+                let rssi = wifiClient.interface()?.rssiValue()
+                DispatchQueue.main.async {
+                    guard let self = self, let button = self.statusItem?.button else { return }
+                    if let r = rssi, r != 0 {
+                        button.title = String(format: " %d dBm", r)
+                    } else {
+                        button.title = " —"
+                    }
+                }
+            }
+
+        default:
+            break
+        }
+    }
+
+    private func readInterfaceBytes() -> (UInt64, UInt64)? {
+        var ifaddr: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&ifaddr) == 0, let first = ifaddr else { return nil }
+        defer { freeifaddrs(ifaddr) }
+
+        var totalIn: UInt64 = 0
+        var totalOut: UInt64 = 0
+        var cursor: UnsafeMutablePointer<ifaddrs>? = first
+        while let addr = cursor {
+            defer { cursor = addr.pointee.ifa_next }
+            guard let sa = addr.pointee.ifa_addr, sa.pointee.sa_family == UInt8(AF_LINK) else { continue }
+            let name = String(cString: addr.pointee.ifa_name)
+            guard name.hasPrefix("en") || name.hasPrefix("utun") || name.hasPrefix("ppp") else { continue }
+            if let data = addr.pointee.ifa_data {
+                let networkData = data.assumingMemoryBound(to: if_data.self).pointee
+                totalIn += UInt64(networkData.ifi_ibytes)
+                totalOut += UInt64(networkData.ifi_obytes)
+            }
+        }
+        return (totalIn, totalOut)
+    }
+
+    private func formatRate(_ bytesPerSec: Double) -> String {
+        if bytesPerSec < 1024 { return String(format: "%.0f o/s", bytesPerSec) }
+        if bytesPerSec < 1024 * 1024 { return String(format: "%.0f Ko/s", bytesPerSec / 1024) }
+        return String(format: "%.1f Mo/s", bytesPerSec / (1024 * 1024))
+    }
+
+    /// Vérifie les seuils de qualité et envoie une notification si nécessaire.
+    private func checkQualityThresholds(latencyMs: Double, lossPercent: Double = 0) {
+        guard UserDefaults.standard.bool(forKey: "NotifyQualityDegradation") else { return }
+        guard Date().timeIntervalSince(lastQualityNotificationDate) > 300 else { return }
+
+        let latThreshold = UserDefaults.standard.object(forKey: "NotifyLatencyThreshold") as? Double ?? 100
+        let lossThreshold = UserDefaults.standard.object(forKey: "NotifyLossThreshold") as? Double ?? 5
+
+        if latencyMs > latThreshold {
+            lastQualityNotificationDate = Date()
+            sendNotification(
+                title: NSLocalizedString("notification.quality_degraded.title", comment: ""),
+                body: String(format: NSLocalizedString("notification.quality_degraded.latency", comment: ""), latencyMs, latThreshold)
+            )
+        } else if lossPercent > lossThreshold {
+            lastQualityNotificationDate = Date()
+            sendNotification(
+                title: NSLocalizedString("notification.quality_degraded.title", comment: ""),
+                body: String(format: NSLocalizedString("notification.quality_degraded.loss", comment: ""), lossPercent, lossThreshold)
+            )
         }
     }
 
@@ -779,6 +917,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
     func performShowDNS() { showDNS() }
     func performShowWiFi() { showWiFi() }
     func performShowNeighborhood() { showNeighborhood() }
+    func performShowBandwidth() { showBandwidth() }
+    func performShowWhois() { showWhois() }
     func performShowTeletravail() { showTeletravail() }
     func performShowGuide() { showGuide() }
     func performShowSettings() { showSettings() }

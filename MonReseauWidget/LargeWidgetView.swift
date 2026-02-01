@@ -98,6 +98,13 @@ struct LargeWidgetView: View {
                 }
             }
 
+            // Bouton deep link speed test
+            Link(destination: URL(string: "monreseau://speedtest")!) {
+                Label("Lancer un test de débit", systemImage: "bolt.fill")
+                    .font(.caption)
+                    .foregroundColor(.blue)
+            }
+
             Spacer(minLength: 0)
 
             // Footer : VPN + localisation

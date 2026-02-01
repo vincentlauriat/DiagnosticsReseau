@@ -61,6 +61,11 @@ class TracerouteHop {
                 return true
             }
         }
+        // IPv6 private ranges
+        let lower = ipAddress.lowercased()
+        if lower.hasPrefix("fe80:") || lower.hasPrefix("fc") || lower.hasPrefix("fd") || lower == "::1" {
+            return true
+        }
         return false
     }
 }
@@ -85,13 +90,14 @@ class TracerouteService {
         }
     }
 
-    /// Traceroute natif via ICMP non-privilegie (SOCK_DGRAM + IPPROTO_ICMP).
+    /// Traceroute natif via ICMP/ICMPv6 non-privilegie (SOCK_DGRAM).
+    /// Supporte IPv4 et IPv6 automatiquement selon la résolution DNS.
     private func runLocalTraceroute(host: String, progressHandler: @escaping (TracerouteHop) -> Void, geoHandler: @escaping (TracerouteHop) -> Void) -> [TracerouteHop] {
         var hops: [TracerouteHop] = []
 
-        // Resoudre l'adresse destination
+        // Resoudre l'adresse destination (IPv4 d'abord, IPv6 en fallback)
         var hints = addrinfo()
-        hints.ai_family = AF_INET
+        hints.ai_family = AF_UNSPEC
         hints.ai_socktype = SOCK_DGRAM
         var infoPtr: UnsafeMutablePointer<addrinfo>?
         guard getaddrinfo(host, nil, &hints, &infoPtr) == 0, let info = infoPtr else {
@@ -100,17 +106,19 @@ class TracerouteService {
         }
         defer { freeaddrinfo(infoPtr) }
 
+        let family = info.pointee.ai_family
         let destAddr = info.pointee.ai_addr
         let destLen = info.pointee.ai_addrlen
+        let isIPv6 = family == AF_INET6
 
         // Obtenir l'IP de destination pour detecter l'arrivee
-        var destIP = ""
-        if let addr4 = destAddr?.withMemoryRebound(to: sockaddr_in.self, capacity: 1, { $0.pointee }) {
-            destIP = String(cString: inet_ntoa(addr4.sin_addr))
-        }
+        var destHostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+        getnameinfo(destAddr, socklen_t(destLen), &destHostname, socklen_t(destHostname.count), nil, 0, NI_NUMERICHOST)
+        let destIP = String(cString: destHostname)
 
-        // Creer le socket ICMP non-privilegie
-        let sock = Darwin.socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP)
+        // Creer le socket ICMP/ICMPv6 non-privilegie
+        let proto = isIPv6 ? IPPROTO_ICMPV6 : IPPROTO_ICMP
+        let sock = Darwin.socket(family, SOCK_DGRAM, proto)
         guard sock >= 0 else {
             NSLog("TracerouteService: Impossible de creer le socket ICMP")
             return hops
@@ -125,33 +133,39 @@ class TracerouteService {
         let queriesPerHop = 2
         let pid = UInt16(ProcessInfo.processInfo.processIdentifier & 0xFFFF)
 
+        // Options TTL/hop limit selon le protocole
+        let ttlProto = isIPv6 ? IPPROTO_IPV6 : IPPROTO_IP
+        let ttlOption = isIPv6 ? IPV6_UNICAST_HOPS : IP_TTL
+
         for ttl in 1...maxHops {
             var ttlValue = Int32(ttl)
-            setsockopt(sock, IPPROTO_IP, IP_TTL, &ttlValue, socklen_t(MemoryLayout<Int32>.size))
+            setsockopt(sock, ttlProto, ttlOption, &ttlValue, socklen_t(MemoryLayout<Int32>.size))
 
             var latencies: [Double] = []
             var hopIP: String?
 
             for q in 0..<queriesPerHop {
-                // Construire le paquet ICMP Echo Request
+                // Construire le paquet ICMP/ICMPv6 Echo Request
                 let seq = UInt16(ttl * queriesPerHop + q)
                 var packet = [UInt8](repeating: 0, count: 64)
-                packet[0] = 8  // ICMP_ECHO
+                packet[0] = isIPv6 ? 128 : 8  // ICMPv6_ECHO_REQUEST : ICMP_ECHO
                 packet[1] = 0  // Code
                 packet[4] = UInt8(pid >> 8)
                 packet[5] = UInt8(pid & 0xFF)
                 packet[6] = UInt8(seq >> 8)
                 packet[7] = UInt8(seq & 0xFF)
 
-                // Checksum
-                var sum: UInt32 = 0
-                for i in stride(from: 0, to: packet.count - 1, by: 2) {
-                    sum += UInt32(packet[i]) << 8 | UInt32(packet[i + 1])
+                // Checksum (IPv4 seulement ; ICMPv6 checksum calculé par le kernel)
+                if !isIPv6 {
+                    var sum: UInt32 = 0
+                    for i in stride(from: 0, to: packet.count - 1, by: 2) {
+                        sum += UInt32(packet[i]) << 8 | UInt32(packet[i + 1])
+                    }
+                    while sum >> 16 != 0 { sum = (sum & 0xFFFF) + (sum >> 16) }
+                    let checksum = ~UInt16(sum)
+                    packet[2] = UInt8(checksum >> 8)
+                    packet[3] = UInt8(checksum & 0xFF)
                 }
-                while sum >> 16 != 0 { sum = (sum & 0xFFFF) + (sum >> 16) }
-                let checksum = ~UInt16(sum)
-                packet[2] = UInt8(checksum >> 8)
-                packet[3] = UInt8(checksum & 0xFF)
 
                 // Envoyer
                 let startTime = CFAbsoluteTimeGetCurrent()
@@ -162,18 +176,25 @@ class TracerouteService {
 
                 // Recevoir (ICMP Time Exceeded ou Echo Reply)
                 var recvBuf = [UInt8](repeating: 0, count: 1024)
-                var srcAddr = sockaddr_in()
-                var srcLen = socklen_t(MemoryLayout<sockaddr_in>.size)
+                var srcStorage = sockaddr_storage()
+                var srcLen = socklen_t(MemoryLayout<sockaddr_storage>.size)
 
-                let recvLen = withUnsafeMutablePointer(to: &srcAddr) { addrPtr in
-                    addrPtr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockaddrPtr in
+                let recvLen = withUnsafeMutablePointer(to: &srcStorage) { storagePtr in
+                    storagePtr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockaddrPtr in
                         recvfrom(sock, &recvBuf, recvBuf.count, 0, sockaddrPtr, &srcLen)
                     }
                 }
 
                 if recvLen > 0 {
                     let elapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
-                    let ip = String(cString: inet_ntoa(srcAddr.sin_addr))
+                    // Extract source IP from sockaddr_storage
+                    var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                    withUnsafePointer(to: &srcStorage) { storagePtr in
+                        storagePtr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockaddrPtr in
+                            getnameinfo(sockaddrPtr, srcLen, &hostname, socklen_t(hostname.count), nil, 0, NI_NUMERICHOST)
+                        }
+                    }
+                    let ip = String(cString: hostname)
                     hopIP = ip
                     latencies.append(elapsed)
                 }
@@ -211,14 +232,14 @@ class TracerouteService {
             }
         }
 
-        NSLog("TracerouteService: \(hops.count) hops")
+        NSLog("TracerouteService: \(hops.count) hops (\(isIPv6 ? "IPv6" : "IPv4"))")
         return hops
     }
 
     /// Reverse DNS lookup pour obtenir le hostname a partir de l'IP.
     private func reverseDNS(ip: String) -> String? {
         var hints = addrinfo()
-        hints.ai_family = AF_INET
+        hints.ai_family = AF_UNSPEC
         hints.ai_socktype = SOCK_DGRAM
         var infoPtr: UnsafeMutablePointer<addrinfo>?
         guard getaddrinfo(ip, nil, &hints, &infoPtr) == 0, let info = infoPtr else { return nil }
@@ -333,7 +354,7 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
             backing: .buffered,
             defer: false
         )
-        window.title = "Mon Réseau — Traceroute"
+        window.title = NSLocalizedString("traceroute.title", comment: "")
         window.center()
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 700, height: 500)
@@ -348,7 +369,7 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
         contentView.wantsLayer = true
 
         // Title
-        let titleLabel = NSTextField(labelWithString: "Traceroute visuel")
+        let titleLabel = NSTextField(labelWithString: NSLocalizedString("traceroute.heading", comment: ""))
         titleLabel.font = NSFont.systemFont(ofSize: 18, weight: .semibold)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(titleLabel)
@@ -368,7 +389,7 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
         targetTextField.widthAnchor.constraint(greaterThanOrEqualToConstant: 250).isActive = true
         inputStack.addArrangedSubview(targetTextField)
 
-        startButton = NSButton(title: "Tracer", target: self, action: #selector(startTracerouteFromButton))
+        startButton = NSButton(title: NSLocalizedString("traceroute.button.trace", comment: ""), target: self, action: #selector(startTracerouteFromButton))
         startButton.bezelStyle = .rounded
         inputStack.addArrangedSubview(startButton)
 
@@ -378,8 +399,16 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
         progressIndicator.isHidden = true
         inputStack.addArrangedSubview(progressIndicator)
 
+        let copyButton = NSButton(title: NSLocalizedString("Copier", comment: "Copy button"), target: self, action: #selector(copyTraceroute))
+        copyButton.bezelStyle = .rounded
+        inputStack.addArrangedSubview(copyButton)
+
+        let shareButton = NSButton(title: NSLocalizedString("Partager", comment: "Share button"), target: self, action: #selector(shareTraceroute(_:)))
+        shareButton.bezelStyle = .rounded
+        inputStack.addArrangedSubview(shareButton)
+
         // Status
-        statusLabel = NSTextField(labelWithString: "Entrez une adresse et cliquez sur Tracer")
+        statusLabel = NSTextField(labelWithString: NSLocalizedString("traceroute.status.ready", comment: ""))
         statusLabel.font = NSFont.systemFont(ofSize: 11)
         statusLabel.textColor = .secondaryLabelColor
         statusLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -492,7 +521,7 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
         startButton.isEnabled = false
         progressIndicator.isHidden = false
         progressIndicator.startAnimation(nil)
-        statusLabel.stringValue = "Traceroute en cours..."
+        statusLabel.stringValue = NSLocalizedString("traceroute.status.running", comment: "")
 
         tracerouteService.run(host: target, progressHandler: { [weak self] hop in
             guard let self = self else { return }
@@ -517,7 +546,7 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
         startButton.isEnabled = true
         progressIndicator.stopAnimation(nil)
         progressIndicator.isHidden = true
-        statusLabel.stringValue = "Traceroute terminé - \(hops.count) hops"
+        statusLabel.stringValue = String(format: NSLocalizedString("traceroute.status.done", comment: ""), hops.count)
     }
 
     // Ajoute un hop sur la carte, met a jour la polyline et autozoom
@@ -636,6 +665,42 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
                 break
             }
         }
+    }
+
+    // MARK: - Copier / Partager
+
+    private func formatTracerouteText() -> String {
+        guard !hops.isEmpty else { return "" }
+        let target = targetTextField.stringValue
+        var text = "Mon Réseau — Traceroute vers \(target)\n"
+        text += String(repeating: "═", count: 60) + "\n"
+        text += String(format: "%-4s  %-16s  %-30s  %-8s  %@\n", "#", "IP", "Nom d'hôte", "Latence", "Lieu")
+        text += String(repeating: "─", count: 80) + "\n"
+
+        for hop in hops {
+            let num = String(format: "%-4d", hop.hopNumber)
+            let ip = hop.isTimeout ? "* * *" : hop.ipAddress
+            let hostname = hop.hostname ?? "—"
+            let latency = hop.latencyMs.map { String(format: "%.1f ms", $0) } ?? "—"
+            let location = hop.locationString
+            text += "\(num)  \(ip.padding(toLength: 16, withPad: " ", startingAt: 0))  \(hostname.padding(toLength: 30, withPad: " ", startingAt: 0))  \(latency.padding(toLength: 8, withPad: " ", startingAt: 0))  \(location)\n"
+        }
+        return text
+    }
+
+    @objc private func copyTraceroute() {
+        let text = formatTracerouteText()
+        guard !text.isEmpty else { return }
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+    }
+
+    @objc private func shareTraceroute(_ sender: NSButton) {
+        let text = formatTracerouteText()
+        guard !text.isEmpty else { return }
+        let picker = NSSharingServicePicker(items: [text])
+        picker.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
     }
 
     // MARK: - NSTableViewDataSource

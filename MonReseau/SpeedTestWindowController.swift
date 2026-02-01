@@ -7,6 +7,7 @@
 import Cocoa
 import CoreLocation
 import UniformTypeIdentifiers
+import UserNotifications
 
 // CoreLocation pour obtenir une localisation (ville/pays) a associer aux mesures
 
@@ -218,12 +219,15 @@ class SpeedTestAnimationView: NSView {
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         setupParticles()
-        setAccessibilityElement(false)
+        setAccessibilityRole(.image)
+        setAccessibilityLabel("Animation du test de débit")
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupParticles()
+        setAccessibilityRole(.image)
+        setAccessibilityLabel("Animation du test de débit")
     }
 
     private func setupParticles() {
@@ -433,7 +437,7 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
             backing: .buffered,
             defer: false
         )
-        window.title = "Mon Réseau — Test de débit"
+        window.title = NSLocalizedString("speedtest.title", comment: "")
         window.center()
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 450, height: 500)
@@ -463,7 +467,7 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
         contentView.wantsLayer = true
 
         // Title
-        let titleLabel = NSTextField(labelWithString: "Test de débit")
+        let titleLabel = NSTextField(labelWithString: NSLocalizedString("speedtest.heading", comment: ""))
         titleLabel.font = NSFont.systemFont(ofSize: 18, weight: .semibold)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(titleLabel)
@@ -485,7 +489,7 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
         contentView.addSubview(animationView)
 
         // Status label
-        statusLabel = NSTextField(labelWithString: "Cliquez sur le bouton pour lancer le test")
+        statusLabel = NSTextField(labelWithString: NSLocalizedString("speedtest.status.ready", comment: ""))
         statusLabel.font = NSFont.systemFont(ofSize: 12)
         statusLabel.textColor = .secondaryLabelColor
         statusLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -500,7 +504,7 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
 
         // Results container
         resultsBox = NSBox()
-        resultsBox.title = "Résultats"
+        resultsBox.title = NSLocalizedString("speedtest.results", comment: "")
         resultsBox.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(resultsBox)
 
@@ -566,7 +570,7 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
         bottomBar.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(bottomBar)
 
-        startButton = NSButton(title: "Lancer le test", target: self, action: #selector(startTest))
+        startButton = NSButton(title: NSLocalizedString("speedtest.button.start", comment: ""), target: self, action: #selector(startTest))
         startButton.bezelStyle = .rounded
         bottomBar.addArrangedSubview(startButton)
 
@@ -576,12 +580,17 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         bottomBar.addArrangedSubview(spacer)
 
-        let exportButton = NSButton(title: "Exporter CSV", target: self, action: #selector(exportCSV))
+        let exportButton = NSButton(title: NSLocalizedString("speedtest.button.export", comment: ""), target: self, action: #selector(exportCSV))
         exportButton.bezelStyle = .rounded
         exportButton.translatesAutoresizingMaskIntoConstraints = false
         bottomBar.addArrangedSubview(exportButton)
 
-        clearHistoryButton = NSButton(title: "Effacer l'historique", target: self, action: #selector(clearHistory))
+        let shareButton = NSButton(title: NSLocalizedString("Partager", comment: "Share button"), target: self, action: #selector(shareLastResult(_:)))
+        shareButton.bezelStyle = .rounded
+        shareButton.translatesAutoresizingMaskIntoConstraints = false
+        bottomBar.addArrangedSubview(shareButton)
+
+        clearHistoryButton = NSButton(title: NSLocalizedString("speedtest.button.clear_history", comment: ""), target: self, action: #selector(clearHistory))
         clearHistoryButton.bezelStyle = .rounded
         clearHistoryButton.translatesAutoresizingMaskIntoConstraints = false
         bottomBar.addArrangedSubview(clearHistoryButton)
@@ -669,7 +678,7 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
         startButton.isEnabled = false
         progressIndicator.isHidden = false
         progressIndicator.startAnimation(nil)
-        statusLabel.stringValue = "Test en cours..."
+        statusLabel.stringValue = NSLocalizedString("speedtest.status.running", comment: "")
         resetResults()
 
         animationView.isHidden = false
@@ -878,26 +887,28 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
         uploadLabel.stringValue = String(format: "Upload: %.1f Mbps", result.uploadMbps)
         latencyLabel.stringValue = String(format: "Latence: %.0f ms", result.latencyMs)
         rpmLabel.stringValue = String(format: "RPM: %d", result.rpm)
-        statusLabel.stringValue = "Test termine"
+        statusLabel.stringValue = NSLocalizedString("speedtest.status.done", comment: "")
 
         let quality: String
         let color: NSColor
         if result.downloadMbps >= 100 {
-            quality = "Excellente"
+            quality = NSLocalizedString("quality.rating.excellent", comment: "")
             color = .systemGreen
         } else if result.downloadMbps >= 25 {
-            quality = "Bonne"
+            quality = NSLocalizedString("quality.rating.good", comment: "")
             color = .systemBlue
         } else if result.downloadMbps >= 5 {
-            quality = "Moyenne"
+            quality = NSLocalizedString("quality.rating.fair", comment: "")
             color = .systemOrange
         } else {
-            quality = "Mauvaise"
+            quality = NSLocalizedString("quality.rating.poor", comment: "")
             color = .systemRed
         }
 
         qualityLabel.stringValue = "Qualité: \(quality)"
         qualityLabel.textColor = color
+
+        sendSpeedTestNotification(result)
     }
 
     // MARK: - NSTableViewDataSource
@@ -940,6 +951,55 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
         }
 
         return textField
+    }
+
+    // MARK: - Partager
+
+    @objc private func shareLastResult(_ sender: NSButton) {
+        let entries = SpeedTestHistoryStorage.load()
+        guard let last = entries.first else {
+            let alert = NSAlert()
+            alert.messageText = NSLocalizedString("Aucun résultat", comment: "No result alert title")
+            alert.informativeText = NSLocalizedString("Lancez un test de débit avant de partager.", comment: "No result alert message")
+            alert.runModal()
+            return
+        }
+
+        let df = DateFormatter()
+        df.dateStyle = .medium
+        df.timeStyle = .short
+
+        let text = """
+        Mon Réseau — Test de débit
+        Date : \(df.string(from: last.date))
+        Download : \(String(format: "%.1f", last.downloadMbps)) Mbps
+        Upload : \(String(format: "%.1f", last.uploadMbps)) Mbps
+        Latence : \(String(format: "%.0f", last.latencyMs)) ms
+        Lieu : \(last.location)
+        """
+
+        let picker = NSSharingServicePicker(items: [text])
+        picker.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
+    }
+
+    // MARK: - Notification
+
+    private func sendSpeedTestNotification(_ result: SpeedTestResult) {
+        guard UserDefaults.standard.bool(forKey: "NotifySpeedTestComplete") else { return }
+
+        let center = UNUserNotificationCenter.current()
+        center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
+            guard granted else { return }
+
+            let content = UNMutableNotificationContent()
+            content.title = NSLocalizedString("Test de débit terminé", comment: "Speed test notification title")
+            content.body = String(format: NSLocalizedString("↓ %.1f Mbps  ↑ %.1f Mbps  Latence: %.0f ms", comment: "Speed test notification body"),
+                                  result.downloadMbps, result.uploadMbps, result.latencyMs)
+            content.sound = .default
+
+            let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
+            center.add(request, withCompletionHandler: nil)
+        }
     }
 
     // Arrete l'animation avant la fermeture

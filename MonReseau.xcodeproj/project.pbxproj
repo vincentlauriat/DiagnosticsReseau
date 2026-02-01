@@ -22,6 +22,8 @@
 		A2000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000002 /* Assets.xcassets */; };
 		AA000000000000000000001 /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000002 /* MainWindowController.swift */; };
 		BB000000000000000000001 /* TeletravailWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002 /* TeletravailWindowController.swift */; };
+		DD000000000000000000003 /* BandwidthWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD000000000000000000004 /* BandwidthWindowController.swift */; };
+		EE000000000000000000001 /* WhoisWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE000000000000000000002 /* WhoisWindowController.swift */; };
 		BF3F57E62F2F1372007A3185 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF3F57E52F2F1372007A3185 /* WidgetKit.framework */; };
 		BF3F57E82F2F1372007A3185 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF3F57E72F2F1372007A3185 /* SwiftUI.framework */; };
 		BF3F57F72F2F1373007A3185 /* MonReseauWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BF3F57E32F2F1372007A3185 /* MonReseauWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -73,6 +75,8 @@
 		A2000002 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA000000000000000000002 /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
 		BB000000000000000000002 /* TeletravailWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeletravailWindowController.swift; sourceTree = "<group>"; };
+		DD000000000000000000004 /* BandwidthWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BandwidthWindowController.swift; sourceTree = "<group>"; };
+		EE000000000000000000002 /* WhoisWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhoisWindowController.swift; sourceTree = "<group>"; };
 		BF3F57E32F2F1372007A3185 /* MonReseauWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MonReseauWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF3F57E52F2F1372007A3185 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		BF3F57E72F2F1372007A3185 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -144,6 +148,8 @@
 				A100001A /* SettingsWindowController.swift */,
 				AA000000000000000000002 /* MainWindowController.swift */,
 				BB000000000000000000002 /* TeletravailWindowController.swift */,
+				DD000000000000000000004 /* BandwidthWindowController.swift */,
+				EE000000000000000000002 /* WhoisWindowController.swift */,
 				8B9A0001290000000000001A /* GuideWindowController.swift */,
 				DD000000000000000000002 /* SharedWidgetData.swift */,
 				8B9A000200000000000000F3 /* Localizable.strings */,
@@ -308,6 +314,8 @@
 				A1000019 /* SettingsWindowController.swift in Sources */,
 				AA000000000000000000001 /* MainWindowController.swift in Sources */,
 				BB000000000000000000001 /* TeletravailWindowController.swift in Sources */,
+				DD000000000000000000003 /* BandwidthWindowController.swift in Sources */,
+				EE000000000000000000001 /* WhoisWindowController.swift in Sources */,
 				8B9A0001290000000000001B /* GuideWindowController.swift in Sources */,
 				DD000000000000000000001 /* SharedWidgetData.swift in Sources */,
 			);

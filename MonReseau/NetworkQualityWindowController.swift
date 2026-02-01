@@ -82,7 +82,7 @@ class NetworkQualityWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "Mon Réseau — Qualité réseau"
+        window.title = NSLocalizedString("quality.title", comment: "")
         window.center()
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 500, height: 350)
@@ -98,7 +98,7 @@ class NetworkQualityWindowController: NSWindowController {
         contentView.wantsLayer = true
 
         // Stats bar at top
-        statsLabel = NSTextField(labelWithString: "Démarrage des mesures...")
+        statsLabel = NSTextField(labelWithString: NSLocalizedString("quality.status.starting", comment: ""))
         statsLabel.translatesAutoresizingMaskIntoConstraints = false
         statsLabel.font = NSFont.monospacedSystemFont(ofSize: 12, weight: .regular)
         statsLabel.textColor = .secondaryLabelColor
@@ -113,10 +113,10 @@ class NetworkQualityWindowController: NSWindowController {
         pingModeRow.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(pingModeRow)
 
-        let pingModeLabel = NSTextField(labelWithString: "Cible :")
+        let pingModeLabel = NSTextField(labelWithString: NSLocalizedString("quality.target.label", comment: ""))
         pingModeLabel.font = NSFont.systemFont(ofSize: 12, weight: .medium)
 
-        pingModeControl = NSSegmentedControl(labels: ["Internet", "Réseau local", "Personnalisé"], trackingMode: .selectOne, target: self, action: #selector(pingModeChanged))
+        pingModeControl = NSSegmentedControl(labels: [NSLocalizedString("quality.target.internet", comment: ""), NSLocalizedString("quality.target.local", comment: ""), NSLocalizedString("quality.target.custom", comment: "")], trackingMode: .selectOne, target: self, action: #selector(pingModeChanged))
         pingModeControl.selectedSegment = 0
 
         pingTargetLabel = NSTextField(labelWithString: "→ 8.8.8.8 (Google DNS)")
@@ -135,10 +135,22 @@ class NetworkQualityWindowController: NSWindowController {
         let savedCustomHost = UserDefaults.standard.string(forKey: "CustomPingHost") ?? ""
         customHostField.stringValue = savedCustomHost
 
+        let copyStatsButton = NSButton(title: NSLocalizedString("Copier stats", comment: "Copy stats button"), target: self, action: #selector(copyStats))
+        copyStatsButton.bezelStyle = .rounded
+        copyStatsButton.controlSize = .small
+        copyStatsButton.font = NSFont.systemFont(ofSize: 11)
+
+        let historyButton = NSButton(title: NSLocalizedString("Historique 24h", comment: ""), target: self, action: #selector(showHistory))
+        historyButton.bezelStyle = .rounded
+        historyButton.controlSize = .small
+        historyButton.font = NSFont.systemFont(ofSize: 11)
+
         pingModeRow.addArrangedSubview(pingModeLabel)
         pingModeRow.addArrangedSubview(pingModeControl)
         pingModeRow.addArrangedSubview(pingTargetLabel)
         pingModeRow.addArrangedSubview(customHostField)
+        pingModeRow.addArrangedSubview(copyStatsButton)
+        pingModeRow.addArrangedSubview(historyButton)
 
         // Legend
         let legendView = createLegend()
@@ -201,10 +213,10 @@ class NetworkQualityWindowController: NSWindowController {
             return container
         }
 
-        stack.addArrangedSubview(dot(color: .systemGreen, label: "Latence (ms)"))
-        stack.addArrangedSubview(dot(color: .systemBlue, label: "Moyenne 60s"))
-        stack.addArrangedSubview(dot(color: .systemRed, label: "Perte de paquets"))
-        stack.addArrangedSubview(dot(color: .systemOrange, label: "Jitter (ms)"))
+        stack.addArrangedSubview(dot(color: .systemGreen, label: NSLocalizedString("quality.legend.latency", comment: "")))
+        stack.addArrangedSubview(dot(color: .systemBlue, label: NSLocalizedString("quality.legend.average", comment: "")))
+        stack.addArrangedSubview(dot(color: .systemRed, label: NSLocalizedString("quality.legend.loss", comment: "")))
+        stack.addArrangedSubview(dot(color: .systemOrange, label: NSLocalizedString("quality.legend.jitter", comment: "")))
 
         return stack
     }
@@ -213,7 +225,7 @@ class NetworkQualityWindowController: NSWindowController {
         pingMode = PingMode(rawValue: sender.selectedSegment) ?? .internet
         measurements.removeAll()
         graphView.measurements = measurements
-        statsLabel.stringValue = "Démarrage des mesures..."
+        statsLabel.stringValue = NSLocalizedString("quality.status.starting", comment: "")
         customHostField.isHidden = pingMode != .custom
         pingTargetLabel.isHidden = pingMode == .custom
         updatePingTargetLabel()
@@ -223,7 +235,7 @@ class NetworkQualityWindowController: NSWindowController {
         UserDefaults.standard.set(sender.stringValue, forKey: "CustomPingHost")
         measurements.removeAll()
         graphView.measurements = measurements
-        statsLabel.stringValue = "Démarrage des mesures..."
+        statsLabel.stringValue = NSLocalizedString("quality.status.starting", comment: "")
     }
 
     private func updatePingTargetLabel() {
@@ -232,9 +244,9 @@ class NetworkQualityWindowController: NSWindowController {
             pingTargetLabel.stringValue = "→ 8.8.8.8 (Google DNS)"
         case .local:
             if let gw = getDefaultGateway() {
-                pingTargetLabel.stringValue = "→ \(gw) (Passerelle)"
+                pingTargetLabel.stringValue = "→ \(gw) (\(NSLocalizedString("quality.target.gateway", comment: "")))"
             } else {
-                pingTargetLabel.stringValue = "→ Passerelle introuvable"
+                pingTargetLabel.stringValue = "→ \(NSLocalizedString("quality.target.gateway_not_found", comment: ""))"
             }
         case .custom:
             break
@@ -371,7 +383,7 @@ class NetworkQualityWindowController: NSWindowController {
     private func updateStats() {
         let valid = measurements.compactMap { $0.latency }
         guard !valid.isEmpty else {
-            statsLabel.stringValue = "Aucune mesure disponible"
+            statsLabel.stringValue = NSLocalizedString("quality.status.no_data", comment: "")
             return
         }
 
@@ -394,13 +406,13 @@ class NetworkQualityWindowController: NSWindowController {
         // Seuils empiriques pour l'étiquette de qualité
         let quality: String
         if lossPercent > 10 || avg > 200 {
-            quality = "Mauvaise"
+            quality = NSLocalizedString("quality.rating.poor", comment: "")
         } else if lossPercent > 2 || avg > 80 || jitter > 30 {
-            quality = "Moyenne"
+            quality = NSLocalizedString("quality.rating.fair", comment: "")
         } else if avg > 30 || jitter > 10 {
-            quality = "Bonne"
+            quality = NSLocalizedString("quality.rating.good", comment: "")
         } else {
-            quality = "Excellente"
+            quality = NSLocalizedString("quality.rating.excellent", comment: "")
         }
 
         statsLabel.stringValue = String(format:
@@ -415,6 +427,53 @@ class NetworkQualityWindowController: NSWindowController {
             let snapshot = QualitySnapshot(date: Date(), avgLatency: avg, jitter: jitter, lossPercent: lossPercent, quality: quality)
             QualityHistoryStorage.add(snapshot)
         }
+    }
+
+    // MARK: - Copier
+
+    @objc private func copyStats() {
+        let valid = measurements.compactMap { $0.latency }
+        guard !valid.isEmpty else { return }
+
+        let avg = valid.reduce(0, +) / Double(valid.count)
+        let minVal = valid.min() ?? 0
+        let maxVal = valid.max() ?? 0
+        let lossCount = measurements.filter { $0.packetLoss }.count
+        let lossPercent = Double(lossCount) / Double(measurements.count) * 100
+
+        var jitter = 0.0
+        if valid.count > 1 {
+            var diffs: [Double] = []
+            for i in 1..<valid.count {
+                diffs.append(abs(valid[i] - valid[i - 1]))
+            }
+            jitter = diffs.reduce(0, +) / Double(diffs.count)
+        }
+
+        let text = """
+        Mon Réseau — Qualité réseau
+        Latence moyenne : \(String(format: "%.1f", avg)) ms
+        Latence min : \(String(format: "%.1f", minVal)) ms
+        Latence max : \(String(format: "%.1f", maxVal)) ms
+        Jitter : \(String(format: "%.1f", jitter)) ms
+        Perte de paquets : \(String(format: "%.1f", lossPercent))%
+        Mesures : \(measurements.count)
+        """
+
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+    }
+
+    // MARK: - Historique 24h
+
+    private var historyWindowController: QualityHistoryWindowController?
+
+    @objc private func showHistory() {
+        if historyWindowController == nil {
+            historyWindowController = QualityHistoryWindowController()
+        }
+        historyWindowController?.showWindow(nil)
     }
 
     // Arrête proprement le timer à la fermeture de la fenêtre
@@ -454,6 +513,65 @@ class NetworkGraphView: NSView {
         setAccessibilityLabel("Graphique de qualité réseau")
     }
 
+    // MARK: - Tooltip interactif
+
+    private var tooltipView: NSTextField?
+    private var cursorLineX: CGFloat?
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        for area in trackingAreas { removeTrackingArea(area) }
+        addTrackingArea(NSTrackingArea(rect: bounds, options: [.mouseMoved, .mouseEnteredAndExited, .activeInKeyWindow], owner: self, userInfo: nil))
+    }
+
+    override func mouseMoved(with event: NSEvent) {
+        let point = convert(event.locationInWindow, from: nil)
+        let margin = CGFloat(40)
+        let graphRect = NSRect(x: margin, y: 10, width: bounds.width - margin - 10, height: bounds.height - 30)
+
+        guard graphRect.contains(point), measurements.count > 1 else { hideTooltip(); return }
+
+        let spacing = graphRect.width / CGFloat(max(measurements.count - 1, 1))
+        let index = Int(round((point.x - graphRect.minX) / spacing))
+        guard index >= 0, index < measurements.count else { hideTooltip(); return }
+
+        cursorLineX = graphRect.minX + CGFloat(index) * spacing
+        needsDisplay = true
+
+        let m = measurements[index]
+        var text = "Mesure \(index + 1)/\(measurements.count)"
+        if let lat = m.latency { text += String(format: "\nLatence: %.1f ms", lat) }
+        else { text += "\nPerte de paquet" }
+
+        if tooltipView == nil {
+            let label = NSTextField(labelWithString: "")
+            label.font = NSFont.systemFont(ofSize: 10)
+            label.backgroundColor = NSColor.windowBackgroundColor
+            label.drawsBackground = true
+            label.isBezeled = true
+            label.bezelStyle = .roundedBezel
+            label.maximumNumberOfLines = 3
+            addSubview(label)
+            tooltipView = label
+        }
+        tooltipView?.stringValue = text
+        tooltipView?.sizeToFit()
+        var origin = NSPoint(x: cursorLineX! + 8, y: point.y - 20)
+        if let tv = tooltipView, origin.x + tv.frame.width > bounds.maxX - 10 {
+            origin.x = cursorLineX! - tv.frame.width - 8
+        }
+        tooltipView?.frame.origin = origin
+        tooltipView?.isHidden = false
+    }
+
+    override func mouseExited(with event: NSEvent) { hideTooltip() }
+
+    private func hideTooltip() {
+        tooltipView?.isHidden = true
+        cursorLineX = nil
+        needsDisplay = true
+    }
+
     private func updateAccessibilityValue() {
         guard !measurements.isEmpty else {
             setAccessibilityValue("Aucune mesure")
@@ -490,13 +608,13 @@ class NetworkGraphView: NSView {
         context.stroke(graphRect)
 
         guard measurements.count > 1 else {
-            drawCenteredText("En attente de données...", in: graphRect, context: context)
+            drawCenteredText(NSLocalizedString("quality.graph.waiting", comment: ""), in: graphRect, context: context)
             return
         }
 
         let validLatencies = measurements.compactMap { $0.latency }
         guard !validLatencies.isEmpty else {
-            drawCenteredText("Aucune réponse...", in: graphRect, context: context)
+            drawCenteredText(NSLocalizedString("quality.graph.no_response", comment: ""), in: graphRect, context: context)
             return
         }
 
@@ -528,6 +646,17 @@ class NetworkGraphView: NSView {
 
         // Draw latency dots
         drawLatencyDots(in: graphRect, pointSpacing: pointSpacing, yScale: yScale, maxLatency: maxLatency, context: context)
+
+        // Cursor line (tooltip hover)
+        if let cx = cursorLineX {
+            context.setStrokeColor(NSColor.labelColor.withAlphaComponent(0.4).cgColor)
+            context.setLineWidth(1)
+            context.setLineDash(phase: 0, lengths: [4, 3])
+            context.move(to: CGPoint(x: cx, y: graphRect.minY))
+            context.addLine(to: CGPoint(x: cx, y: graphRect.maxY))
+            context.strokePath()
+            context.setLineDash(phase: 0, lengths: [])
+        }
     }
 
     // Dessine des lignes horizontales et étiquettes (ms) selon une graduation adaptée à `maxLatency`
@@ -704,6 +833,241 @@ class NetworkGraphView: NSView {
         let size = str.size()
         let point = NSPoint(x: rect.midX - size.width / 2, y: rect.midY - size.height / 2)
         str.draw(at: point)
+    }
+}
+
+// MARK: - QualityHistoryWindowController
+
+class QualityHistoryWindowController: NSWindowController {
+
+    private var historyGraphView: QualityHistoryGraphView!
+    private var summaryLabel: NSTextField!
+
+    convenience init() {
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 750, height: 500),
+            styleMask: [.titled, .closable, .resizable, .miniaturizable],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = NSLocalizedString("quality.history.title", comment: "")
+        window.center()
+        window.isReleasedWhenClosed = false
+        window.minSize = NSSize(width: 500, height: 350)
+
+        self.init(window: window)
+        setupUI()
+    }
+
+    private func setupUI() {
+        guard let contentView = window?.contentView else { return }
+
+        summaryLabel = NSTextField(wrappingLabelWithString: "")
+        summaryLabel.translatesAutoresizingMaskIntoConstraints = false
+        summaryLabel.font = NSFont.monospacedSystemFont(ofSize: 11, weight: .regular)
+        summaryLabel.textColor = .secondaryLabelColor
+        contentView.addSubview(summaryLabel)
+
+        // Legend
+        let legend = NSStackView()
+        legend.orientation = .horizontal
+        legend.spacing = 16
+        legend.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(legend)
+
+        func dot(color: NSColor, label: String) -> NSView {
+            let stack = NSStackView()
+            stack.orientation = .horizontal
+            stack.spacing = 4
+            let box = NSView()
+            box.wantsLayer = true
+            box.layer?.backgroundColor = color.cgColor
+            box.layer?.cornerRadius = 3
+            box.translatesAutoresizingMaskIntoConstraints = false
+            box.widthAnchor.constraint(equalToConstant: 10).isActive = true
+            box.heightAnchor.constraint(equalToConstant: 10).isActive = true
+            let text = NSTextField(labelWithString: label)
+            text.font = NSFont.systemFont(ofSize: 10)
+            text.textColor = .secondaryLabelColor
+            stack.addArrangedSubview(box)
+            stack.addArrangedSubview(text)
+            return stack
+        }
+
+        legend.addArrangedSubview(dot(color: .systemGreen, label: "Latence (ms)"))
+        legend.addArrangedSubview(dot(color: .systemOrange, label: "Jitter (ms)"))
+        legend.addArrangedSubview(dot(color: .systemRed, label: "Perte (%)"))
+
+        historyGraphView = QualityHistoryGraphView()
+        historyGraphView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(historyGraphView)
+
+        NSLayoutConstraint.activate([
+            summaryLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
+            summaryLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            summaryLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+
+            legend.topAnchor.constraint(equalTo: summaryLabel.bottomAnchor, constant: 8),
+            legend.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+
+            historyGraphView.topAnchor.constraint(equalTo: legend.bottomAnchor, constant: 8),
+            historyGraphView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            historyGraphView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            historyGraphView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
+        ])
+    }
+
+    override func showWindow(_ sender: Any?) {
+        super.showWindow(sender)
+        loadHistory()
+    }
+
+    private func loadHistory() {
+        let snapshots = QualityHistoryStorage.load()
+        historyGraphView.snapshots = snapshots
+
+        guard !snapshots.isEmpty else {
+            summaryLabel.stringValue = "Aucun historique disponible. Les données sont enregistrées automatiquement lors de l'utilisation de la fenêtre Qualité réseau."
+            return
+        }
+
+        let avgLat = snapshots.map(\.avgLatency).reduce(0, +) / Double(snapshots.count)
+        let avgJitter = snapshots.map(\.jitter).reduce(0, +) / Double(snapshots.count)
+        let avgLoss = snapshots.map(\.lossPercent).reduce(0, +) / Double(snapshots.count)
+        let oldest = snapshots.last?.date ?? Date()
+        let newest = snapshots.first?.date ?? Date()
+
+        let df = DateFormatter()
+        df.dateStyle = .short
+        df.timeStyle = .short
+
+        summaryLabel.stringValue = String(format:
+            "%d mesures de %@ à %@   |   Latence moy: %.1f ms   Jitter moy: %.1f ms   Perte moy: %.1f%%",
+            snapshots.count, df.string(from: oldest), df.string(from: newest), avgLat, avgJitter, avgLoss
+        )
+    }
+}
+
+// MARK: - QualityHistoryGraphView
+
+class QualityHistoryGraphView: NSView {
+
+    var snapshots: [QualitySnapshot] = [] {
+        didSet { needsDisplay = true }
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        let bg = NSColor.controlBackgroundColor
+        bg.setFill()
+        dirtyRect.fill()
+
+        let rect = bounds.insetBy(dx: 45, dy: 20)
+        guard rect.width > 0, rect.height > 0, snapshots.count > 1 else {
+            if snapshots.isEmpty {
+                let attrs: [NSAttributedString.Key: Any] = [
+                    .font: NSFont.systemFont(ofSize: 14),
+                    .foregroundColor: NSColor.tertiaryLabelColor,
+                ]
+                let str = NSAttributedString(string: "Aucune donnée", attributes: attrs)
+                let size = str.size()
+                str.draw(at: NSPoint(x: bounds.midX - size.width / 2, y: bounds.midY - size.height / 2))
+            }
+            return
+        }
+
+        // Data is newest-first, reverse for chronological drawing
+        let data = Array(snapshots.reversed())
+
+        // Scale: left axis = latency/jitter (ms), right axis = loss (%)
+        let maxLatency = max(data.map(\.avgLatency).max() ?? 50, data.map(\.jitter).max() ?? 10, 20)
+        let maxLoss = max(data.map(\.lossPercent).max() ?? 5, 1)
+
+        let latencyScale = (rect.height - 10) / CGFloat(maxLatency)
+        let lossScale = (rect.height - 10) / CGFloat(maxLoss)
+        let step = rect.width / CGFloat(data.count - 1)
+
+        // Grid
+        drawGrid(in: rect, maxLatency: maxLatency, maxLoss: maxLoss)
+
+        // Time labels
+        drawTimeLabels(in: rect, data: data, step: step)
+
+        // Latency line (green)
+        drawLine(data.map(\.avgLatency), in: rect, step: step, scale: latencyScale, color: .systemGreen, lineWidth: 2)
+
+        // Jitter line (orange)
+        drawLine(data.map(\.jitter), in: rect, step: step, scale: latencyScale, color: .systemOrange, lineWidth: 1.5)
+
+        // Loss bars (red)
+        for (i, snap) in data.enumerated() {
+            guard snap.lossPercent > 0 else { continue }
+            let x = rect.minX + CGFloat(i) * step
+            let h = CGFloat(snap.lossPercent) * lossScale
+            let barRect = NSRect(x: x - 1.5, y: rect.minY, width: 3, height: h)
+            NSColor.systemRed.withAlphaComponent(0.5).setFill()
+            barRect.fill()
+        }
+    }
+
+    private func drawLine(_ values: [Double], in rect: NSRect, step: CGFloat, scale: CGFloat, color: NSColor, lineWidth: CGFloat) {
+        let path = NSBezierPath()
+        for (i, val) in values.enumerated() {
+            let x = rect.minX + CGFloat(i) * step
+            let y = rect.minY + CGFloat(val) * scale
+            if i == 0 { path.move(to: NSPoint(x: x, y: y)) }
+            else { path.line(to: NSPoint(x: x, y: y)) }
+        }
+        color.setStroke()
+        path.lineWidth = lineWidth
+        path.stroke()
+    }
+
+    private func drawGrid(in rect: NSRect, maxLatency: Double, maxLoss: Double) {
+        NSColor.separatorColor.setStroke()
+        let gridPath = NSBezierPath()
+        let attrs: [NSAttributedString.Key: Any] = [
+            .font: NSFont.monospacedDigitSystemFont(ofSize: 9, weight: .regular),
+            .foregroundColor: NSColor.tertiaryLabelColor,
+        ]
+
+        for i in 0...4 {
+            let y = rect.minY + rect.height * CGFloat(i) / 4
+            gridPath.move(to: NSPoint(x: rect.minX, y: y))
+            gridPath.line(to: NSPoint(x: rect.maxX, y: y))
+
+            // Left axis: latency
+            let latVal = maxLatency * Double(i) / 4
+            String(format: "%.0f", latVal).draw(at: NSPoint(x: 2, y: y - 6), withAttributes: attrs)
+
+            // Right axis: loss
+            let lossVal = maxLoss * Double(i) / 4
+            let lossStr = String(format: "%.1f%%", lossVal)
+            let lossSize = (lossStr as NSString).size(withAttributes: attrs)
+            lossStr.draw(at: NSPoint(x: rect.maxX + 4, y: y - 6), withAttributes: attrs)
+            _ = lossSize // suppress unused warning
+        }
+        gridPath.lineWidth = 0.5
+        gridPath.stroke()
+    }
+
+    private func drawTimeLabels(in rect: NSRect, data: [QualitySnapshot], step: CGFloat) {
+        let attrs: [NSAttributedString.Key: Any] = [
+            .font: NSFont.monospacedDigitSystemFont(ofSize: 8, weight: .regular),
+            .foregroundColor: NSColor.tertiaryLabelColor,
+        ]
+        let df = DateFormatter()
+        df.dateFormat = "HH:mm"
+
+        let labelCount = min(8, data.count)
+        guard labelCount > 1 else { return }
+        let interval = (data.count - 1) / (labelCount - 1)
+
+        for i in 0..<labelCount {
+            let idx = min(i * interval, data.count - 1)
+            let x = rect.minX + CGFloat(idx) * step
+            let label = df.string(from: data[idx].date)
+            label.draw(at: NSPoint(x: x - 12, y: rect.minY - 14), withAttributes: attrs)
+        }
     }
 }
 

@@ -135,6 +135,12 @@ class DNSWindowController: NSWindowController {
         flushButton.bezelStyle = .rounded
         toolbar2.addSubview(flushButton)
 
+        // Bouton copier resultats
+        let copyButton = NSButton(title: NSLocalizedString("Copier résultats", comment: "Copy DNS results"), target: self, action: #selector(copyResults))
+        copyButton.translatesAutoresizingMaskIntoConstraints = false
+        copyButton.bezelStyle = .rounded
+        toolbar2.addSubview(copyButton)
+
         // Indicateur de progression
         progressIndicator = NSProgressIndicator()
         progressIndicator.translatesAutoresizingMaskIntoConstraints = false
@@ -207,6 +213,9 @@ class DNSWindowController: NSWindowController {
 
             flushButton.leadingAnchor.constraint(equalTo: configButton.trailingAnchor, constant: 8),
             flushButton.centerYAnchor.constraint(equalTo: toolbar2.centerYAnchor),
+
+            copyButton.leadingAnchor.constraint(equalTo: flushButton.trailingAnchor, constant: 8),
+            copyButton.centerYAnchor.constraint(equalTo: toolbar2.centerYAnchor),
 
             progressIndicator.trailingAnchor.constraint(equalTo: toolbar2.trailingAnchor),
             progressIndicator.centerYAnchor.constraint(equalTo: toolbar2.centerYAnchor),
@@ -908,6 +917,16 @@ class DNSWindowController: NSWindowController {
         output += "Commande copiee dans le presse-papiers.\n"
 
         appendText(output)
+    }
+
+    // MARK: - Copier
+
+    @objc private func copyResults() {
+        let text = textView.string
+        guard !text.isEmpty else { return }
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
     }
 
     // MARK: - Helpers

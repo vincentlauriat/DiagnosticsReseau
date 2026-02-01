@@ -18,6 +18,8 @@
 "menu.dns" = "DNS…";
 "menu.wifi" = "WiFi…";
 "menu.neighborhood" = "Neighborhood…";
+"menu.bandwidth" = "Bandwidth…";
+"menu.whois" = "Whois…";
 "menu.teletravail" = "Remote Work…";
 "menu.guide" = "Guide…";
 "menu.settings" = "Settings…";
@@ -57,6 +59,9 @@
    ========================= */
 
 "settings.title" = "Mon Réseau — Settings";
+"settings.tab.general" = "General";
+"settings.tab.notifications" = "Notifications";
+"settings.tab.advanced" = "Advanced";
 
 "settings.mode.label" = "Display mode:";
 "settings.mode.menubar" = "Menu Bar";
@@ -80,6 +85,23 @@
 "settings.appearance.dark" = "Dark";
 "settings.appearance.description" = "Choose the app appearance: follow system settings, force light mode, or force dark mode.";
 
+"settings.notify_quality.title" = "Notify quality degradation";
+"settings.notify_quality.latency_threshold" = "Latency threshold:";
+"settings.notify_quality.loss_threshold" = "Packet loss threshold:";
+
+"settings.notify_speedtest.title" = "Notify speed test completion";
+"settings.notify_speedtest.description" = "Receive a notification when a speed test is completed.";
+
+"settings.menubar_display.label" = "Menu bar display:";
+"settings.menubar_display.none" = "None";
+"settings.menubar_display.latency" = "Latency (ping)";
+"settings.menubar_display.throughput" = "Throughput ↓↑";
+"settings.menubar_display.rssi" = "WiFi Signal (dBm)";
+"settings.menubar_display.description" = "Choose the information displayed next to the icon in the menu bar (menu bar mode only).";
+
+"settings.ping_target.label" = "Ping target:";
+"settings.ping_target.description" = "Address used for ping (menu bar and remote work). Default: 8.8.8.8 (Google DNS).";
+
 "settings.geek.title" = "Geek Mode";
 "settings.geek.description" = "Shows technical tools in the menu: network details, quality, speed test, traceroute, DNS, WiFi, and neighborhood.";
 
@@ -97,6 +119,8 @@
 "main.card.dns" = "DNS";
 "main.card.wifi" = "WiFi";
 "main.card.neighborhood" = "Neighborhood";
+"main.card.bandwidth" = "Bandwidth";
+"main.card.whois" = "Whois";
 "main.card.teletravail" = "Remote Work";
 "main.card.guide" = "Guide";
 "main.card.settings" = "Settings";
@@ -205,6 +229,20 @@
 "guide.shortcuts.title" = "Keyboard Shortcuts";
 "guide.shortcuts.intro" = "In menu bar mode, global shortcuts use Ctrl+Option+letter. In application mode, use Cmd+letter in the menus.";
 
+/* Quality notifications */
+"notification.quality_degraded.title" = "Network quality degraded";
+"notification.quality_degraded.latency" = "Latency %.0f ms (threshold: %.0f ms)";
+"notification.quality_degraded.loss" = "Packet loss %.0f%% (threshold: %.0f%%)";
+"notification.speedtest_complete.title" = "Speed test completed";
+"notification.speedtest_complete.body" = "↓ %.0f Mbps  ↑ %.0f Mbps  Latency %.0f ms";
+
+/* Bandwidth */
+"bandwidth.title" = "Mon Réseau — Bandwidth";
+"bandwidth.session_total" = "Session:";
+"bandwidth.download" = "Download";
+"bandwidth.upload" = "Upload";
+"bandwidth.copy" = "Copy";
+
 /* Accessibility */
 "accessibility.graph.quality" = "Network quality graph";
 "accessibility.graph.quality.empty" = "No measurements";
@@ -212,3 +250,109 @@
 "accessibility.graph.wifi" = "WiFi signal graph";
 "accessibility.graph.wifi.signal" = "Signal %d dBm";
 "accessibility.gauge.wifi" = "WiFi signal strength";
+
+/* =========================
+   NetworkQualityWindowController
+   ========================= */
+
+"quality.title" = "Mon Réseau — Network Quality";
+"quality.status.starting" = "Starting measurements...";
+"quality.status.no_data" = "No measurements available";
+"quality.target.label" = "Target:";
+"quality.target.internet" = "Internet";
+"quality.target.local" = "Local network";
+"quality.target.custom" = "Custom";
+"quality.target.gateway" = "Gateway";
+"quality.target.gateway_not_found" = "Gateway not found";
+"quality.legend.latency" = "Latency (ms)";
+"quality.legend.average" = "60s average";
+"quality.legend.loss" = "Packet loss";
+"quality.legend.jitter" = "Jitter (ms)";
+"quality.graph.waiting" = "Waiting for data...";
+"quality.graph.no_response" = "No response...";
+"quality.rating.excellent" = "Excellent";
+"quality.rating.good" = "Good";
+"quality.rating.fair" = "Fair";
+"quality.rating.poor" = "Poor";
+"quality.history.title" = "Mon Réseau — Quality History 24h";
+
+/* =========================
+   SpeedTestWindowController
+   ========================= */
+
+"speedtest.title" = "Mon Réseau — Speed Test";
+"speedtest.heading" = "Speed Test";
+"speedtest.status.ready" = "Click the button to start the test";
+"speedtest.status.running" = "Test in progress...";
+"speedtest.status.done" = "Test completed";
+"speedtest.results" = "Results";
+"speedtest.button.start" = "Start test";
+"speedtest.button.export" = "Export CSV";
+"speedtest.button.clear_history" = "Clear history";
+
+/* =========================
+   TracerouteWindowController
+   ========================= */
+
+"traceroute.title" = "Mon Réseau — Traceroute";
+"traceroute.heading" = "Visual Traceroute";
+"traceroute.button.trace" = "Trace";
+"traceroute.status.ready" = "Enter an address and click Trace";
+"traceroute.status.running" = "Traceroute in progress...";
+"traceroute.status.done" = "Traceroute completed - %d hops";
+
+/* =========================
+   NetworkDetailWindowController
+   ========================= */
+
+"details.title" = "Mon Réseau — Network Details";
+"details.section.connection" = "Connection Status";
+"details.section.wifi" = "WiFi";
+"details.section.routing" = "Routing";
+"details.section.dns" = "DNS";
+"details.section.public_ip" = "Public IP";
+"details.section.vpn" = "VPN";
+
+/* =========================
+   TeletravailWindowController
+   ========================= */
+
+"teletravail.title" = "Mon Réseau — Remote Work";
+"teletravail.heading" = "Remote Work";
+"teletravail.subtitle" = "Real-time diagnostic of your connection for remote work.";
+"teletravail.usages.title" = "Usage Compatibility";
+"teletravail.verdict.analyzing" = "Analyzing…";
+"teletravail.verdict.waiting" = "Waiting for sufficient data.";
+"teletravail.verdict.excellent" = "Excellent";
+"teletravail.verdict.ok" = "OK";
+"teletravail.verdict.degraded" = "Degraded";
+"teletravail.verdict.insufficient" = "Insufficient";
+"teletravail.verdict.unknown" = "Unknown";
+"teletravail.global.insufficient" = "Insufficient connection";
+"teletravail.global.degraded" = "Degraded connection";
+"teletravail.global.excellent" = "Excellent connection";
+"teletravail.global.excellent_detail" = "Your network is perfectly suited for remote work.";
+"teletravail.global.ok" = "Connection suited for remote work";
+"teletravail.global.ok_detail" = "All common use cases are functional.";
+"teletravail.speed.no_test" = "No test";
+"teletravail.speed.run_test" = "Run a speed test";
+"teletravail.wifi.disconnected" = "Disconnected";
+
+/* =========================
+   WhoisWindowController
+   ========================= */
+
+"whois.title" = "Mon Réseau — Whois";
+"whois.heading" = "Whois Lookup";
+"whois.button.query" = "Lookup";
+"whois.button.copy" = "Copy";
+"whois.status.ready" = "Enter a domain or IP address";
+"whois.status.querying" = "Looking up %@…";
+"whois.status.connecting" = "Connecting to %@…";
+"whois.status.redirect" = "Redirecting to %@…";
+"whois.status.done" = "Result from %@ — %d lines";
+"whois.status.empty" = "No result";
+"whois.result.empty" = "The WHOIS server returned no information.";
+"whois.error.send" = "Send error: %@";
+"whois.error.connection" = "Connection error: %@";
+"whois.error.timeout" = "Timeout (15 s)";
