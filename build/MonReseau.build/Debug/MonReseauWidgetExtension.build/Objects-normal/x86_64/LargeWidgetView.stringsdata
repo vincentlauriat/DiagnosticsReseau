@@ -1,0 +1,64 @@
+{
+  "source": "/Users/vincent/Desktop/Projets Perso/Xcode/MonReseau/MonReseauWidget/LargeWidgetView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Connecté",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 17
+        }
+      },
+      {
+        "comment": "",
+        "key": "Déconnecté",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 17
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld dBm",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 38
+        }
+      },
+      {
+        "comment": "",
+        "key": "Latence",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 50
+        }
+      },
+      {
+        "comment": "",
+        "key": "Derniers tests",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 62
+        }
+      },
+      {
+        "comment": "",
+        "key": "Aucun test",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 67
+        }
+      },
+      {
+        "comment": "",
+        "key": "VPN",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 112
+        }
+      }
+    ]
+  },
+  "version": 1
+}

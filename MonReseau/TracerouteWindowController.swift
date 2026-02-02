@@ -39,7 +39,7 @@ class TracerouteHop {
 
     var locationString: String {
         if isTimeout { return "—" }
-        if isPrivateIP { return "Réseau local" }
+        if isPrivateIP { return NSLocalizedString("traceroute.location.local_network", comment: "") }
         if let city = city, let country = country {
             return "\(city), \(country)"
         }
@@ -342,6 +342,7 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
     private var mapView: MKMapView!
     private var hopsTableView: NSTableView!
     private var progressIndicator: NSProgressIndicator!
+    private var favoritesPopup: NSPopUpButton!
 
     private let tracerouteService = TracerouteService()
     private var hops: [TracerouteHop] = []
@@ -399,13 +400,25 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
         progressIndicator.isHidden = true
         inputStack.addArrangedSubview(progressIndicator)
 
-        let copyButton = NSButton(title: NSLocalizedString("Copier", comment: "Copy button"), target: self, action: #selector(copyTraceroute))
+        let copyButton = NSButton(title: NSLocalizedString("traceroute.button.copy", comment: ""), target: self, action: #selector(copyTraceroute))
         copyButton.bezelStyle = .rounded
         inputStack.addArrangedSubview(copyButton)
 
-        let shareButton = NSButton(title: NSLocalizedString("Partager", comment: "Share button"), target: self, action: #selector(shareTraceroute(_:)))
+        let shareButton = NSButton(title: NSLocalizedString("traceroute.button.share", comment: ""), target: self, action: #selector(shareTraceroute(_:)))
         shareButton.bezelStyle = .rounded
         inputStack.addArrangedSubview(shareButton)
+
+        let addFavButton = NSButton(title: "★", target: self, action: #selector(toggleFavorite))
+        addFavButton.bezelStyle = .rounded
+        addFavButton.toolTip = NSLocalizedString("favorites.add", comment: "")
+        inputStack.addArrangedSubview(addFavButton)
+
+        favoritesPopup = NSPopUpButton()
+        favoritesPopup.bezelStyle = .rounded
+        favoritesPopup.target = self
+        favoritesPopup.action = #selector(loadFavorite)
+        inputStack.addArrangedSubview(favoritesPopup)
+        refreshFavoritesPopup()
 
         // Status
         statusLabel = NSTextField(labelWithString: NSLocalizedString("traceroute.status.ready", comment: ""))
@@ -449,7 +462,7 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
         hopsTableView.addTableColumn(ipColumn)
 
         let hostnameColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("hostname"))
-        hostnameColumn.title = "Nom d'hôte"
+        hostnameColumn.title = NSLocalizedString("traceroute.column.hostname", comment: "")
         hostnameColumn.width = 180
         hostnameColumn.minWidth = 80
         hopsTableView.addTableColumn(hostnameColumn)
@@ -613,24 +626,24 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
 
     private func calloutText(for hop: TracerouteHop) -> String {
         var lines: [String] = []
-        lines.append("IP : \(hop.ipAddress)")
+        lines.append("\(NSLocalizedString("traceroute.callout.ip", comment: "")) \(hop.ipAddress)")
         if let hostname = hop.hostname {
-            lines.append("Hôte : \(hostname)")
+            lines.append("\(NSLocalizedString("traceroute.callout.host", comment: "")) \(hostname)")
         }
         if let city = hop.city, let region = hop.region, let country = hop.country {
-            lines.append("Lieu : \(city), \(region), \(country)")
+            lines.append("\(NSLocalizedString("traceroute.callout.location", comment: "")) \(city), \(region), \(country)")
         }
         if let isp = hop.isp {
-            lines.append("ISP : \(isp)")
+            lines.append("\(NSLocalizedString("traceroute.callout.isp", comment: "")) \(isp)")
         }
         if let org = hop.org, org != hop.isp {
-            lines.append("Org : \(org)")
+            lines.append("\(NSLocalizedString("traceroute.callout.org", comment: "")) \(org)")
         }
         if let asn = hop.asn {
-            lines.append("ASN : AS\(asn)")
+            lines.append("\(NSLocalizedString("traceroute.callout.asn", comment: "")) AS\(asn)")
         }
         if let latency = hop.latencyMs {
-            lines.append(String(format: "Latence : %.1f ms", latency))
+            lines.append(String(format: "\(NSLocalizedString("traceroute.callout.latency", comment: "")) %.1f ms", latency))
         }
         return lines.joined(separator: "\n")
     }
@@ -672,9 +685,9 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
     private func formatTracerouteText() -> String {
         guard !hops.isEmpty else { return "" }
         let target = targetTextField.stringValue
-        var text = "Mon Réseau — Traceroute vers \(target)\n"
+        var text = String(format: NSLocalizedString("traceroute.report.header", comment: ""), target) + "\n"
         text += String(repeating: "═", count: 60) + "\n"
-        text += String(format: "%-4s  %-16s  %-30s  %-8s  %@\n", "#", "IP", "Nom d'hôte", "Latence", "Lieu")
+        text += String(format: "%-4s  %-16s  %-30s  %-8s  %@\n", "#", "IP", NSLocalizedString("traceroute.column.hostname", comment: ""), NSLocalizedString("traceroute.report.latency", comment: ""), NSLocalizedString("traceroute.report.location", comment: ""))
         text += String(repeating: "─", count: 80) + "\n"
 
         for hop in hops {
@@ -701,6 +714,39 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
         guard !text.isEmpty else { return }
         let picker = NSSharingServicePicker(items: [text])
         picker.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
+    }
+
+    // MARK: - Favorites
+
+    @objc private func toggleFavorite() {
+        let target = targetTextField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !target.isEmpty else { return }
+        let existing = QueryFavoritesStorage.favorites(for: "traceroute")
+        if let fav = existing.first(where: { $0.target == target }) {
+            QueryFavoritesStorage.remove(id: fav.id)
+        } else {
+            _ = QueryFavoritesStorage.add(QueryFavorite(type: "traceroute", target: target))
+        }
+        refreshFavoritesPopup()
+    }
+
+    @objc private func loadFavorite() {
+        let index = favoritesPopup.indexOfSelectedItem
+        let favorites = QueryFavoritesStorage.favorites(for: "traceroute")
+        guard index > 0, index - 1 < favorites.count else { return }
+        targetTextField.stringValue = favorites[index - 1].target
+    }
+
+    private func refreshFavoritesPopup() {
+        favoritesPopup.removeAllItems()
+        favoritesPopup.addItem(withTitle: NSLocalizedString("favorites.button", comment: ""))
+        let favorites = QueryFavoritesStorage.favorites(for: "traceroute")
+        if favorites.isEmpty {
+            let item = favoritesPopup.menu?.addItem(withTitle: NSLocalizedString("favorites.none", comment: ""), action: nil, keyEquivalent: "")
+            item?.isEnabled = false
+        } else {
+            for fav in favorites { favoritesPopup.addItem(withTitle: fav.target) }
+        }
     }
 
     // MARK: - NSTableViewDataSource
@@ -734,7 +780,7 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
             textField.stringValue = "\(hop.hopNumber)"
         case "ip":
             textField.stringValue = hop.isTimeout ? "* * *" : hop.ipAddress
-            textField.textColor = hop.isTimeout ? .tertiaryLabelColor : .labelColor
+            textField.textColor = hop.isTimeout ? .tertiaryLabelColor : .systemBlue
         case "hostname":
             textField.stringValue = hop.hostname ?? (hop.isTimeout ? "—" : "")
             textField.textColor = hop.hostname != nil ? .labelColor : .tertiaryLabelColor

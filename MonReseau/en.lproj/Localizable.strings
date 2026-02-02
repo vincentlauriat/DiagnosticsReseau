@@ -20,7 +20,8 @@
 "menu.neighborhood" = "Neighborhood…";
 "menu.bandwidth" = "Bandwidth…";
 "menu.whois" = "Whois…";
-"menu.teletravail" = "Remote Work…";
+"menu.copyip" = "Copy Public IP";
+"menu.teletravail" = "Use Cases…";
 "menu.guide" = "Guide…";
 "menu.settings" = "Settings…";
 "menu.about" = "About…";
@@ -121,7 +122,7 @@
 "main.card.neighborhood" = "Neighborhood";
 "main.card.bandwidth" = "Bandwidth";
 "main.card.whois" = "Whois";
-"main.card.teletravail" = "Remote Work";
+"main.card.teletravail" = "Use Cases";
 "main.card.guide" = "Guide";
 "main.card.settings" = "Settings";
 
@@ -142,7 +143,7 @@
 "guide.about.feature.dns" = "Advanced DNS queries and server benchmarks";
 "guide.about.feature.wifi" = "WiFi information and real-time signal";
 "guide.about.feature.neighborhood" = "Network neighborhood scanner (devices and ports)";
-"guide.about.feature.teletravail" = "Remote Work mode: quick connection diagnostic";
+"guide.about.feature.teletravail" = "Use Cases: connection diagnostic by usage type";
 
 "guide.concepts.title" = "Understanding Network Concepts";
 
@@ -200,9 +201,9 @@
 "guide.tips.install.title" = "Check Your Setup";
 "guide.tips.install.text" = "A damaged Ethernet cable, missing ADSL filter, poor-quality splitter, or old router can limit your speed. If your speed tests are well below your plan, contact your provider.";
 
-/* Guide — Remote Work */
-"guide.teletravail.title" = "Remote Work: Thresholds per Usage";
-"guide.teletravail.intro" = "The Remote Work screen evaluates your connection in real time for each professional use case. Here are the minimum thresholds used:";
+/* Guide — Use Cases */
+"guide.teletravail.title" = "Use Cases: Thresholds per Usage";
+"guide.teletravail.intro" = "The Use Cases screen evaluates your connection in real time for each type of usage. Here are the minimum thresholds used:";
 "guide.teletravail.header.usage" = "Usage";
 "guide.teletravail.header.download" = "↓ Mbps";
 "guide.teletravail.header.upload" = "↑ Mbps";
@@ -215,6 +216,7 @@
 "guide.teletravail.usage.citrix" = "Citrix / Remote Desktop";
 "guide.teletravail.usage.transfer" = "File Transfer";
 "guide.teletravail.usage.streaming" = "Video Streaming";
+"guide.teletravail.usage.gaming" = "Online Gaming";
 "guide.teletravail.verdicts" = "Verdicts are assigned according to these rules:";
 "guide.teletravail.verdict.excellent" = "Excellent (green): speed ≥ 2× threshold, latency and jitter ≤ 50% of threshold";
 "guide.teletravail.verdict.ok" = "OK (blue): all thresholds met with comfortable margin";
@@ -225,6 +227,10 @@
 "guide.teletravail.indicator.latency" = "Latency: ping to 8.8.8.8. Green ≤ 30 ms and jitter ≤ 10 ms, orange ≤ 80 ms and jitter ≤ 30 ms, red beyond";
 "guide.teletravail.indicator.speed" = "Speed: uses last test result. Green ≥ 50 Mbps, blue ≥ 10 Mbps, orange ≥ 5 Mbps, red < 5 Mbps";
 "guide.teletravail.note" = "WiFi and latency indicators are measured continuously (1 measurement/second). Speed comes from the last test run in the Speed Test window. For up-to-date results, run a speed test before your meeting.";
+
+"guide.urlscheme.title" = "Deep Links (URL Scheme)";
+"guide.urlscheme.intro" = "Mon Réseau registers the monreseau:// scheme to open a specific window directly. These links work from Safari, Terminal, Spotlight, Widgets or any other application.";
+"guide.urlscheme.usage" = "Example: open Terminal and type \"open monreseau://speedtest\" to launch the speed test directly. WidgetKit widgets use these links to navigate to the app.";
 
 "guide.shortcuts.title" = "Keyboard Shortcuts";
 "guide.shortcuts.intro" = "In menu bar mode, global shortcuts use Ctrl+Option+letter. In application mode, use Cmd+letter in the menus.";
@@ -317,9 +323,9 @@
    TeletravailWindowController
    ========================= */
 
-"teletravail.title" = "Mon Réseau — Remote Work";
-"teletravail.heading" = "Remote Work";
-"teletravail.subtitle" = "Real-time diagnostic of your connection for remote work.";
+"teletravail.title" = "Mon Réseau — Use Cases";
+"teletravail.heading" = "Use Cases";
+"teletravail.subtitle" = "Real-time diagnostic of your connection by usage type.";
 "teletravail.usages.title" = "Usage Compatibility";
 "teletravail.verdict.analyzing" = "Analyzing…";
 "teletravail.verdict.waiting" = "Waiting for sufficient data.";
@@ -331,8 +337,8 @@
 "teletravail.global.insufficient" = "Insufficient connection";
 "teletravail.global.degraded" = "Degraded connection";
 "teletravail.global.excellent" = "Excellent connection";
-"teletravail.global.excellent_detail" = "Your network is perfectly suited for remote work.";
-"teletravail.global.ok" = "Connection suited for remote work";
+"teletravail.global.excellent_detail" = "Your network is perfectly suited for all use cases.";
+"teletravail.global.ok" = "Connection suited for common use cases";
 "teletravail.global.ok_detail" = "All common use cases are functional.";
 "teletravail.speed.no_test" = "No test";
 "teletravail.speed.run_test" = "Run a speed test";
@@ -356,3 +362,361 @@
 "whois.error.send" = "Send error: %@";
 "whois.error.connection" = "Connection error: %@";
 "whois.error.timeout" = "Timeout (15 s)";
+
+/* =========================
+   DNSWindowController
+   ========================= */
+
+"dns.window.title" = "Mon Réseau — DNS";
+"dns.label.domain" = "Domain:";
+"dns.label.type" = "Type:";
+"dns.label.server" = "Server:";
+"dns.button.resolve" = "Resolve";
+"dns.button.latency" = "Test DNS Latency";
+"dns.button.config" = "System Config";
+"dns.button.flush" = "Flush DNS Cache";
+"dns.server.system" = "System server";
+"dns.server.systemshort" = "System";
+"dns.server.router" = "Local router";
+"dns.server.local" = "Local network";
+"dns.config.title" = "DNS SYSTEM CONFIGURATION";
+"dns.config.servers" = "CONFIGURED DNS SERVERS";
+"dns.config.domain" = "DOMAIN";
+"dns.config.searchdomains" = "SEARCH DOMAINS";
+"dns.config.error" = "Unable to retrieve DNS configuration.";
+"dns.config.publicservers" = "AVAILABLE PUBLIC DNS SERVERS";
+"dns.query.complete" = "FULL DNS QUERY for";
+"dns.query.single" = "DNS QUERY";
+"dns.result.norecord" = "no record";
+"dns.result.norecordtype" = "No %@ record found.";
+"dns.result.totaltime" = "Total time";
+"dns.result.querytime" = "Query time";
+"dns.latency.title" = "DNS LATENCY TEST";
+"dns.latency.description" = "Resolving 'google.com' on each server (3 attempts):";
+"dns.latency.header" = "Latency";
+"dns.latency.error" = "Error";
+"dns.flush.title" = "FLUSH DNS CACHE";
+"dns.flush.instructions" = "To flush the DNS cache on macOS, run this command in Terminal:";
+"dns.flush.admin" = "Administrator rights required";
+"dns.flush.copied" = "Command copied to clipboard.";
+
+/* =========================
+   NeighborhoodWindowController
+   ========================= */
+
+"neighborhood.window.title" = "Mon Réseau — Network Neighborhood";
+"neighborhood.title" = "Network Neighborhood";
+"neighborhood.subnet.loading" = "Subnet: ...";
+"neighborhood.subnet.detected" = "Subnet: %@/%d";
+"neighborhood.subnet.notfound" = "Subnet: not detected";
+"neighborhood.status.ready" = "Click Scan to start";
+"neighborhood.error.nosubnet" = "Unable to detect subnet";
+"neighborhood.error.iprange" = "IP range empty or too large";
+"neighborhood.status.phase1" = "Phase 1/3 — ARP solicitation…";
+"neighborhood.status.phase2" = "Phase 2/3 — ICMP Ping…";
+"neighborhood.status.phase2.progress" = "Phase 2/3 — Ping %d/%d — %d devices";
+"neighborhood.status.phase3" = "Phase 3/3 — Analyzing ARP table…";
+"neighborhood.status.done" = "Scan complete — %d devices found";
+
+/* Table columns */
+"neighborhood.column.ip" = "IP";
+"neighborhood.column.name" = "Name";
+"neighborhood.column.latency" = "Latency";
+"neighborhood.column.mac" = "MAC";
+"neighborhood.column.vendor" = "Vendor";
+"neighborhood.column.services" = "Services";
+"neighborhood.button.scan" = "Scan";
+
+/* Services */
+"neighborhood.service.printer" = "Printer";
+
+/* Device detail window */
+"neighborhood.detail.window.title" = "Details — %@";
+"neighborhood.detail.section.id" = "IDENTIFICATION";
+"neighborhood.detail.section.bonjour" = "BONJOUR SERVICES";
+"neighborhood.detail.section.analyzing" = "ANALYZING…";
+"neighborhood.detail.section.latency" = "LATENCY (10 pings)";
+"neighborhood.detail.section.ports" = "OPEN PORTS";
+"neighborhood.detail.ip" = "IP Address";
+"neighborhood.detail.hostname" = "Hostname";
+"neighborhood.detail.mac" = "MAC Address";
+"neighborhood.detail.vendor" = "Vendor";
+"neighborhood.detail.type" = "Probable type";
+"neighborhood.detail.initial.latency" = "Initial latency";
+"neighborhood.detail.unknown" = "Unknown";
+"neighborhood.detail.unavailable" = "Unavailable";
+"neighborhood.detail.noservices" = "No service detected";
+"neighborhood.detail.analyzing.desc" = "Ping x10, port scan, DNS…";
+"neighborhood.detail.noreply" = "No response";
+"neighborhood.detail.replies" = "Replies";
+"neighborhood.detail.minimum" = "Minimum";
+"neighborhood.detail.maximum" = "Maximum";
+"neighborhood.detail.average" = "Average";
+"neighborhood.detail.median" = "Median";
+"neighborhood.detail.jitter" = "Jitter";
+"neighborhood.detail.loss" = "Loss";
+"neighborhood.detail.noports" = "No open port detected";
+
+/* Device types */
+"neighborhood.device.appletv.homepod" = "Apple TV / HomePod";
+"neighborhood.device.apple" = "Apple Device";
+"neighborhood.device.samsung" = "Samsung Device";
+"neighborhood.device.google" = "Google Device";
+"neighborhood.device.sonos" = "Sonos Speaker";
+"neighborhood.device.synology" = "Synology NAS";
+"neighborhood.device.qnap" = "QNAP NAS";
+"neighborhood.device.router.isp" = "Internet Box / Router";
+"neighborhood.device.router.wifi" = "Router / WiFi AP";
+"neighborhood.device.printer" = "Printer";
+"neighborhood.device.server.nas" = "Server / NAS";
+"neighborhood.device.server.web" = "Web Server";
+"neighborhood.device.server.unix" = "Server / Unix Machine";
+"neighborhood.device.router" = "Router";
+"neighborhood.device.switch" = "Network Switch";
+"neighborhood.device.camera" = "IP Camera";
+
+/* =========================
+   WiFiWindowController
+   ========================= */
+
+"wifi.window.title" = "Mon Réseau — WiFi";
+"wifi.window.title.disconnected" = "Mon Réseau — WiFi (disconnected)";
+"wifi.window.title.connected" = "Mon Réseau — WiFi — %@";
+"wifi.heading" = "WiFi Information";
+
+/* Labels */
+"wifi.label.ssid" = "SSID:";
+"wifi.label.bssid" = "BSSID:";
+"wifi.label.security" = "Security:";
+"wifi.label.rssi" = "RSSI:";
+"wifi.label.snr" = "SNR:";
+"wifi.label.mode" = "Mode:";
+"wifi.label.channel" = "Channel:";
+"wifi.label.band" = "Band:";
+"wifi.label.width" = "Width:";
+"wifi.label.noise" = "Noise:";
+"wifi.label.txrate" = "TX Rate:";
+"wifi.label.country" = "Country:";
+
+/* Gauge */
+"wifi.gauge.label" = "Signal:";
+"wifi.gauge.no_signal" = "— dBm";
+
+/* Status */
+"wifi.status.disconnected" = "Not connected";
+"wifi.unknown" = "Unknown";
+
+/* Security */
+"wifi.security.none" = "None";
+"wifi.security.wpa_personal" = "WPA Personal";
+"wifi.security.wpa_enterprise" = "WPA Enterprise";
+"wifi.security.wpa2_personal" = "WPA2 Personal";
+"wifi.security.wpa2_enterprise" = "WPA2 Enterprise";
+"wifi.security.wpa3_personal" = "WPA3 Personal";
+"wifi.security.wpa3_enterprise" = "WPA3 Enterprise";
+"wifi.security.other" = "Other";
+
+/* Legend */
+"wifi.legend.excellent" = "Excellent (> -50)";
+"wifi.legend.medium" = "Medium (-50 to -70)";
+"wifi.legend.weak" = "Weak (< -70)";
+
+/* Graph */
+"wifi.graph.waiting" = "Waiting for data...";
+
+/* Tooltip */
+"wifi.tooltip.disconnected" = "Sample %d/%d\nDisconnected";
+"wifi.tooltip.rssi" = "Sample %d/%d\nRSSI: %d dBm";
+
+/* Accessibility */
+"wifi.accessibility.graph" = "WiFi signal graph";
+"wifi.accessibility.gauge" = "WiFi signal strength";
+
+/* =========================
+   Localization Phase 2
+   ========================= */
+
+/* TeletravailWindowController */
+"teletravail.usage.visio" = "Video Conferencing";
+"teletravail.usage.visiohd" = "HD Video + Screen Sharing";
+"teletravail.usage.email" = "Email";
+"teletravail.usage.citrix" = "Citrix / Remote Desktop";
+"teletravail.usage.transfer" = "File Transfer";
+"teletravail.usage.streaming" = "Video Streaming";
+"teletravail.usage.gaming" = "Online Gaming";
+"teletravail.card.wifi" = "WiFi";
+"teletravail.card.latency" = "Latency";
+"teletravail.card.speed" = "Speed";
+"teletravail.accessibility.wifi" = "WiFi signal indicator";
+"teletravail.accessibility.latency" = "Latency indicator";
+"teletravail.accessibility.speed" = "Speed indicator";
+"teletravail.button.copy_report" = "Copy report";
+"teletravail.note" = "WiFi and latency indicators are measured in real time. Speed uses the last test result (Speed Test window).";
+"teletravail.latency.timeout" = "Timeout";
+"teletravail.latency.detail_format" = "Avg: %.0f ms · Jitter: %.1f ms";
+"teletravail.speed.date_format" = "Test from %@";
+"teletravail.global.impacted_usages" = "Impacted use cases: %@";
+"teletravail.global.watch_usages" = "Watch: %@";
+"teletravail.report.header" = "Mon Réseau — Use Cases Report";
+"teletravail.report.wifi" = "WiFi:";
+"teletravail.report.latency" = "Latency:";
+"teletravail.report.speed" = "Speed:";
+"teletravail.report.usages" = "Usage compatibility:";
+"teletravail.report.global_verdict" = "Global verdict:";
+"teletravail.button.exportpdf" = "Export PDF";
+"teletravail.pdf.section.indicators" = "Indicators";
+"teletravail.pdf.section.global_verdict" = "Global Verdict";
+"teletravail.pdf.col.usage" = "Usage";
+"teletravail.pdf.col.verdict" = "Verdict";
+"teletravail.pdf.footer" = "Generated by Mon Réseau";
+
+/* SpeedTestWindowController */
+"speedtest.location.unknown_position" = "Unknown position";
+"speedtest.location.unknown" = "Unknown location";
+"speedtest.location.loading" = "Locating...";
+"speedtest.accessibility.animation" = "Speed test animation";
+"speedtest.result.download_default" = "Download: —";
+"speedtest.result.upload_default" = "Upload: —";
+"speedtest.result.latency_default" = "Latency: —";
+"speedtest.result.rpm_default" = "RPM: —";
+"speedtest.result.quality_default" = "Quality: —";
+"speedtest.result.quality_format" = "Quality: %@";
+"speedtest.button.share" = "Share";
+"speedtest.export.no_history" = "No history";
+"speedtest.export.no_data" = "There is no data to export.";
+"speedtest.export.error" = "Export error";
+"speedtest.clear.confirm_title" = "Clear history?";
+"speedtest.clear.confirm_message" = "This action cannot be undone.";
+"speedtest.clear.confirm_delete" = "Clear";
+"speedtest.clear.confirm_cancel" = "Cancel";
+"speedtest.status.measuring_latency" = "Measuring latency...";
+"speedtest.status.measuring_download" = "Testing download...";
+"speedtest.status.measuring_upload" = "Testing upload...";
+"speedtest.share.no_result" = "No result";
+"speedtest.share.no_result_detail" = "Run a speed test before sharing.";
+"speedtest.share.header" = "Mon Réseau — Speed Test";
+"speedtest.share.date" = "Date:";
+"speedtest.share.latency" = "Latency:";
+"speedtest.share.location" = "Location:";
+"speedtest.notification.title" = "Speed test completed";
+"speedtest.notification.body" = "↓ %.1f Mbps  ↑ %.1f Mbps  Latency: %.0f ms";
+
+/* NetworkDetailWindowController */
+"netdetail.button.refresh" = "Refresh";
+"netdetail.button.copy" = "Copy";
+"netdetail.button.copy_tooltip" = "Copy network information";
+"netdetail.label.status" = "Status";
+"netdetail.status.active" = "Active";
+"netdetail.status.inactive" = "Inactive";
+"netdetail.label.throughput_in" = "Throughput In";
+"netdetail.label.throughput_out" = "Throughput Out";
+"netdetail.label.internet" = "Internet Connection";
+"netdetail.value.connected" = "Connected";
+"netdetail.value.disconnected" = "Disconnected";
+"netdetail.label.expensive" = "Expensive (cellular)";
+"netdetail.label.constrained" = "Constrained (low data)";
+"netdetail.value.yes" = "Yes";
+"netdetail.value.no" = "No";
+"netdetail.label.active_type" = "Active type";
+"netdetail.value.cellular" = "Cellular";
+"netdetail.value.other" = "Other";
+"netdetail.label.supports_dns" = "Supports DNS";
+"netdetail.label.supports_ipv4" = "Supports IPv4";
+"netdetail.label.supports_ipv6" = "Supports IPv6";
+"netdetail.label.uptime_24h" = "Uptime 24h";
+"netdetail.label.disconnections_24h" = "Disconnections 24h";
+"netdetail.value.vpn_active" = "VPN active";
+"netdetail.label.default_gateway" = "Default gateway";
+"netdetail.label.primary_interface" = "Primary interface";
+"netdetail.label.gateway" = "Gateway";
+"netdetail.value.unavailable" = "Unavailable";
+"netdetail.label.public_ip" = "Public IP";
+"netdetail.label.noise" = "Noise";
+"netdetail.label.channel" = "Channel";
+"netdetail.label.band" = "Band";
+"netdetail.label.channel_width" = "Channel width";
+"netdetail.value.unknown" = "Unknown";
+"netdetail.label.tx_rate" = "TX Rate";
+"netdetail.label.security" = "Security";
+"netdetail.security.none" = "None";
+"netdetail.label.country_code" = "Country code";
+"netdetail.report.header" = "Mon Réseau — Network Details";
+
+/* TracerouteWindowController */
+"traceroute.location.local_network" = "Local network";
+"traceroute.column.hostname" = "Hostname";
+"traceroute.button.copy" = "Copy";
+"traceroute.button.share" = "Share";
+"traceroute.callout.ip" = "IP:";
+"traceroute.callout.host" = "Host:";
+"traceroute.callout.location" = "Location:";
+"traceroute.callout.isp" = "ISP:";
+"traceroute.callout.org" = "Org:";
+"traceroute.callout.asn" = "ASN:";
+"traceroute.callout.latency" = "Latency:";
+"traceroute.report.header" = "Mon Réseau — Traceroute to %@";
+"traceroute.report.latency" = "Latency";
+"traceroute.report.location" = "Location";
+
+/* NetworkQualityWindowController */
+"quality.button.copy_stats" = "Copy stats";
+"quality.button.history_24h" = "History 24h";
+"quality.stats.format" = "Latency: avg %.1f ms | min %.1f ms | max %.1f ms   Jitter: %.1f ms   Loss: %.1f%%   Quality: %@";
+"quality.report.header" = "Mon Réseau — Network Quality";
+"quality.report.avg_latency" = "Average latency:";
+"quality.report.min_latency" = "Min latency:";
+"quality.report.max_latency" = "Max latency:";
+"quality.report.loss" = "Packet loss:";
+"quality.report.measurements" = "Measurements:";
+"quality.accessibility.graph" = "Network quality graph";
+"quality.accessibility.no_measurement" = "No measurements";
+"quality.accessibility.value_format" = "Average latency %.0f ms, loss %.0f%%";
+"quality.history.legend.latency" = "Latency (ms)";
+"quality.history.legend.jitter" = "Jitter (ms)";
+"quality.history.legend.loss" = "Loss (%)";
+"quality.history.no_data" = "No history available. Data is recorded automatically when using the Network Quality window.";
+"quality.history.no_data_short" = "No data";
+"quality.tooltip.measurement" = "Sample %d/%d";
+"quality.tooltip.latency" = "Latency:";
+"quality.tooltip.loss" = "Packet loss";
+
+/* =========================
+   Favorites
+   ========================= */
+
+"favorites.button" = "Favorites";
+"favorites.add" = "Add to favorites";
+"favorites.none" = "No favorites";
+
+/* =========================
+   Network Profiles
+   ========================= */
+
+"settings.tab.profiles" = "Profiles";
+"settings.profiles.title" = "Network Profiles";
+"settings.profiles.description" = "Associate a name with your WiFi networks to track performance by location.";
+"settings.profiles.column.name" = "Name";
+"settings.profiles.column.ssid" = "SSID";
+"settings.profiles.column.lastconnected" = "Last Connected";
+"settings.profiles.column.tests" = "Tests";
+"settings.profiles.button.add" = "Add current network";
+"settings.profiles.button.rename" = "Rename";
+"settings.profiles.button.delete" = "Delete";
+"settings.profiles.no_wifi" = "No WiFi network connected";
+"settings.profiles.already_exists" = "This network is already saved";
+"settings.profiles.rename.title" = "Rename Profile";
+"settings.profiles.rename.message" = "New name for \"%@\":";
+
+/* Scheduled Quality Tests */
+"scheduled.section.title" = "Scheduled Tests";
+"scheduled.enable" = "Enable automatic tests";
+"scheduled.interval" = "Interval:";
+"scheduled.interval.5" = "5 minutes";
+"scheduled.interval.15" = "15 minutes";
+"scheduled.interval.30" = "30 minutes";
+"scheduled.interval.60" = "1 hour";
+"scheduled.daily.enable" = "Daily report notification";
+"scheduled.degradation.title" = "Network Degradation";
+"scheduled.degradation.body" = "Latency: %.0f ms — Loss: %.1f%%";
+"scheduled.daily.title" = "Daily Report";
+"scheduled.daily.body" = "Avg latency: %.0f ms — Loss: %.1f%% — Degradations: %d";

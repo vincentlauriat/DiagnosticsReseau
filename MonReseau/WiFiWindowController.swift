@@ -24,13 +24,13 @@ class RSSIGraphView: NSView {
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         setAccessibilityRole(.image)
-        setAccessibilityLabel("Graphique du signal WiFi")
+        setAccessibilityLabel(NSLocalizedString("wifi.accessibility.graph", comment: ""))
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setAccessibilityRole(.image)
-        setAccessibilityLabel("Graphique du signal WiFi")
+        setAccessibilityLabel(NSLocalizedString("wifi.accessibility.graph", comment: ""))
     }
 
     // MARK: - Tooltip interactif
@@ -60,9 +60,9 @@ class RSSIGraphView: NSView {
         let rssi = rssiValues[index]
         let text: String
         if rssi == WiFiWindowController.noSignalValue {
-            text = "Mesure \(index + 1)/\(rssiValues.count)\nDéconnecté"
+            text = String(format: NSLocalizedString("wifi.tooltip.disconnected", comment: ""), index + 1, rssiValues.count)
         } else {
-            text = "Mesure \(index + 1)/\(rssiValues.count)\nRSSI: \(rssi) dBm"
+            text = String(format: NSLocalizedString("wifi.tooltip.rssi", comment: ""), index + 1, rssiValues.count, rssi)
         }
 
         if tooltipView == nil {
@@ -118,7 +118,7 @@ class RSSIGraphView: NSView {
 
         let hasRealValues = rssiValues.contains(where: { $0 != WiFiWindowController.noSignalValue })
         guard rssiValues.count > 1 && hasRealValues else {
-            drawCenteredText("En attente de donnees...", in: graphRect, context: context)
+            drawCenteredText(NSLocalizedString("wifi.graph.waiting", comment: ""), in: graphRect, context: context)
             return
         }
 
@@ -336,13 +336,13 @@ class RSSIGaugeView: NSView {
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         setAccessibilityRole(.levelIndicator)
-        setAccessibilityLabel("Force du signal WiFi")
+        setAccessibilityLabel(NSLocalizedString("wifi.accessibility.gauge", comment: ""))
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setAccessibilityRole(.levelIndicator)
-        setAccessibilityLabel("Force du signal WiFi")
+        setAccessibilityLabel(NSLocalizedString("wifi.accessibility.gauge", comment: ""))
     }
 
     private func updateAccessibilityValue() {
@@ -420,7 +420,7 @@ class WiFiWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "Mon Réseau — WiFi"
+        window.title = NSLocalizedString("wifi.window.title", comment: "")
         window.center()
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 450, height: 400)
@@ -436,7 +436,7 @@ class WiFiWindowController: NSWindowController {
         contentView.wantsLayer = true
 
         // Titre
-        let titleLabel = NSTextField(labelWithString: "Informations WiFi")
+        let titleLabel = NSTextField(labelWithString: NSLocalizedString("wifi.heading", comment: ""))
         titleLabel.font = NSFont.systemFont(ofSize: 18, weight: .semibold)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(titleLabel)
@@ -451,7 +451,7 @@ class WiFiWindowController: NSWindowController {
         gaugeContainer.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(gaugeContainer)
 
-        let gaugeTitle = NSTextField(labelWithString: "Signal :")
+        let gaugeTitle = NSTextField(labelWithString: NSLocalizedString("wifi.gauge.label", comment: ""))
         gaugeTitle.font = NSFont.systemFont(ofSize: 11, weight: .medium)
         gaugeTitle.translatesAutoresizingMaskIntoConstraints = false
         gaugeContainer.addSubview(gaugeTitle)
@@ -460,7 +460,7 @@ class WiFiWindowController: NSWindowController {
         rssiGaugeView.translatesAutoresizingMaskIntoConstraints = false
         gaugeContainer.addSubview(rssiGaugeView)
 
-        rssiGaugeLabel = NSTextField(labelWithString: "— dBm")
+        rssiGaugeLabel = NSTextField(labelWithString: NSLocalizedString("wifi.gauge.no_signal", comment: ""))
         rssiGaugeLabel.font = NSFont.monospacedDigitSystemFont(ofSize: 11, weight: .regular)
         rssiGaugeLabel.translatesAutoresizingMaskIntoConstraints = false
         gaugeContainer.addSubview(rssiGaugeLabel)
@@ -504,9 +504,9 @@ class WiFiWindowController: NSWindowController {
             return c
         }
 
-        legendStack.addArrangedSubview(legendDot(color: .systemGreen, label: "Excellent (> -50)"))
-        legendStack.addArrangedSubview(legendDot(color: .systemOrange, label: "Moyen (-50 a -70)"))
-        legendStack.addArrangedSubview(legendDot(color: .systemRed, label: "Faible (< -70)"))
+        legendStack.addArrangedSubview(legendDot(color: .systemGreen, label: NSLocalizedString("wifi.legend.excellent", comment: "")))
+        legendStack.addArrangedSubview(legendDot(color: .systemOrange, label: NSLocalizedString("wifi.legend.medium", comment: "")))
+        legendStack.addArrangedSubview(legendDot(color: .systemRed, label: NSLocalizedString("wifi.legend.weak", comment: "")))
 
         // Graphe RSSI
         graphView = RSSIGraphView()
@@ -574,12 +574,12 @@ class WiFiWindowController: NSWindowController {
         countryLabel = valueCell()
 
         // Remplir la grille (2 colonnes de paires titre/valeur)
-        grid.addRow(with: [titleCell("SSID :"), ssidLabel, titleCell("Canal :"), channelLabel])
-        grid.addRow(with: [titleCell("BSSID :"), bssidLabel, titleCell("Bande :"), bandLabel])
-        grid.addRow(with: [titleCell("Securite :"), securityLabel, titleCell("Largeur :"), widthLabel])
-        grid.addRow(with: [titleCell("RSSI :"), rssiLabel, titleCell("Bruit :"), noiseLabel])
-        grid.addRow(with: [titleCell("SNR :"), snrLabel, titleCell("Debit TX :"), txRateLabel])
-        grid.addRow(with: [titleCell("Mode :"), modeLabel, titleCell("Pays :"), countryLabel])
+        grid.addRow(with: [titleCell(NSLocalizedString("wifi.label.ssid", comment: "")), ssidLabel, titleCell(NSLocalizedString("wifi.label.channel", comment: "")), channelLabel])
+        grid.addRow(with: [titleCell(NSLocalizedString("wifi.label.bssid", comment: "")), bssidLabel, titleCell(NSLocalizedString("wifi.label.band", comment: "")), bandLabel])
+        grid.addRow(with: [titleCell(NSLocalizedString("wifi.label.security", comment: "")), securityLabel, titleCell(NSLocalizedString("wifi.label.width", comment: "")), widthLabel])
+        grid.addRow(with: [titleCell(NSLocalizedString("wifi.label.rssi", comment: "")), rssiLabel, titleCell(NSLocalizedString("wifi.label.noise", comment: "")), noiseLabel])
+        grid.addRow(with: [titleCell(NSLocalizedString("wifi.label.snr", comment: "")), snrLabel, titleCell(NSLocalizedString("wifi.label.txrate", comment: "")), txRateLabel])
+        grid.addRow(with: [titleCell(NSLocalizedString("wifi.label.mode", comment: "")), modeLabel, titleCell(NSLocalizedString("wifi.label.country", comment: "")), countryLabel])
 
         // Largeur des colonnes titre
         grid.column(at: 0).width = 70
@@ -609,7 +609,7 @@ class WiFiWindowController: NSWindowController {
 
     private func refresh() {
         guard let client = CWWiFiClient.shared().interface() else {
-            ssidLabel.stringValue = "Non connecte"
+            ssidLabel.stringValue = NSLocalizedString("wifi.status.disconnected", comment: "")
             bssidLabel.stringValue = "—"
             securityLabel.stringValue = "—"
             rssiLabel.stringValue = "—"
@@ -623,16 +623,16 @@ class WiFiWindowController: NSWindowController {
             countryLabel.stringValue = "—"
             rssiGaugeView.value = 0
             rssiGaugeView.rssi = -100
-            rssiGaugeLabel.stringValue = "— dBm"
+            rssiGaugeLabel.stringValue = NSLocalizedString("wifi.gauge.no_signal", comment: "")
             appendDisconnectedPoint()
-            window?.title = "Mon Réseau — WiFi (deconnecte)"
+            window?.title = NSLocalizedString("wifi.window.title.disconnected", comment: "")
             return
         }
 
         // Verifier que le WiFi est associe a un reseau
         let ssid = client.ssid()
         guard let ssid = ssid, !ssid.isEmpty else {
-            ssidLabel.stringValue = "Non connecte"
+            ssidLabel.stringValue = NSLocalizedString("wifi.status.disconnected", comment: "")
             bssidLabel.stringValue = "—"
             securityLabel.stringValue = "—"
             rssiLabel.stringValue = "—"
@@ -646,14 +646,14 @@ class WiFiWindowController: NSWindowController {
             countryLabel.stringValue = "—"
             rssiGaugeView.value = 0
             rssiGaugeView.rssi = -100
-            rssiGaugeLabel.stringValue = "— dBm"
+            rssiGaugeLabel.stringValue = NSLocalizedString("wifi.gauge.no_signal", comment: "")
             appendDisconnectedPoint()
-            window?.title = "Mon Réseau — WiFi (deconnecte)"
+            window?.title = NSLocalizedString("wifi.window.title.disconnected", comment: "")
             return
         }
 
         ssidLabel.stringValue = ssid
-        window?.title = "Mon Réseau — WiFi — \(ssid)"
+        window?.title = String(format: NSLocalizedString("wifi.window.title.connected", comment: ""), ssid)
 
         // BSSID
         bssidLabel.stringValue = client.bssid() ?? "—"
@@ -662,15 +662,15 @@ class WiFiWindowController: NSWindowController {
         let security = client.security()
         let secStr: String
         switch security {
-        case .none: secStr = "Aucune"
+        case .none: secStr = NSLocalizedString("wifi.security.none", comment: "")
         case .WEP: secStr = "WEP"
-        case .wpaPersonal: secStr = "WPA Personnel"
-        case .wpaEnterprise: secStr = "WPA Enterprise"
-        case .wpa2Personal: secStr = "WPA2 Personnel"
-        case .wpa2Enterprise: secStr = "WPA2 Enterprise"
-        case .wpa3Personal: secStr = "WPA3 Personnel"
-        case .wpa3Enterprise: secStr = "WPA3 Enterprise"
-        default: secStr = "Autre"
+        case .wpaPersonal: secStr = NSLocalizedString("wifi.security.wpa_personal", comment: "")
+        case .wpaEnterprise: secStr = NSLocalizedString("wifi.security.wpa_enterprise", comment: "")
+        case .wpa2Personal: secStr = NSLocalizedString("wifi.security.wpa2_personal", comment: "")
+        case .wpa2Enterprise: secStr = NSLocalizedString("wifi.security.wpa2_enterprise", comment: "")
+        case .wpa3Personal: secStr = NSLocalizedString("wifi.security.wpa3_personal", comment: "")
+        case .wpa3Enterprise: secStr = NSLocalizedString("wifi.security.wpa3_enterprise", comment: "")
+        default: secStr = NSLocalizedString("wifi.security.other", comment: "")
         }
         securityLabel.stringValue = secStr
 
@@ -698,7 +698,7 @@ class WiFiWindowController: NSWindowController {
             case .band2GHz: bandLabel.stringValue = "2.4 GHz"
             case .band5GHz: bandLabel.stringValue = "5 GHz"
             case .band6GHz: bandLabel.stringValue = "6 GHz"
-            default: bandLabel.stringValue = "Inconnue"
+            default: bandLabel.stringValue = NSLocalizedString("wifi.unknown", comment: "")
             }
 
             switch channel.channelWidth {
@@ -706,7 +706,7 @@ class WiFiWindowController: NSWindowController {
             case .width40MHz: widthLabel.stringValue = "40 MHz"
             case .width80MHz: widthLabel.stringValue = "80 MHz"
             case .width160MHz: widthLabel.stringValue = "160 MHz"
-            default: widthLabel.stringValue = "Inconnue"
+            default: widthLabel.stringValue = NSLocalizedString("wifi.unknown", comment: "")
             }
         } else {
             channelLabel.stringValue = "—"

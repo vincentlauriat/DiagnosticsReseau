@@ -11,6 +11,107 @@ import UserNotifications
 import WidgetKit
 import CoreWLAN
 
+// MARK: - Scheduled Quality Tests
+
+struct ScheduledTestResult: Codable {
+    let date: Date
+    let latency: Double
+    let jitter: Double
+    let packetLoss: Double
+}
+
+struct DailyReport: Codable {
+    let date: Date
+    let testCount: Int
+    let minLatency: Double
+    let maxLatency: Double
+    let avgLatency: Double
+    let avgJitter: Double
+    let avgPacketLoss: Double
+    let degradationCount: Int
+    let uptimePercent: Double
+}
+
+class ScheduledTestStorage {
+    private static let resultsKey = "ScheduledTestResults"
+    private static let reportsKey = "DailyReports"
+    private static let maxResults = 288  // 24h at 5min intervals
+    private static let maxReports = 30
+
+    static func loadResults() -> [ScheduledTestResult] {
+        guard let data = UserDefaults.standard.data(forKey: resultsKey),
+              let results = try? JSONDecoder().decode([ScheduledTestResult].self, from: data) else {
+            return []
+        }
+        return results
+    }
+
+    static func saveResults(_ results: [ScheduledTestResult]) {
+        let trimmed = Array(results.suffix(maxResults))
+        if let data = try? JSONEncoder().encode(trimmed) {
+            UserDefaults.standard.set(data, forKey: resultsKey)
+        }
+    }
+
+    static func addResult(_ result: ScheduledTestResult) {
+        var results = loadResults()
+        results.append(result)
+        saveResults(results)
+    }
+
+    static func loadReports() -> [DailyReport] {
+        guard let data = UserDefaults.standard.data(forKey: reportsKey),
+              let reports = try? JSONDecoder().decode([DailyReport].self, from: data) else {
+            return []
+        }
+        return reports
+    }
+
+    static func saveReports(_ reports: [DailyReport]) {
+        let trimmed = Array(reports.suffix(maxReports))
+        if let data = try? JSONEncoder().encode(trimmed) {
+            UserDefaults.standard.set(data, forKey: reportsKey)
+        }
+    }
+
+    static func addReport(_ report: DailyReport) {
+        var reports = loadReports()
+        reports.append(report)
+        saveReports(reports)
+    }
+
+    /// Compile les résultats d'hier en rapport journalier.
+    static func compileDailyReport() -> DailyReport? {
+        let results = loadResults()
+        let calendar = Calendar.current
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: Date())!
+        let startOfYesterday = calendar.startOfDay(for: yesterday)
+        let startOfToday = calendar.startOfDay(for: Date())
+
+        let dayResults = results.filter { $0.date >= startOfYesterday && $0.date < startOfToday }
+        guard !dayResults.isEmpty else { return nil }
+
+        let latencies = dayResults.map { $0.latency }
+        let jitters = dayResults.map { $0.jitter }
+        let losses = dayResults.map { $0.packetLoss }
+        let threshold = UserDefaults.standard.double(forKey: "NotifyLatencyThreshold")
+        let effectiveThreshold = threshold > 0 ? threshold : 100.0
+        let degradations = dayResults.filter { $0.latency > effectiveThreshold }.count
+
+        return DailyReport(
+            date: startOfYesterday,
+            testCount: dayResults.count,
+            minLatency: latencies.min() ?? 0,
+            maxLatency: latencies.max() ?? 0,
+            avgLatency: latencies.reduce(0, +) / Double(latencies.count),
+            avgJitter: jitters.reduce(0, +) / Double(jitters.count),
+            avgPacketLoss: losses.reduce(0, +) / Double(losses.count),
+            degradationCount: degradations,
+            uptimePercent: UptimeTracker.uptimePercent24h()
+        )
+    }
+}
+
 /// AppDelegate gerant deux modes : barre de menus (status item) ou application normale (Dock + barre de menus macOS).
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDelegate {
 
@@ -48,6 +149,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
     /// Moniteurs de raccourcis globaux.
     private var globalKeyMonitor: Any?
     private var localKeyMonitor: Any?
+    /// Timer pour les tests qualité planifiés.
+    private var scheduledTestTimer: Timer?
+    /// Date du dernier rapport journalier compilé.
+    private var lastDailyReportDate: Date?
 
     enum AppMode: String {
         case menubar
@@ -112,6 +217,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                 }
                 self.hasReceivedFirstNetworkEvent = true
                 self.updateWidgetData()
+
+                // Mettre à jour le profil réseau si connecté
+                if connected {
+                    if let ssid = CWWiFiClient.shared().interface()?.ssid() {
+                        NetworkProfileStorage.updateLastConnected(ssid: ssid)
+                    }
+                }
             }
         }
         monitor.start(queue: monitorQueue)
@@ -121,11 +233,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
 
         // Raccourcis clavier globaux (Ctrl+Option+lettre)
         setupGlobalShortcuts()
+
+        // Tests qualité planifiés
+        startScheduledTestsIfNeeded()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         monitor.cancel()
         menuBarPingTimer?.invalidate()
+        scheduledTestTimer?.invalidate()
         if let m = globalKeyMonitor { NSEvent.removeMonitor(m) }
         if let m = localKeyMonitor { NSEvent.removeMonitor(m) }
     }
@@ -285,6 +401,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         let statusMenuItem = NSMenuItem(title: statusTitle, action: nil, keyEquivalent: "")
         statusMenuItem.tag = 1
         menu.addItem(statusMenuItem)
+        menu.addItem(NSMenuItem(title: NSLocalizedString("menu.copyip", comment: ""), action: #selector(copyPublicIP), keyEquivalent: ""))
 
         let geekSep = NSMenuItem.separator()
         geekSep.tag = 100
@@ -485,6 +602,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
 
     @objc private func showWhois() {
         present(&whoisWindowController) { WhoisWindowController() }
+    }
+
+    @objc private func copyPublicIP() {
+        URLSession.shared.dataTask(with: URLRequest(url: URL(string: "https://api.ipify.org")!, timeoutInterval: 5)) { data, _, _ in
+            guard let data = data, let ip = String(data: data, encoding: .utf8), !ip.isEmpty else { return }
+            DispatchQueue.main.async {
+                let pasteboard = NSPasteboard.general
+                pasteboard.clearContents()
+                pasteboard.setString(ip, forType: .string)
+            }
+        }.resume()
     }
 
     @objc private func showTeletravail() {
@@ -906,6 +1034,148 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         guard received > 0 else { return nil }
 
         return (CFAbsoluteTimeGetCurrent() - startTime) * 1000
+    }
+
+    // MARK: - Scheduled Quality Tests
+
+    func startScheduledTestsIfNeeded() {
+        scheduledTestTimer?.invalidate()
+        scheduledTestTimer = nil
+
+        guard UserDefaults.standard.bool(forKey: "ScheduledQualityTestEnabled") else { return }
+
+        let intervalMinutes = UserDefaults.standard.integer(forKey: "ScheduledQualityTestInterval")
+        let interval = TimeInterval(max(intervalMinutes, 5) * 60)
+
+        scheduledTestTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+            self?.runScheduledQualityTest()
+        }
+    }
+
+    private func runScheduledQualityTest() {
+        guard lastConnected else { return }
+
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            let target = UserDefaults.standard.string(forKey: "CustomPingTarget") ?? "8.8.8.8"
+            let pingCount = 5
+            var latencies: [Double] = []
+
+            // Simple ICMP ping via socket
+            var hints = addrinfo()
+            hints.ai_family = AF_INET
+            hints.ai_socktype = SOCK_DGRAM
+            var infoPtr: UnsafeMutablePointer<addrinfo>?
+            guard getaddrinfo(target, nil, &hints, &infoPtr) == 0, let info = infoPtr else { return }
+            defer { freeaddrinfo(infoPtr) }
+
+            let sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP)
+            guard sock >= 0 else { return }
+            defer { close(sock) }
+
+            var timeout = timeval(tv_sec: 2, tv_usec: 0)
+            setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, socklen_t(MemoryLayout<timeval>.size))
+
+            let pid = UInt16(ProcessInfo.processInfo.processIdentifier & 0xFFFF)
+
+            for seq in 0..<pingCount {
+                var packet = [UInt8](repeating: 0, count: 64)
+                packet[0] = 8  // ICMP Echo Request
+                packet[1] = 0
+                packet[4] = UInt8(pid >> 8)
+                packet[5] = UInt8(pid & 0xFF)
+                packet[6] = UInt8(seq >> 8)
+                packet[7] = UInt8(seq & 0xFF)
+                // Checksum
+                var sum: UInt32 = 0
+                for i in stride(from: 0, to: packet.count, by: 2) {
+                    sum += UInt32(packet[i]) << 8
+                    if i + 1 < packet.count { sum += UInt32(packet[i + 1]) }
+                }
+                sum = (sum >> 16) + (sum & 0xFFFF)
+                sum += sum >> 16
+                let checksum = ~UInt16(sum & 0xFFFF)
+                packet[2] = UInt8(checksum >> 8)
+                packet[3] = UInt8(checksum & 0xFF)
+
+                let start = CFAbsoluteTimeGetCurrent()
+                let sent = packet.withUnsafeBufferPointer { buf in
+                    sendto(sock, buf.baseAddress, buf.count, 0, info.pointee.ai_addr, info.pointee.ai_addrlen)
+                }
+                guard sent > 0 else { continue }
+
+                var recvBuf = [UInt8](repeating: 0, count: 1024)
+                let received = recv(sock, &recvBuf, recvBuf.count, 0)
+                if received > 0 {
+                    let elapsed = (CFAbsoluteTimeGetCurrent() - start) * 1000
+                    latencies.append(elapsed)
+                }
+                usleep(200_000)
+            }
+
+            guard !latencies.isEmpty else { return }
+
+            let avgLatency = latencies.reduce(0, +) / Double(latencies.count)
+            let jitter: Double
+            if latencies.count > 1 {
+                var diffs: [Double] = []
+                for i in 1..<latencies.count {
+                    diffs.append(abs(latencies[i] - latencies[i-1]))
+                }
+                jitter = diffs.reduce(0, +) / Double(diffs.count)
+            } else {
+                jitter = 0
+            }
+            let loss = Double(pingCount - latencies.count) / Double(pingCount) * 100
+
+            let result = ScheduledTestResult(date: Date(), latency: avgLatency, jitter: jitter, packetLoss: loss)
+            ScheduledTestStorage.addResult(result)
+
+            // Daily report compilation (check once per run)
+            self?.checkDailyReportCompilation()
+
+            // Notification if degradation
+            let threshold = UserDefaults.standard.double(forKey: "NotifyLatencyThreshold")
+            let effectiveThreshold = threshold > 0 ? threshold : 100.0
+            if avgLatency > effectiveThreshold && UserDefaults.standard.bool(forKey: "NotifyQualityDegradation") {
+                DispatchQueue.main.async {
+                    self?.sendNotification(
+                        title: NSLocalizedString("scheduled.degradation.title", comment: ""),
+                        body: String(format: NSLocalizedString("scheduled.degradation.body", comment: ""), avgLatency, loss)
+                    )
+                }
+            }
+        }
+    }
+
+    private func checkDailyReportCompilation() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        if let last = lastDailyReportDate, calendar.isDate(last, inSameDayAs: today) { return }
+
+        // Check if we already have a report for yesterday
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+        let existingReports = ScheduledTestStorage.loadReports()
+        if existingReports.contains(where: { calendar.isDate($0.date, inSameDayAs: yesterday) }) {
+            lastDailyReportDate = today
+            return
+        }
+
+        if let report = ScheduledTestStorage.compileDailyReport() {
+            ScheduledTestStorage.addReport(report)
+            lastDailyReportDate = today
+
+            // Daily summary notification
+            if UserDefaults.standard.bool(forKey: "ScheduledDailyNotification") {
+                DispatchQueue.main.async { [weak self] in
+                    self?.sendNotification(
+                        title: NSLocalizedString("scheduled.daily.title", comment: ""),
+                        body: String(format: NSLocalizedString("scheduled.daily.body", comment: ""), report.avgLatency, report.avgPacketLoss, report.degradationCount)
+                    )
+                }
+            }
+        }
+        lastDailyReportDate = today
     }
 
     // MARK: - API publique pour MainWindowController

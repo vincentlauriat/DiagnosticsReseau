@@ -1,0 +1,48 @@
+{
+  "source": "/Users/vincent/Desktop/Projets Perso/Xcode/MonReseau/MonReseauWidget/MediumWidgetView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Aucun test de débit",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 43
+        }
+      },
+      {
+        "comment": "",
+        "key": "Dernier test : %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 39
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connecté",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 17
+        }
+      },
+      {
+        "comment": "",
+        "key": "Déconnecté",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 17
+        }
+      },
+      {
+        "comment": "",
+        "key": "VPN",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 59
+        }
+      }
+    ]
+  },
+  "version": 1
+}

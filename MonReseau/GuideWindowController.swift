@@ -181,6 +181,7 @@ class GuideWindowController: NSWindowController {
             (NSLocalizedString("guide.teletravail.usage.citrix", comment: ""), "5", "2", "80", "20", "1"),
             (NSLocalizedString("guide.teletravail.usage.transfer", comment: ""), "10", "5", "500", "100", "3"),
             (NSLocalizedString("guide.teletravail.usage.streaming", comment: ""), "25", "1", "200", "50", "2"),
+            (NSLocalizedString("guide.teletravail.usage.gaming", comment: ""), "25", "5", "30", "10", "0.5"),
         ]
 
         for (name, dl, ul, lat, jit, loss) in usageData {
@@ -212,6 +213,48 @@ class GuideWindowController: NSWindowController {
         ], to: stack)
 
         addParagraph(NSLocalizedString("guide.teletravail.note", comment: ""), to: stack)
+
+        addSpacer(to: stack)
+
+        // ── URL Schemes ──
+        addSectionTitle(NSLocalizedString("guide.urlscheme.title", comment: ""), to: stack)
+        addParagraph(NSLocalizedString("guide.urlscheme.intro", comment: ""), to: stack)
+
+        let urlSchemes: [(String, String)] = [
+            ("monreseau://speedtest", NSLocalizedString("menu.speedtest", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("monreseau://details", NSLocalizedString("menu.details", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("monreseau://quality", NSLocalizedString("menu.quality", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("monreseau://traceroute", NSLocalizedString("menu.traceroute", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("monreseau://dns", NSLocalizedString("menu.dns", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("monreseau://wifi", NSLocalizedString("menu.wifi", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("monreseau://neighborhood", NSLocalizedString("menu.neighborhood", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("monreseau://bandwidth", NSLocalizedString("menu.bandwidth", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("monreseau://whois", NSLocalizedString("menu.whois", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("monreseau://teletravail", NSLocalizedString("menu.teletravail", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("monreseau://settings", NSLocalizedString("menu.settings", comment: "").replacingOccurrences(of: "…", with: "")),
+        ]
+
+        let urlGrid = NSGridView(numberOfColumns: 2, rows: 0)
+        urlGrid.translatesAutoresizingMaskIntoConstraints = false
+        urlGrid.columnSpacing = 16
+        urlGrid.rowSpacing = 4
+        urlGrid.column(at: 0).xPlacement = .leading
+        urlGrid.column(at: 1).xPlacement = .leading
+
+        for (url, desc) in urlSchemes {
+            let urlLabel = NSTextField(labelWithString: url)
+            urlLabel.font = NSFont.monospacedSystemFont(ofSize: 11, weight: .regular)
+            urlLabel.textColor = .linkColor
+            urlLabel.isSelectable = true
+            let descLabel = NSTextField(labelWithString: desc)
+            descLabel.font = NSFont.systemFont(ofSize: 13)
+            urlGrid.addRow(with: [urlLabel, descLabel])
+        }
+
+        stack.addArrangedSubview(urlGrid)
+        urlGrid.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -56).isActive = true
+
+        addParagraph(NSLocalizedString("guide.urlscheme.usage", comment: ""), to: stack)
 
         addSpacer(to: stack)
 

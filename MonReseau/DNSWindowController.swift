@@ -2,6 +2,66 @@ import Cocoa
 import SystemConfiguration
 import dnssd
 
+// MARK: - Query Favorites Storage
+
+struct QueryFavorite: Codable {
+    let id: UUID
+    let type: String          // "dns", "whois", "traceroute"
+    let target: String
+    let label: String?
+    let dnsRecordType: String?
+    let createdDate: Date
+
+    init(type: String, target: String, label: String? = nil, dnsRecordType: String? = nil) {
+        self.id = UUID()
+        self.type = type
+        self.target = target
+        self.label = label
+        self.dnsRecordType = dnsRecordType
+        self.createdDate = Date()
+    }
+}
+
+class QueryFavoritesStorage {
+    private static let key = "QueryFavorites"
+    private static let maxEntries = 20
+
+    static func load() -> [QueryFavorite] {
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let entries = try? JSONDecoder().decode([QueryFavorite].self, from: data) else {
+            return []
+        }
+        return entries
+    }
+
+    static func save(_ entries: [QueryFavorite]) {
+        let trimmed = Array(entries.prefix(maxEntries))
+        if let data = try? JSONEncoder().encode(trimmed) {
+            UserDefaults.standard.set(data, forKey: key)
+        }
+    }
+
+    static func add(_ entry: QueryFavorite) -> Bool {
+        var entries = load()
+        guard entries.count < maxEntries else { return false }
+        // Avoid duplicates
+        if entries.contains(where: { $0.type == entry.type && $0.target == entry.target }) { return false }
+        entries.insert(entry, at: 0)
+        save(entries)
+        return true
+    }
+
+    static func remove(id: UUID) {
+        var entries = load()
+        entries.removeAll { $0.id == id }
+        save(entries)
+    }
+
+    static func favorites(for type: String) -> [QueryFavorite] {
+        return load().filter { $0.type == type }
+    }
+}
+
 /// Fenetre affichant les informations DNS detaillees avec possibilite de faire des requetes.
 class DNSWindowController: NSWindowController {
 
@@ -15,10 +75,11 @@ class DNSWindowController: NSWindowController {
     private var progressIndicator: NSProgressIndicator!
 
     private var isRunning = false
+    private var favoritesPopup: NSPopUpButton!
 
     // Serveurs DNS publics connus
     private let publicDNSServers: [(name: String, ipv4: String, ipv6: String?)] = [
-        ("Serveur systeme", "", nil),
+        (NSLocalizedString("dns.server.system", comment: ""), "", nil),
         ("Google", "8.8.8.8", "2001:4860:4860::8888"),
         ("Google secondaire", "8.8.4.4", "2001:4860:4860::8844"),
         ("Cloudflare", "1.1.1.1", "2606:4700:4700::1111"),
@@ -49,7 +110,7 @@ class DNSWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "Mon Réseau — DNS"
+        window.title = NSLocalizedString("dns.window.title", comment: "")
         window.center()
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 600, height: 450)
@@ -68,7 +129,7 @@ class DNSWindowController: NSWindowController {
         contentView.addSubview(toolbar)
 
         // Champ domaine
-        let domainLabel = NSTextField(labelWithString: "Domaine:")
+        let domainLabel = NSTextField(labelWithString: NSLocalizedString("dns.label.domain", comment: ""))
         domainLabel.translatesAutoresizingMaskIntoConstraints = false
         toolbar.addSubview(domainLabel)
 
@@ -80,7 +141,7 @@ class DNSWindowController: NSWindowController {
         toolbar.addSubview(domainField)
 
         // Type d'enregistrement
-        let typeLabel = NSTextField(labelWithString: "Type:")
+        let typeLabel = NSTextField(labelWithString: NSLocalizedString("dns.label.type", comment: ""))
         typeLabel.translatesAutoresizingMaskIntoConstraints = false
         toolbar.addSubview(typeLabel)
 
@@ -90,7 +151,7 @@ class DNSWindowController: NSWindowController {
         toolbar.addSubview(recordTypePopup)
 
         // Serveur DNS
-        let serverLabel = NSTextField(labelWithString: "Serveur:")
+        let serverLabel = NSTextField(labelWithString: NSLocalizedString("dns.label.server", comment: ""))
         serverLabel.translatesAutoresizingMaskIntoConstraints = false
         toolbar.addSubview(serverLabel)
 
@@ -106,7 +167,7 @@ class DNSWindowController: NSWindowController {
         toolbar.addSubview(serverPopup)
 
         // Bouton lookup
-        lookupButton = NSButton(title: "Resoudre", target: self, action: #selector(performLookup))
+        lookupButton = NSButton(title: NSLocalizedString("dns.button.resolve", comment: ""), target: self, action: #selector(performLookup))
         lookupButton.translatesAutoresizingMaskIntoConstraints = false
         lookupButton.bezelStyle = .rounded
         lookupButton.keyEquivalent = "\r"
@@ -118,19 +179,19 @@ class DNSWindowController: NSWindowController {
         contentView.addSubview(toolbar2)
 
         // Bouton test latence
-        latencyButton = NSButton(title: "Tester latence DNS", target: self, action: #selector(testDNSLatency))
+        latencyButton = NSButton(title: NSLocalizedString("dns.button.latency", comment: ""), target: self, action: #selector(testDNSLatency))
         latencyButton.translatesAutoresizingMaskIntoConstraints = false
         latencyButton.bezelStyle = .rounded
         toolbar2.addSubview(latencyButton)
 
         // Bouton config systeme
-        let configButton = NSButton(title: "Config systeme", target: self, action: #selector(showCurrentDNSConfig))
+        let configButton = NSButton(title: NSLocalizedString("dns.button.config", comment: ""), target: self, action: #selector(showCurrentDNSConfig))
         configButton.translatesAutoresizingMaskIntoConstraints = false
         configButton.bezelStyle = .rounded
         toolbar2.addSubview(configButton)
 
         // Bouton flush cache
-        let flushButton = NSButton(title: "Vider cache DNS", target: self, action: #selector(flushDNSCache))
+        let flushButton = NSButton(title: NSLocalizedString("dns.button.flush", comment: ""), target: self, action: #selector(flushDNSCache))
         flushButton.translatesAutoresizingMaskIntoConstraints = false
         flushButton.bezelStyle = .rounded
         toolbar2.addSubview(flushButton)
@@ -140,6 +201,22 @@ class DNSWindowController: NSWindowController {
         copyButton.translatesAutoresizingMaskIntoConstraints = false
         copyButton.bezelStyle = .rounded
         toolbar2.addSubview(copyButton)
+
+        // Bouton ajouter favori
+        let addFavButton = NSButton(title: "★", target: self, action: #selector(toggleFavorite))
+        addFavButton.translatesAutoresizingMaskIntoConstraints = false
+        addFavButton.bezelStyle = .rounded
+        addFavButton.toolTip = NSLocalizedString("favorites.add", comment: "")
+        toolbar2.addSubview(addFavButton)
+
+        // Popup favoris
+        favoritesPopup = NSPopUpButton()
+        favoritesPopup.translatesAutoresizingMaskIntoConstraints = false
+        favoritesPopup.bezelStyle = .rounded
+        favoritesPopup.target = self
+        favoritesPopup.action = #selector(loadFavorite)
+        toolbar2.addSubview(favoritesPopup)
+        refreshFavoritesPopup()
 
         // Indicateur de progression
         progressIndicator = NSProgressIndicator()
@@ -217,6 +294,12 @@ class DNSWindowController: NSWindowController {
             copyButton.leadingAnchor.constraint(equalTo: flushButton.trailingAnchor, constant: 8),
             copyButton.centerYAnchor.constraint(equalTo: toolbar2.centerYAnchor),
 
+            addFavButton.leadingAnchor.constraint(equalTo: copyButton.trailingAnchor, constant: 8),
+            addFavButton.centerYAnchor.constraint(equalTo: toolbar2.centerYAnchor),
+
+            favoritesPopup.leadingAnchor.constraint(equalTo: addFavButton.trailingAnchor, constant: 8),
+            favoritesPopup.centerYAnchor.constraint(equalTo: toolbar2.centerYAnchor),
+
             progressIndicator.trailingAnchor.constraint(equalTo: toolbar2.trailingAnchor),
             progressIndicator.centerYAnchor.constraint(equalTo: toolbar2.centerYAnchor),
 
@@ -232,12 +315,12 @@ class DNSWindowController: NSWindowController {
 
     @objc private func showCurrentDNSConfig() {
         var output = "═══════════════════════════════════════════════════════════════════\n"
-        output += "                    CONFIGURATION DNS SYSTEME\n"
+        output += "                    \(NSLocalizedString("dns.config.title", comment: ""))\n"
         output += "═══════════════════════════════════════════════════════════════════\n\n"
 
         if let config = SCDynamicStoreCopyValue(nil, "State:/Network/Global/DNS" as CFString) as? [String: Any] {
             if let servers = config["ServerAddresses"] as? [String] {
-                output += "SERVEURS DNS CONFIGURES:\n"
+                output += "\(NSLocalizedString("dns.config.servers", comment: "")):\n"
                 for (i, server) in servers.enumerated() {
                     let serverInfo = identifyDNSServer(server)
                     output += "  \(i + 1). \(server)"
@@ -250,11 +333,11 @@ class DNSWindowController: NSWindowController {
             }
 
             if let domain = config["DomainName"] as? String {
-                output += "DOMAINE:\n  \(domain)\n\n"
+                output += "\(NSLocalizedString("dns.config.domain", comment: "")):\n  \(domain)\n\n"
             }
 
             if let searchDomains = config["SearchDomains"] as? [String] {
-                output += "DOMAINES DE RECHERCHE:\n"
+                output += "\(NSLocalizedString("dns.config.searchdomains", comment: "")):\n"
                 for domain in searchDomains {
                     output += "  - \(domain)\n"
                 }
@@ -265,12 +348,12 @@ class DNSWindowController: NSWindowController {
                 output += "OPTIONS:\n  \(options)\n\n"
             }
         } else {
-            output += "Impossible de recuperer la configuration DNS.\n\n"
+            output += "\(NSLocalizedString("dns.config.error", comment: ""))\n\n"
         }
 
         // Liste des serveurs DNS connus
         output += "───────────────────────────────────────────────────────────────────\n"
-        output += "SERVEURS DNS PUBLICS DISPONIBLES:\n"
+        output += "\(NSLocalizedString("dns.config.publicservers", comment: "")):\n"
         output += "───────────────────────────────────────────────────────────────────\n"
         for server in publicDNSServers where !server.ipv4.isEmpty {
             output += "  \(server.name.padding(toLength: 22, withPad: " ", startingAt: 0))"
@@ -292,10 +375,10 @@ class DNSWindowController: NSWindowController {
         }
         switch ip {
         case "192.168.1.1", "192.168.0.1", "192.168.1.254":
-            return "Routeur local"
+            return NSLocalizedString("dns.server.router", comment: "")
         default:
             if ip.hasPrefix("192.168.") || ip.hasPrefix("10.") || ip.hasPrefix("172.") {
-                return "Reseau local"
+                return NSLocalizedString("dns.server.local", comment: "")
             }
             return nil
         }
@@ -304,7 +387,7 @@ class DNSWindowController: NSWindowController {
     @objc private func performLookup() {
         let domain = domainField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !domain.isEmpty else {
-            appendText("\n  Veuillez entrer un nom de domaine.\n")
+            appendText("\n  \(NSLocalizedString("dns.error.emptydomain", comment: ""))\n")
             return
         }
 
@@ -331,10 +414,10 @@ class DNSWindowController: NSWindowController {
     private let allRecordTypes = ["A", "AAAA", "MX", "NS", "TXT", "CNAME", "SOA"]
 
     private func executeAllDNSLookups(domain: String, server: String?) {
-        let serverName = server ?? "Systeme"
+        let serverName = server ?? NSLocalizedString("dns.server.systemshort", comment: "")
         var output = "\n═══════════════════════════════════════════════════════════════════\n"
-        output += "REQUETE DNS COMPLETE pour \(domain)\n"
-        output += "Serveur: \(serverName)\n"
+        output += "\(NSLocalizedString("dns.query.complete", comment: "")) \(domain)\n"
+        output += "\(NSLocalizedString("dns.label.server", comment: "")) \(serverName)\n"
         output += "═══════════════════════════════════════════════════════════════════\n"
 
         let totalStart = CFAbsoluteTimeGetCurrent()
@@ -345,7 +428,7 @@ class DNSWindowController: NSWindowController {
             let records = nativeDNSQuery(domain: domain, recordType: recordType, server: server)
 
             if records.isEmpty {
-                output += "  (aucun enregistrement)\n"
+                output += "  (\(NSLocalizedString("dns.result.norecord", comment: "")))\n"
             } else {
                 for record in records {
                     output += "  \(record.type.padding(toLength: 6, withPad: " ", startingAt: 0))"
@@ -358,7 +441,7 @@ class DNSWindowController: NSWindowController {
 
         let totalElapsed = (CFAbsoluteTimeGetCurrent() - totalStart) * 1000
         output += "\n───────────────────────────────────────────────────────────────────\n"
-        output += "Temps total: \(String(format: "%.1f", totalElapsed)) ms\n"
+        output += "\(NSLocalizedString("dns.result.totaltime", comment: "")): \(String(format: "%.1f", totalElapsed)) ms\n"
 
         DispatchQueue.main.async { [weak self] in
             self?.appendText(output)
@@ -368,11 +451,11 @@ class DNSWindowController: NSWindowController {
 
     private func executeDNSLookup(domain: String, recordType: String, server: String?) {
         var output = "\n═══════════════════════════════════════════════════════════════════\n"
-        output += "REQUETE DNS: \(recordType) pour \(domain)\n"
+        output += "\(NSLocalizedString("dns.query.single", comment: "")): \(recordType) — \(domain)\n"
         if let server = server {
-            output += "Serveur: \(server)\n"
+            output += "\(NSLocalizedString("dns.label.server", comment: "")) \(server)\n"
         } else {
-            output += "Serveur: Systeme\n"
+            output += "\(NSLocalizedString("dns.label.server", comment: "")) \(NSLocalizedString("dns.server.systemshort", comment: ""))\n"
         }
         output += "═══════════════════════════════════════════════════════════════════\n\n"
 
@@ -383,7 +466,7 @@ class DNSWindowController: NSWindowController {
         let elapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
 
         if records.isEmpty {
-            output += "Aucun enregistrement \(recordType) trouve.\n"
+            output += "\(String(format: NSLocalizedString("dns.result.norecordtype", comment: ""), recordType))\n"
         } else {
             for record in records {
                 output += "  \(record.type.padding(toLength: 6, withPad: " ", startingAt: 0))"
@@ -393,7 +476,7 @@ class DNSWindowController: NSWindowController {
             }
         }
 
-        output += "\nTemps de requete: \(String(format: "%.1f", elapsed)) ms\n"
+        output += "\n\(NSLocalizedString("dns.result.querytime", comment: "")): \(String(format: "%.1f", elapsed)) ms\n"
 
         DispatchQueue.main.async { [weak self] in
             self?.appendText(output)
@@ -834,15 +917,15 @@ class DNSWindowController: NSWindowController {
 
     private func executeDNSLatencyTest() {
         var output = "\n═══════════════════════════════════════════════════════════════════\n"
-        output += "                    TEST DE LATENCE DNS\n"
+        output += "                    \(NSLocalizedString("dns.latency.title", comment: ""))\n"
         output += "═══════════════════════════════════════════════════════════════════\n\n"
-        output += "Resolution de 'google.com' sur chaque serveur (3 essais):\n\n"
+        output += "\(NSLocalizedString("dns.latency.description", comment: ""))\n\n"
 
         var results: [(name: String, ip: String, latency: Double?)] = []
 
         // Tester le serveur systeme
         let sysLatency = measureDNSLatency(server: nil, domain: "google.com", attempts: 3)
-        results.append(("Serveur systeme", "-", sysLatency))
+        results.append((NSLocalizedString("dns.server.system", comment: ""), "-", sysLatency))
 
         // Tester les serveurs publics
         for server in publicDNSServers where !server.ipv4.isEmpty {
@@ -854,7 +937,7 @@ class DNSWindowController: NSWindowController {
         results.sort { ($0.latency ?? 9999) < ($1.latency ?? 9999) }
 
         // Afficher les resultats
-        output += "  Serveur                     IP                Latence\n"
+        output += "  \(NSLocalizedString("dns.label.server", comment: "").padding(toLength: 26, withPad: " ", startingAt: 0)) IP                \(NSLocalizedString("dns.latency.header", comment: ""))\n"
         output += "  ─────────────────────────────────────────────────────────\n"
 
         for (i, result) in results.enumerated() {
@@ -865,7 +948,7 @@ class DNSWindowController: NSWindowController {
             if let lat = result.latency {
                 latency = String(format: "%.1f ms", lat)
             } else {
-                latency = "Erreur"
+                latency = NSLocalizedString("dns.latency.error", comment: "")
             }
             output += "\(medal) \(name) \(ip) \(latency)\n"
         }
@@ -902,19 +985,19 @@ class DNSWindowController: NSWindowController {
 
     @objc private func flushDNSCache() {
         var output = "\n═══════════════════════════════════════════════════════════════════\n"
-        output += "                    VIDER LE CACHE DNS\n"
+        output += "                    \(NSLocalizedString("dns.flush.title", comment: ""))\n"
         output += "═══════════════════════════════════════════════════════════════════\n\n"
 
-        output += "Pour vider le cache DNS sur macOS, executez cette commande dans le Terminal:\n\n"
+        output += "\(NSLocalizedString("dns.flush.instructions", comment: ""))\n\n"
         output += "  sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder\n\n"
-        output += "(Droits administrateur requis)\n\n"
+        output += "(\(NSLocalizedString("dns.flush.admin", comment: "")))\n\n"
 
         // Copier la commande dans le presse-papiers
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString("sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder", forType: .string)
 
-        output += "Commande copiee dans le presse-papiers.\n"
+        output += "\(NSLocalizedString("dns.flush.copied", comment: ""))\n"
 
         appendText(output)
     }
@@ -934,13 +1017,57 @@ class DNSWindowController: NSWindowController {
     private func appendText(_ text: String) {
         DispatchQueue.main.async { [weak self] in
             guard let textView = self?.textView else { return }
-            let attributed = NSAttributedString(string: text, attributes: [
-                .font: NSFont.monospacedSystemFont(ofSize: 12, weight: .regular),
-                .foregroundColor: NSColor.labelColor
-            ])
-            textView.textStorage?.append(attributed)
+            textView.textStorage?.append(Self.colorize(text))
             textView.scrollToEndOfDocument(nil)
         }
+    }
+
+    private static let ipv4Regex = try! NSRegularExpression(pattern: "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b")
+    private static let ipv6Regex = try! NSRegularExpression(pattern: "\\b[0-9a-fA-F:]{6,39}\\b")
+
+    private static func colorize(_ text: String) -> NSAttributedString {
+        let baseFont = NSFont.monospacedSystemFont(ofSize: 12, weight: .regular)
+        let boldFont = NSFont.monospacedSystemFont(ofSize: 12, weight: .bold)
+        let result = NSMutableAttributedString()
+
+        for line in text.components(separatedBy: "\n") {
+            if !result.string.isEmpty { result.append(NSAttributedString(string: "\n")) }
+            let trimmed = line.trimmingCharacters(in: .whitespaces).lowercased()
+
+            // Headers (═══ or ───)
+            if line.contains("═") || line.contains("───") || line.hasPrefix("──") {
+                result.append(NSAttributedString(string: line, attributes: [
+                    .font: boldFont, .foregroundColor: NSColor.secondaryLabelColor
+                ]))
+                continue
+            }
+
+            // Error lines
+            if trimmed.contains("error") || trimmed.contains("erreur") || trimmed.contains("failed") || trimmed.contains("timeout") || trimmed.contains("échoué") {
+                result.append(NSAttributedString(string: line, attributes: [
+                    .font: baseFont, .foregroundColor: NSColor.systemRed
+                ]))
+                continue
+            }
+
+            // Normal line with IP colorization
+            let attrLine = NSMutableAttributedString(string: line, attributes: [
+                .font: baseFont, .foregroundColor: NSColor.labelColor
+            ])
+            let nsLine = line as NSString
+            let range = NSRange(location: 0, length: nsLine.length)
+            for match in ipv4Regex.matches(in: line, range: range) {
+                attrLine.addAttribute(.foregroundColor, value: NSColor.systemBlue, range: match.range)
+            }
+            for match in ipv6Regex.matches(in: line, range: range) {
+                let matched = nsLine.substring(with: match.range)
+                if matched.contains(":") {
+                    attrLine.addAttribute(.foregroundColor, value: NSColor.systemBlue, range: match.range)
+                }
+            }
+            result.append(attrLine)
+        }
+        return result
     }
 
     private func startProgress() {
@@ -957,6 +1084,50 @@ class DNSWindowController: NSWindowController {
         progressIndicator.isHidden = true
         lookupButton.isEnabled = true
         latencyButton.isEnabled = true
+    }
+
+    // MARK: - Favorites
+
+    @objc private func toggleFavorite() {
+        let domain = domainField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !domain.isEmpty else { return }
+
+        let existing = QueryFavoritesStorage.favorites(for: "dns")
+        if let fav = existing.first(where: { $0.target == domain }) {
+            QueryFavoritesStorage.remove(id: fav.id)
+        } else {
+            let recordType = recordTypePopup.titleOfSelectedItem ?? "A"
+            let fav = QueryFavorite(type: "dns", target: domain, dnsRecordType: recordType)
+            _ = QueryFavoritesStorage.add(fav)
+        }
+        refreshFavoritesPopup()
+    }
+
+    @objc private func loadFavorite() {
+        let index = favoritesPopup.indexOfSelectedItem
+        let favorites = QueryFavoritesStorage.favorites(for: "dns")
+        guard index > 0, index - 1 < favorites.count else { return }
+        let fav = favorites[index - 1]
+        domainField.stringValue = fav.target
+        if let recordType = fav.dnsRecordType,
+           let idx = recordTypePopup.itemTitles.firstIndex(of: recordType) {
+            recordTypePopup.selectItem(at: idx)
+        }
+    }
+
+    private func refreshFavoritesPopup() {
+        favoritesPopup.removeAllItems()
+        favoritesPopup.addItem(withTitle: NSLocalizedString("favorites.button", comment: ""))
+        let favorites = QueryFavoritesStorage.favorites(for: "dns")
+        if favorites.isEmpty {
+            let item = favoritesPopup.menu?.addItem(withTitle: NSLocalizedString("favorites.none", comment: ""), action: nil, keyEquivalent: "")
+            item?.isEnabled = false
+        } else {
+            for fav in favorites {
+                let title = fav.dnsRecordType != nil ? "\(fav.target) (\(fav.dnsRecordType!))" : fav.target
+                favoritesPopup.addItem(withTitle: title)
+            }
+        }
     }
 }
 

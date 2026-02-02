@@ -5,6 +5,7 @@
 import Cocoa
 import CoreWLAN
 import Network
+import UniformTypeIdentifiers
 
 // MARK: - Modeles
 
@@ -51,18 +52,20 @@ private enum UsageVerdict {
 // MARK: - Usages de reference
 
 private let usages: [UsageRequirement] = [
-    UsageRequirement(name: "Visioconférence", icon: "video.fill",
+    UsageRequirement(name: NSLocalizedString("teletravail.usage.visio", comment: ""), icon: "video.fill",
                      minDownload: 5, minUpload: 3, maxLatency: 100, maxJitter: 30, maxLoss: 2),
-    UsageRequirement(name: "Visio HD + Partage écran", icon: "rectangle.inset.filled.and.person.filled",
+    UsageRequirement(name: NSLocalizedString("teletravail.usage.visiohd", comment: ""), icon: "rectangle.inset.filled.and.person.filled",
                      minDownload: 15, minUpload: 8, maxLatency: 50, maxJitter: 20, maxLoss: 1),
-    UsageRequirement(name: "Email", icon: "envelope.fill",
+    UsageRequirement(name: NSLocalizedString("teletravail.usage.email", comment: ""), icon: "envelope.fill",
                      minDownload: 1, minUpload: 0.5, maxLatency: 300, maxJitter: 100, maxLoss: 5),
-    UsageRequirement(name: "Citrix / Bureau distant", icon: "desktopcomputer",
+    UsageRequirement(name: NSLocalizedString("teletravail.usage.citrix", comment: ""), icon: "desktopcomputer",
                      minDownload: 5, minUpload: 2, maxLatency: 80, maxJitter: 20, maxLoss: 1),
-    UsageRequirement(name: "Transfert de fichiers", icon: "arrow.up.arrow.down.circle.fill",
+    UsageRequirement(name: NSLocalizedString("teletravail.usage.transfer", comment: ""), icon: "arrow.up.arrow.down.circle.fill",
                      minDownload: 10, minUpload: 5, maxLatency: 500, maxJitter: 100, maxLoss: 3),
-    UsageRequirement(name: "Vidéo streaming", icon: "play.rectangle.fill",
+    UsageRequirement(name: NSLocalizedString("teletravail.usage.streaming", comment: ""), icon: "play.rectangle.fill",
                      minDownload: 25, minUpload: 1, maxLatency: 200, maxJitter: 50, maxLoss: 2),
+    UsageRequirement(name: NSLocalizedString("teletravail.usage.gaming", comment: ""), icon: "gamecontroller.fill",
+                     minDownload: 25, minUpload: 5, maxLatency: 30, maxJitter: 10, maxLoss: 0.5),
 ]
 
 // MARK: - Controller
@@ -174,10 +177,21 @@ class TeletravailWindowController: NSWindowController {
         subtitle.textColor = .secondaryLabelColor
         stack.addArrangedSubview(subtitle)
 
-        let copyReportButton = NSButton(title: NSLocalizedString("Copier rapport", comment: "Copy report button"), target: self, action: #selector(copyReport))
+        let buttonsRow = NSStackView()
+        buttonsRow.orientation = .horizontal
+        buttonsRow.spacing = 8
+
+        let copyReportButton = NSButton(title: NSLocalizedString("teletravail.button.copy_report", comment: ""), target: self, action: #selector(copyReport))
         copyReportButton.bezelStyle = .rounded
         copyReportButton.controlSize = .small
-        stack.addArrangedSubview(copyReportButton)
+
+        let exportPDFButton = NSButton(title: NSLocalizedString("teletravail.button.exportpdf", comment: ""), target: self, action: #selector(exportPDF))
+        exportPDFButton.bezelStyle = .rounded
+        exportPDFButton.controlSize = .small
+
+        buttonsRow.addArrangedSubview(copyReportButton)
+        buttonsRow.addArrangedSubview(exportPDFButton)
+        stack.addArrangedSubview(buttonsRow)
 
         // --- Indicateurs ---
         let cardsRow = NSStackView()
@@ -188,22 +202,22 @@ class TeletravailWindowController: NSWindowController {
         stack.addArrangedSubview(cardsRow)
         cardsRow.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
 
-        let (wc, wd, wv, wdet) = makeIndicatorCard(title: "WiFi", icon: "wifi", value: "—", detail: "")
+        let (wc, wd, wv, wdet) = makeIndicatorCard(title: NSLocalizedString("teletravail.card.wifi", comment: ""), icon: "wifi", value: "—", detail: "")
         wifiCard = wc; wifiStatusDot = wd; wifiValueLabel = wv; wifiDetailLabel = wdet
         wc.setAccessibilityRole(.group)
-        wc.setAccessibilityLabel("Indicateur signal WiFi")
+        wc.setAccessibilityLabel(NSLocalizedString("teletravail.accessibility.wifi", comment: ""))
         cardsRow.addArrangedSubview(wc)
 
-        let (lc, ld, lv, ldet) = makeIndicatorCard(title: "Latence", icon: "gauge.with.dots.needle.50percent", value: "—", detail: "")
+        let (lc, ld, lv, ldet) = makeIndicatorCard(title: NSLocalizedString("teletravail.card.latency", comment: ""), icon: "gauge.with.dots.needle.50percent", value: "—", detail: "")
         latencyCard = lc; latencyStatusDot = ld; latencyValueLabel = lv; latencyDetailLabel = ldet
         lc.setAccessibilityRole(.group)
-        lc.setAccessibilityLabel("Indicateur de latence")
+        lc.setAccessibilityLabel(NSLocalizedString("teletravail.accessibility.latency", comment: ""))
         cardsRow.addArrangedSubview(lc)
 
-        let (sc, sd, sv, sdet) = makeIndicatorCard(title: "Débit", icon: "speedometer", value: "—", detail: "")
+        let (sc, sd, sv, sdet) = makeIndicatorCard(title: NSLocalizedString("teletravail.card.speed", comment: ""), icon: "speedometer", value: "—", detail: "")
         speedCard = sc; speedStatusDot = sd; speedValueLabel = sv; speedDetailLabel = sdet
         sc.setAccessibilityRole(.group)
-        sc.setAccessibilityLabel("Indicateur de débit")
+        sc.setAccessibilityLabel(NSLocalizedString("teletravail.accessibility.speed", comment: ""))
         cardsRow.addArrangedSubview(sc)
 
         // --- Separator ---
@@ -271,7 +285,7 @@ class TeletravailWindowController: NSWindowController {
         globalRow.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
 
         // Note
-        let note = NSTextField(labelWithString: "Les indicateurs WiFi et latence sont mesurés en temps réel. Le débit utilise le dernier test effectué (fenêtre Test de débit).")
+        let note = NSTextField(labelWithString: NSLocalizedString("teletravail.note", comment: ""))
         note.font = NSFont.systemFont(ofSize: 10)
         note.textColor = .tertiaryLabelColor
         note.maximumNumberOfLines = 2
@@ -490,9 +504,9 @@ class TeletravailWindowController: NSWindowController {
         if let last = lastPing {
             latencyValueLabel.stringValue = String(format: "%.0f ms", last)
         } else {
-            latencyValueLabel.stringValue = "Timeout"
+            latencyValueLabel.stringValue = NSLocalizedString("teletravail.latency.timeout", comment: "")
         }
-        latencyDetailLabel.stringValue = String(format: "Moy: %.0f ms · Jitter: %.1f ms", avg, jitter)
+        latencyDetailLabel.stringValue = String(format: NSLocalizedString("teletravail.latency.detail_format", comment: ""), avg, jitter)
 
         let color: NSColor
         if avg <= 30 && jitter <= 10 { color = .systemGreen }
@@ -508,7 +522,7 @@ class TeletravailWindowController: NSWindowController {
             let formatter = DateFormatter()
             formatter.dateStyle = .short
             formatter.timeStyle = .short
-            speedDetailLabel.stringValue = "Test du \(formatter.string(from: last.date))"
+            speedDetailLabel.stringValue = String(format: NSLocalizedString("teletravail.speed.date_format", comment: ""), formatter.string(from: last.date))
         }
 
         let color: NSColor
@@ -604,12 +618,12 @@ class TeletravailWindowController: NSWindowController {
             globalVerdictDot.layer?.backgroundColor = NSColor.systemRed.cgColor
             globalVerdictLabel.stringValue = NSLocalizedString("teletravail.global.insufficient", comment: "")
             let problematic = zip(usages, verdicts).filter { $0.1 == .insufficient }.map { $0.0.name }
-            globalVerdictDetail.stringValue = "Usages impactés : \(problematic.joined(separator: ", "))"
+            globalVerdictDetail.stringValue = String(format: NSLocalizedString("teletravail.global.impacted_usages", comment: ""), problematic.joined(separator: ", "))
         } else if hasDegraded {
             globalVerdictDot.layer?.backgroundColor = NSColor.systemOrange.cgColor
             globalVerdictLabel.stringValue = NSLocalizedString("teletravail.global.degraded", comment: "")
             let problematic = zip(usages, verdicts).filter { $0.1 == .degraded }.map { $0.0.name }
-            globalVerdictDetail.stringValue = "À surveiller : \(problematic.joined(separator: ", "))"
+            globalVerdictDetail.stringValue = String(format: NSLocalizedString("teletravail.global.watch_usages", comment: ""), problematic.joined(separator: ", "))
         } else if allExcellent {
             globalVerdictDot.layer?.backgroundColor = NSColor.systemGreen.cgColor
             globalVerdictLabel.stringValue = NSLocalizedString("teletravail.global.excellent", comment: "")
@@ -681,35 +695,35 @@ class TeletravailWindowController: NSWindowController {
     // MARK: - Copier rapport
 
     @objc private func copyReport() {
-        var text = "Mon Réseau — Rapport Télétravail\n"
+        var text = NSLocalizedString("teletravail.report.header", comment: "") + "\n"
         text += String(repeating: "═", count: 50) + "\n\n"
 
         // WiFi
-        text += "WiFi : \(wifiValueLabel.stringValue)\n"
+        text += "\(NSLocalizedString("teletravail.report.wifi", comment: "")) \(wifiValueLabel.stringValue)\n"
         if !wifiDetailLabel.stringValue.isEmpty {
             text += "  \(wifiDetailLabel.stringValue)\n"
         }
 
         // Latence
-        text += "Latence : \(latencyValueLabel.stringValue)\n"
+        text += "\(NSLocalizedString("teletravail.report.latency", comment: "")) \(latencyValueLabel.stringValue)\n"
         if !latencyDetailLabel.stringValue.isEmpty {
             text += "  \(latencyDetailLabel.stringValue)\n"
         }
 
         // Debit
-        text += "Débit : \(speedValueLabel.stringValue)\n"
+        text += "\(NSLocalizedString("teletravail.report.speed", comment: "")) \(speedValueLabel.stringValue)\n"
         if !speedDetailLabel.stringValue.isEmpty {
             text += "  \(speedDetailLabel.stringValue)\n"
         }
 
-        text += "\nCompatibilité des usages :\n"
+        text += "\n\(NSLocalizedString("teletravail.report.usages", comment: ""))\n"
         text += String(repeating: "─", count: 40) + "\n"
         for (i, usage) in usages.enumerated() {
             let verdict = usageRows[i].label.stringValue
             text += "  \(usage.name.padding(toLength: 30, withPad: " ", startingAt: 0)) \(verdict)\n"
         }
 
-        text += "\nVerdict global : \(globalVerdictLabel.stringValue)\n"
+        text += "\n\(NSLocalizedString("teletravail.report.global_verdict", comment: "")) \(globalVerdictLabel.stringValue)\n"
         if !globalVerdictDetail.stringValue.isEmpty {
             text += "\(globalVerdictDetail.stringValue)\n"
         }
@@ -717,6 +731,241 @@ class TeletravailWindowController: NSWindowController {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
+    }
+
+    // MARK: - Export PDF
+
+    @objc private func exportPDF() {
+        let savePanel = NSSavePanel()
+        savePanel.allowedContentTypes = [UTType.pdf]
+        savePanel.nameFieldStringValue = "MonReseau-Diagnostic.pdf"
+        savePanel.beginSheetModal(for: window!) { [weak self] response in
+            guard response == .OK, let url = savePanel.url, let self = self else { return }
+            self.generatePDF(to: url)
+        }
+    }
+
+    private func generatePDF(to url: URL) {
+        let pageWidth: CGFloat = 595
+        let pageHeight: CGFloat = 842
+        let margin: CGFloat = 50
+        let contentWidth = pageWidth - margin * 2
+
+        let pdfData = NSMutableData()
+        guard let consumer = CGDataConsumer(data: pdfData as CFMutableData) else { return }
+        var mediaBox = CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight)
+        guard let context = CGContext(consumer: consumer, mediaBox: &mediaBox, nil) else { return }
+
+        context.beginPDFPage(nil)
+
+        // Set up NSGraphicsContext for NSAttributedString drawing
+        let nsContext = NSGraphicsContext(cgContext: context, flipped: false)
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = nsContext
+
+        // Y position tracks from top, but CG origin is bottom-left
+        // We'll use a helper that converts top-down Y to CG Y
+        var cursorY = pageHeight - margin  // start from top
+
+        // --- Title ---
+        let titleFont = NSFont.systemFont(ofSize: 20, weight: .bold)
+        let titleStr = NSAttributedString(string: "Mon Réseau — Diagnostic", attributes: [
+            .font: titleFont,
+            .foregroundColor: NSColor.black
+        ])
+        cursorY -= titleStr.size().height
+        titleStr.draw(at: NSPoint(x: margin, y: cursorY))
+
+        // Date
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .long
+        dateFormatter.timeStyle = .short
+        let dateFont = NSFont.systemFont(ofSize: 11)
+        let dateStr = NSAttributedString(string: dateFormatter.string(from: Date()), attributes: [
+            .font: dateFont,
+            .foregroundColor: NSColor.darkGray
+        ])
+        cursorY -= dateStr.size().height + 4
+        dateStr.draw(at: NSPoint(x: margin, y: cursorY))
+
+        cursorY -= 20
+
+        // --- Section: Indicateurs ---
+        cursorY = drawSectionTitle(NSLocalizedString("teletravail.pdf.section.indicators", comment: "Indicateurs"), at: cursorY, margin: margin, context: context)
+        cursorY -= 6
+
+        // WiFi indicator
+        cursorY = drawIndicatorRow(
+            label: NSLocalizedString("teletravail.card.wifi", comment: ""),
+            value: wifiValueLabel.stringValue,
+            detail: wifiDetailLabel.stringValue,
+            dotColor: colorFromDotLayer(wifiStatusDot),
+            at: cursorY, margin: margin, context: context
+        )
+
+        // Latency indicator
+        cursorY = drawIndicatorRow(
+            label: NSLocalizedString("teletravail.card.latency", comment: ""),
+            value: latencyValueLabel.stringValue,
+            detail: latencyDetailLabel.stringValue,
+            dotColor: colorFromDotLayer(latencyStatusDot),
+            at: cursorY, margin: margin, context: context
+        )
+
+        // Speed indicator
+        cursorY = drawIndicatorRow(
+            label: NSLocalizedString("teletravail.card.speed", comment: ""),
+            value: speedValueLabel.stringValue,
+            detail: speedDetailLabel.stringValue,
+            dotColor: colorFromDotLayer(speedStatusDot),
+            at: cursorY, margin: margin, context: context
+        )
+
+        cursorY -= 16
+
+        // --- Section: Compatibilite des usages ---
+        cursorY = drawSectionTitle(NSLocalizedString("teletravail.usages.title", comment: ""), at: cursorY, margin: margin, context: context)
+        cursorY -= 8
+
+        // Table header
+        let headerFont = NSFont.systemFont(ofSize: 10, weight: .semibold)
+        let headerColor = NSColor.darkGray
+        let colUsageX = margin
+        let colVerdictX = margin + contentWidth * 0.55
+        let colDetailX = margin + contentWidth * 0.75
+
+        let hUsage = NSAttributedString(string: NSLocalizedString("teletravail.pdf.col.usage", comment: "Usage"), attributes: [.font: headerFont, .foregroundColor: headerColor])
+        let hVerdict = NSAttributedString(string: NSLocalizedString("teletravail.pdf.col.verdict", comment: "Verdict"), attributes: [.font: headerFont, .foregroundColor: headerColor])
+
+        cursorY -= hUsage.size().height
+        hUsage.draw(at: NSPoint(x: colUsageX + 16, y: cursorY))
+        hVerdict.draw(at: NSPoint(x: colVerdictX, y: cursorY))
+        cursorY -= 6
+
+        // Draw separator line
+        context.setStrokeColor(NSColor.lightGray.cgColor)
+        context.setLineWidth(0.5)
+        context.move(to: CGPoint(x: margin, y: cursorY))
+        context.addLine(to: CGPoint(x: margin + contentWidth, y: cursorY))
+        context.strokePath()
+        cursorY -= 6
+
+        let rowFont = NSFont.systemFont(ofSize: 11)
+        let verdictFont = NSFont.systemFont(ofSize: 11, weight: .medium)
+
+        for (i, usage) in usages.enumerated() {
+            let verdictText = usageRows[i].label.stringValue
+            let dotColor = colorFromDotLayer(usageRows[i].dot)
+
+            let nameStr = NSAttributedString(string: usage.name, attributes: [.font: rowFont, .foregroundColor: NSColor.black])
+            let verdictStr = NSAttributedString(string: verdictText, attributes: [.font: verdictFont, .foregroundColor: dotColor])
+
+            let rowH = max(nameStr.size().height, verdictStr.size().height)
+            cursorY -= rowH + 2
+
+            // Colored dot
+            let dotSize: CGFloat = 8
+            let dotY = cursorY + (rowH - dotSize) / 2
+            context.setFillColor(dotColor.cgColor)
+            context.fillEllipse(in: CGRect(x: colUsageX, y: dotY, width: dotSize, height: dotSize))
+
+            nameStr.draw(at: NSPoint(x: colUsageX + 16, y: cursorY))
+            verdictStr.draw(at: NSPoint(x: colVerdictX, y: cursorY))
+
+            cursorY -= 4
+        }
+
+        cursorY -= 16
+
+        // --- Section: Verdict global ---
+        cursorY = drawSectionTitle(NSLocalizedString("teletravail.pdf.section.global_verdict", comment: "Verdict global"), at: cursorY, margin: margin, context: context)
+        cursorY -= 8
+
+        let globalColor = colorFromDotLayer(globalVerdictDot)
+        let globalFont = NSFont.systemFont(ofSize: 14, weight: .semibold)
+        let globalStr = NSAttributedString(string: globalVerdictLabel.stringValue, attributes: [.font: globalFont, .foregroundColor: globalColor])
+        let globalDetailStr = NSAttributedString(string: globalVerdictDetail.stringValue, attributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.darkGray])
+
+        // Background rounded rect
+        let bgHeight: CGFloat = 44
+        cursorY -= bgHeight
+        let bgRect = CGRect(x: margin, y: cursorY, width: contentWidth, height: bgHeight)
+        context.setFillColor(globalColor.withAlphaComponent(0.1).cgColor)
+        let bgPath = CGPath(roundedRect: bgRect, cornerWidth: 8, cornerHeight: 8, transform: nil)
+        context.addPath(bgPath)
+        context.fillPath()
+
+        // Dot
+        let gDotSize: CGFloat = 12
+        context.setFillColor(globalColor.cgColor)
+        context.fillEllipse(in: CGRect(x: margin + 12, y: cursorY + (bgHeight - gDotSize) / 2, width: gDotSize, height: gDotSize))
+
+        // Text
+        globalStr.draw(at: NSPoint(x: margin + 30, y: cursorY + bgHeight - 6 - globalStr.size().height))
+        globalDetailStr.draw(at: NSPoint(x: margin + 30, y: cursorY + 6))
+
+        cursorY -= 30
+
+        // --- Footer ---
+        let footerFont = NSFont.systemFont(ofSize: 9)
+        let footerStr = NSAttributedString(string: NSLocalizedString("teletravail.pdf.footer", comment: "Généré par Mon Réseau"), attributes: [
+            .font: footerFont,
+            .foregroundColor: NSColor.gray
+        ])
+        footerStr.draw(at: NSPoint(x: margin, y: margin - 10))
+
+        NSGraphicsContext.restoreGraphicsState()
+        context.endPDFPage()
+        context.closePDF()
+
+        pdfData.write(to: url, atomically: true)
+    }
+
+    private func drawSectionTitle(_ title: String, at y: CGFloat, margin: CGFloat, context: CGContext) -> CGFloat {
+        let font = NSFont.systemFont(ofSize: 14, weight: .semibold)
+        let str = NSAttributedString(string: title, attributes: [.font: font, .foregroundColor: NSColor.black])
+        let h = str.size().height
+        let newY = y - h
+        str.draw(at: NSPoint(x: margin, y: newY))
+        return newY
+    }
+
+    private func drawIndicatorRow(label: String, value: String, detail: String, dotColor: NSColor, at y: CGFloat, margin: CGFloat, context: CGContext) -> CGFloat {
+        var curY = y
+
+        let labelFont = NSFont.systemFont(ofSize: 11, weight: .medium)
+        let valueFont = NSFont.monospacedDigitSystemFont(ofSize: 14, weight: .semibold)
+        let detailFont = NSFont.systemFont(ofSize: 9)
+
+        let labelStr = NSAttributedString(string: label, attributes: [.font: labelFont, .foregroundColor: NSColor.darkGray])
+        let valueStr = NSAttributedString(string: value, attributes: [.font: valueFont, .foregroundColor: NSColor.black])
+        let detailStr = NSAttributedString(string: detail, attributes: [.font: detailFont, .foregroundColor: NSColor.gray])
+
+        // Dot + label
+        curY -= labelStr.size().height
+        let dotSize: CGFloat = 8
+        let dotY = curY + (labelStr.size().height - dotSize) / 2
+        context.setFillColor(dotColor.cgColor)
+        context.fillEllipse(in: CGRect(x: margin, y: dotY, width: dotSize, height: dotSize))
+        labelStr.draw(at: NSPoint(x: margin + 14, y: curY))
+
+        // Value
+        curY -= valueStr.size().height + 2
+        valueStr.draw(at: NSPoint(x: margin + 14, y: curY))
+
+        // Detail
+        if !detail.isEmpty {
+            curY -= detailStr.size().height + 1
+            detailStr.draw(at: NSPoint(x: margin + 14, y: curY))
+        }
+
+        curY -= 8
+        return curY
+    }
+
+    private func colorFromDotLayer(_ view: NSView) -> NSColor {
+        guard let cgColor = view.layer?.backgroundColor else { return .gray }
+        return NSColor(cgColor: cgColor) ?? .gray
     }
 
     // MARK: - Lifecycle

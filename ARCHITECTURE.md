@@ -106,20 +106,20 @@ Mon Réseau est une application macOS qui surveille la connectivite internet et 
 | Fichier | Lignes | Description |
 |---------|--------|-------------|
 | `main.swift` | ~19 | Point d'entree, configure NSApplication |
-| `AppDelegate.swift` | ~838 | Double mode (menubar/app), NWPathMonitor, NSMenuDelegate, coordination fenetres, VPN, notifications, uptime, raccourcis globaux, apparence |
+| `AppDelegate.swift` | ~1100 | Double mode (menubar/app), NWPathMonitor, NSMenuDelegate, coordination fenetres, VPN, notifications, uptime, raccourcis globaux, apparence, tests qualite planifies, suivi profils reseau |
 | `MainWindowController.swift` | ~256 | Fenetre d'accueil mode app, grille de cartes avec filtrage Mode Geek |
-| `SettingsWindowController.swift` | ~520 | Reglages par onglets (General, Notifications, Avance) : mode affichage, login item, apparence, notifications, barre de menus, ping, Mode Geek |
+| `SettingsWindowController.swift` | ~750 | Reglages par onglets (General, Notifications, Avance, Profils) : mode affichage, login item, apparence, notifications, barre de menus, ping, Mode Geek, profils reseau, config tests planifies |
 | `GuideWindowController.swift` | ~237 | Documentation : presentation app, concepts reseau, astuces optimisation, raccourcis |
-| `TeletravailWindowController.swift` | ~686 | Diagnostic teletravail (latence, jitter, pertes, debit, DNS, VPN) |
+| `TeletravailWindowController.swift` | ~850 | Diagnostic teletravail (latence, jitter, pertes, debit, DNS, VPN) + export PDF |
 | `NetworkDetailWindowController.swift` | ~751 | Details reseau complets (interfaces, WiFi, routage, DNS, IP publique) |
 | `NetworkQualityWindowController.swift` | ~709 | Graphe qualite reseau temps reel (latence, jitter, pertes, moyenne mobile) |
-| `SpeedTestWindowController.swift` | ~952 | Test de debit HTTP avec historique et localisation |
-| `DNSWindowController.swift` | ~957 | Requetes DNS multi-types, test latence serveurs, config systeme |
-| `TracerouteWindowController.swift` | ~707 | Traceroute visuel ICMP avec carte MapKit interactive |
+| `SpeedTestWindowController.swift` | ~980 | Test de debit HTTP avec historique, localisation et snapshots profils |
+| `DNSWindowController.swift` | ~1100 | Requetes DNS multi-types, test latence serveurs, config systeme, coloration syntaxique, favoris |
+| `TracerouteWindowController.swift` | ~830 | Traceroute visuel ICMP avec carte MapKit interactive, favoris |
 | `WiFiWindowController.swift` | ~674 | Informations WiFi temps reel avec graphe RSSI |
 | `NeighborhoodWindowController.swift` | ~1327 | Scan voisinage (ARP+ICMP+Bonjour), details machine, scan de ports |
 | `BandwidthWindowController.swift` | ~400 | Moniteur bande passante temps reel (getifaddrs), graphe debit, totaux session |
-| `WhoisWindowController.swift` | ~370 | Recherche WHOIS via NWConnection TCP port 43, redirection auto, 27 TLDs |
+| `WhoisWindowController.swift` | ~500 | Recherche WHOIS via NWConnection TCP port 43, redirection auto, 27 TLDs, coloration syntaxique, favoris |
 
 ## APIs et protocoles reseau
 
@@ -233,6 +233,13 @@ RPM estime : `60000 / max(latence_ms, 5)`
 - `QualityHistory` : JSON — historique qualite reseau 24h
 - `AppAppearance` : `"system"`, `"light"` ou `"dark"` — theme de l'application
 - `ConnectionEvents` : JSON `[ConnectionEvent]`, max 500 — suivi d'uptime
+- `QueryFavorites` : JSON `[QueryFavorite]`, max 20 — cibles favorites DNS/Whois/Traceroute
+- `NetworkProfiles` : JSON `[NetworkProfile]`, max 30 — profils reseau nommes avec snapshots performance
+- `ScheduledTestResults` : JSON `[ScheduledTestResult]`, max 288 — resultats tests qualite planifies
+- `DailyReports` : JSON `[DailyReport]`, max 30 — rapports journaliers compiles
+- `ScheduledQualityTestEnabled` : bool — active/desactive les tests planifies
+- `ScheduledQualityTestInterval` : int — intervalle en minutes (5, 15, 30, 60)
+- `ScheduledDailyNotification` : bool — notification rapport quotidien
 
 ### Sandbox
 ```

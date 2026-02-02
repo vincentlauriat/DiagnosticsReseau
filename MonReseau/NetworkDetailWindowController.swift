@@ -88,18 +88,18 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
         rightPane.autoresizingMask = [.width, .height]
 
         // Toolbar with refresh + copy buttons
-        let refreshButton = NSButton(image: NSImage(systemSymbolName: "arrow.clockwise", accessibilityDescription: "Rafraîchir")!, target: self, action: #selector(refreshClicked))
+        let refreshButton = NSButton(image: NSImage(systemSymbolName: "arrow.clockwise", accessibilityDescription: NSLocalizedString("netdetail.button.refresh", comment: ""))!, target: self, action: #selector(refreshClicked))
         refreshButton.translatesAutoresizingMaskIntoConstraints = false
         refreshButton.bezelStyle = .rounded
         refreshButton.isBordered = false
-        refreshButton.toolTip = NSLocalizedString("Rafraîchir", comment: "Refresh button tooltip")
+        refreshButton.toolTip = NSLocalizedString("netdetail.button.refresh", comment: "")
         rightPane.addSubview(refreshButton)
 
-        let copyButton = NSButton(image: NSImage(systemSymbolName: "doc.on.doc", accessibilityDescription: "Copier")!, target: self, action: #selector(copyAllInfo))
+        let copyButton = NSButton(image: NSImage(systemSymbolName: "doc.on.doc", accessibilityDescription: NSLocalizedString("netdetail.button.copy", comment: ""))!, target: self, action: #selector(copyAllInfo))
         copyButton.translatesAutoresizingMaskIntoConstraints = false
         copyButton.bezelStyle = .rounded
         copyButton.isBordered = false
-        copyButton.toolTip = NSLocalizedString("Copier les informations réseau", comment: "Copy button tooltip")
+        copyButton.toolTip = NSLocalizedString("netdetail.button.copy_tooltip", comment: "")
         rightPane.addSubview(copyButton)
 
         detailScrollView = NSScrollView()
@@ -347,7 +347,7 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
             }
 
             let flags = getInterfaceFlags(name)
-            items.append(("Statut", flags.contains("UP") ? "Actif" : "Inactif"))
+            items.append((NSLocalizedString("netdetail.label.status", comment: ""), flags.contains("UP") ? NSLocalizedString("netdetail.status.active", comment: "") : NSLocalizedString("netdetail.status.inactive", comment: "")))
             items.append(("Flags", flags))
 
             if let mtu = getInterfaceMTU(name) {
@@ -367,8 +367,8 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
             }
 
             if let tp = throughputCache[name] {
-                items.append(("Débit entrant", tp.inRate))
-                items.append(("Débit sortant", tp.outRate))
+                items.append((NSLocalizedString("netdetail.label.throughput_in", comment: ""), tp.inRate))
+                items.append((NSLocalizedString("netdetail.label.throughput_out", comment: ""), tp.outRate))
             }
 
             let icon: String
@@ -417,32 +417,32 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
         monitor.cancel()
 
         if let path = pathStatus {
-            items.append(("Connexion Internet", path.status == .satisfied ? "Connecté" : "Déconnecté"))
-            items.append(("Coûteuse (cellular)", path.isExpensive ? "Oui" : "Non"))
-            items.append(("Contrainte (low data)", path.isConstrained ? "Oui" : "Non"))
+            items.append((NSLocalizedString("netdetail.label.internet", comment: ""), path.status == .satisfied ? NSLocalizedString("netdetail.value.connected", comment: "") : NSLocalizedString("netdetail.value.disconnected", comment: "")))
+            items.append((NSLocalizedString("netdetail.label.expensive", comment: ""), path.isExpensive ? NSLocalizedString("netdetail.value.yes", comment: "") : NSLocalizedString("netdetail.value.no", comment: "")))
+            items.append((NSLocalizedString("netdetail.label.constrained", comment: ""), path.isConstrained ? NSLocalizedString("netdetail.value.yes", comment: "") : NSLocalizedString("netdetail.value.no", comment: "")))
 
             if path.usesInterfaceType(.wifi) {
-                items.append(("Type actif", "WiFi"))
+                items.append((NSLocalizedString("netdetail.label.active_type", comment: ""), "WiFi"))
             } else if path.usesInterfaceType(.wiredEthernet) {
-                items.append(("Type actif", "Ethernet"))
+                items.append((NSLocalizedString("netdetail.label.active_type", comment: ""), "Ethernet"))
             } else if path.usesInterfaceType(.cellular) {
-                items.append(("Type actif", "Cellulaire"))
+                items.append((NSLocalizedString("netdetail.label.active_type", comment: ""), NSLocalizedString("netdetail.value.cellular", comment: "")))
             } else if path.usesInterfaceType(.loopback) {
-                items.append(("Type actif", "Loopback"))
+                items.append((NSLocalizedString("netdetail.label.active_type", comment: ""), "Loopback"))
             } else {
-                items.append(("Type actif", "Autre"))
+                items.append((NSLocalizedString("netdetail.label.active_type", comment: ""), NSLocalizedString("netdetail.value.other", comment: "")))
             }
 
-            items.append(("Supporte DNS", path.supportsDNS ? "Oui" : "Non"))
-            items.append(("Supporte IPv4", path.supportsIPv4 ? "Oui" : "Non"))
-            items.append(("Supporte IPv6", path.supportsIPv6 ? "Oui" : "Non"))
+            items.append((NSLocalizedString("netdetail.label.supports_dns", comment: ""), path.supportsDNS ? NSLocalizedString("netdetail.value.yes", comment: "") : NSLocalizedString("netdetail.value.no", comment: "")))
+            items.append((NSLocalizedString("netdetail.label.supports_ipv4", comment: ""), path.supportsIPv4 ? NSLocalizedString("netdetail.value.yes", comment: "") : NSLocalizedString("netdetail.value.no", comment: "")))
+            items.append((NSLocalizedString("netdetail.label.supports_ipv6", comment: ""), path.supportsIPv6 ? NSLocalizedString("netdetail.value.yes", comment: "") : NSLocalizedString("netdetail.value.no", comment: "")))
         }
 
         // Uptime (24h)
         let uptime = UptimeTracker.uptimePercent24h()
-        items.append(("Disponibilité 24h", String(format: "%.1f%%", uptime)))
+        items.append((NSLocalizedString("netdetail.label.uptime_24h", comment: ""), String(format: "%.1f%%", uptime)))
         let disconnections = UptimeTracker.disconnectionCount24h()
-        items.append(("Déconnexions 24h", "\(disconnections)"))
+        items.append((NSLocalizedString("netdetail.label.disconnections_24h", comment: ""), "\(disconnections)"))
 
         return items
     }
@@ -529,7 +529,7 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
 
         guard !vpnMap.isEmpty else { return items }
 
-        items.append(("Statut", "VPN actif"))
+        items.append((NSLocalizedString("netdetail.label.status", comment: ""), NSLocalizedString("netdetail.value.vpn_active", comment: "")))
 
         for vpn in vpnMap.values.sorted(by: { $0.name < $1.name }) {
             items.append(("Interface", vpn.name))
@@ -685,18 +685,18 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
         }
 
         items.append(("RSSI", "\(client.rssiValue()) dBm"))
-        items.append(("Bruit", "\(client.noiseMeasurement()) dBm"))
+        items.append((NSLocalizedString("netdetail.label.noise", comment: ""), "\(client.noiseMeasurement()) dBm"))
 
         if let channel = client.wlanChannel() {
-            items.append(("Canal", "\(channel.channelNumber)"))
+            items.append((NSLocalizedString("netdetail.label.channel", comment: ""), "\(channel.channelNumber)"))
             let band: String
             switch channel.channelBand {
             case .band2GHz: band = "2.4 GHz"
             case .band5GHz: band = "5 GHz"
             case .band6GHz: band = "6 GHz"
-            default: band = "Inconnue"
+            default: band = NSLocalizedString("netdetail.value.unknown", comment: "")
             }
-            items.append(("Bande", band))
+            items.append((NSLocalizedString("netdetail.label.band", comment: ""), band))
 
             let width: String
             switch channel.channelWidth {
@@ -704,19 +704,19 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
             case .width40MHz: width = "40 MHz"
             case .width80MHz: width = "80 MHz"
             case .width160MHz: width = "160 MHz"
-            default: width = "Inconnue"
+            default: width = NSLocalizedString("netdetail.value.unknown", comment: "")
             }
-            items.append(("Largeur canal", width))
+            items.append((NSLocalizedString("netdetail.label.channel_width", comment: ""), width))
         }
 
         if client.transmitRate() > 0 {
-            items.append(("Débit TX", String(format: "%.0f Mbps", client.transmitRate())))
+            items.append((NSLocalizedString("netdetail.label.tx_rate", comment: ""), String(format: "%.0f Mbps", client.transmitRate())))
         }
 
         let security = client.security()
         let secStr: String
         switch security {
-        case .none: secStr = "Aucune"
+        case .none: secStr = NSLocalizedString("netdetail.security.none", comment: "")
         case .WEP: secStr = "WEP"
         case .wpaPersonal: secStr = "WPA Personnel"
         case .wpaEnterprise: secStr = "WPA Enterprise"
@@ -724,12 +724,12 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
         case .wpa2Enterprise: secStr = "WPA2 Enterprise"
         case .wpa3Personal: secStr = "WPA3 Personnel"
         case .wpa3Enterprise: secStr = "WPA3 Enterprise"
-        default: secStr = "Autre"
+        default: secStr = NSLocalizedString("netdetail.value.other", comment: "")
         }
-        items.append(("Sécurité", secStr))
+        items.append((NSLocalizedString("netdetail.label.security", comment: ""), secStr))
 
         if let cc = client.countryCode() {
-            items.append(("Code pays", cc))
+            items.append((NSLocalizedString("netdetail.label.country_code", comment: ""), cc))
         }
 
         items.append(("Mode", client.activePHYMode().description))
@@ -745,15 +745,15 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
 
         if let config = SCDynamicStoreCopyValue(nil, "State:/Network/Global/IPv4" as CFString) as? [String: Any] {
             if let router = config["Router"] as? String {
-                items.append(("Passerelle par défaut", router))
+                items.append((NSLocalizedString("netdetail.label.default_gateway", comment: ""), router))
             }
             if let iface = config["PrimaryInterface"] as? String {
-                items.append(("Interface de sortie", iface))
+                items.append((NSLocalizedString("netdetail.label.primary_interface", comment: ""), iface))
             }
         }
 
         if items.isEmpty {
-            items.append(("Passerelle", "Non disponible"))
+            items.append((NSLocalizedString("netdetail.label.gateway", comment: ""), NSLocalizedString("netdetail.value.unavailable", comment: "")))
         }
 
         return items
@@ -780,7 +780,7 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
         }
 
         if items.isEmpty {
-            items.append(("DNS", "Non disponible"))
+            items.append(("DNS", NSLocalizedString("netdetail.value.unavailable", comment: "")))
         }
 
         return items
@@ -818,7 +818,7 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
         }
 
         if items.isEmpty {
-            items.append(("IP publique", "Non disponible"))
+            items.append((NSLocalizedString("netdetail.label.public_ip", comment: ""), NSLocalizedString("netdetail.value.unavailable", comment: "")))
         }
 
         return items
@@ -827,7 +827,7 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
     // MARK: - Copier
 
     @objc private func copyAllInfo() {
-        var text = "Mon Réseau — Détails réseau\n"
+        var text = NSLocalizedString("netdetail.report.header", comment: "") + "\n"
         text += String(repeating: "═", count: 50) + "\n\n"
 
         for section in sections {
@@ -859,7 +859,7 @@ extension CWPHYMode: @retroactive CustomStringConvertible {
         case .mode11n: return "802.11n (Wi-Fi 4)"
         case .mode11ac: return "802.11ac (Wi-Fi 5)"
         case .mode11ax: return "802.11ax (Wi-Fi 6)"
-        default: return "Inconnu"
+        default: return NSLocalizedString("netdetail.value.unknown", comment: "")
         }
     }
 }

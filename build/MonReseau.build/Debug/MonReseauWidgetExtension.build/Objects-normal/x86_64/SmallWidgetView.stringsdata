@@ -1,0 +1,48 @@
+{
+  "source": "/Users/vincent/Desktop/Projets Perso/Xcode/MonReseau/MonReseauWidget/SmallWidgetView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "—",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connecté",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 17
+        }
+      },
+      {
+        "comment": "",
+        "key": "Déconnecté",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 17
+        }
+      },
+      {
+        "comment": "",
+        "key": "latence",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 29
+        }
+      },
+      {
+        "comment": "",
+        "key": "latence",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 37
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -471,7 +471,7 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
             backing: .buffered,
             defer: false
         )
-        window.title = "Mon Réseau — Voisinage reseau"
+        window.title = NSLocalizedString("neighborhood.window.title", comment: "")
         window.center()
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 600, height: 350)
@@ -486,20 +486,20 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
         contentView.wantsLayer = true
 
         // Titre
-        let titleLabel = NSTextField(labelWithString: "Voisinage reseau")
+        let titleLabel = NSTextField(labelWithString: NSLocalizedString("neighborhood.title", comment: ""))
         titleLabel.font = NSFont.systemFont(ofSize: 18, weight: .semibold)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(titleLabel)
 
         // Sous-reseau
-        subnetLabel = NSTextField(labelWithString: "Sous-reseau: ...")
+        subnetLabel = NSTextField(labelWithString: NSLocalizedString("neighborhood.subnet.loading", comment: ""))
         subnetLabel.font = NSFont.monospacedSystemFont(ofSize: 12, weight: .regular)
         subnetLabel.textColor = .secondaryLabelColor
         subnetLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(subnetLabel)
 
         // Status
-        statusLabel = NSTextField(labelWithString: "Cliquez sur Scanner pour demarrer")
+        statusLabel = NSTextField(labelWithString: NSLocalizedString("neighborhood.status.ready", comment: ""))
         statusLabel.font = NSFont.systemFont(ofSize: 11)
         statusLabel.textColor = .tertiaryLabelColor
         statusLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -528,32 +528,32 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
         tableView.usesAlternatingRowBackgroundColors = true
 
         let ipCol = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("ip"))
-        ipCol.title = "IP"
+        ipCol.title = NSLocalizedString("neighborhood.column.ip", comment: "")
         ipCol.width = 120
         tableView.addTableColumn(ipCol)
 
         let nameCol = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("name"))
-        nameCol.title = "Nom"
+        nameCol.title = NSLocalizedString("neighborhood.column.name", comment: "")
         nameCol.width = 160
         tableView.addTableColumn(nameCol)
 
         let latencyCol = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("latency"))
-        latencyCol.title = "Latence"
+        latencyCol.title = NSLocalizedString("neighborhood.column.latency", comment: "")
         latencyCol.width = 70
         tableView.addTableColumn(latencyCol)
 
         let macCol = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("mac"))
-        macCol.title = "MAC"
+        macCol.title = NSLocalizedString("neighborhood.column.mac", comment: "")
         macCol.width = 140
         tableView.addTableColumn(macCol)
 
         let vendorCol = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("vendor"))
-        vendorCol.title = "Fabricant"
+        vendorCol.title = NSLocalizedString("neighborhood.column.vendor", comment: "")
         vendorCol.width = 100
         tableView.addTableColumn(vendorCol)
 
         let servicesCol = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("services"))
-        servicesCol.title = "Services"
+        servicesCol.title = NSLocalizedString("neighborhood.column.services", comment: "")
         servicesCol.width = 120
         tableView.addTableColumn(servicesCol)
 
@@ -568,7 +568,7 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
         bottomBar.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(bottomBar)
 
-        scanButton = NSButton(title: "Scanner", target: self, action: #selector(startScan))
+        scanButton = NSButton(title: NSLocalizedString("neighborhood.button.scan", comment: ""), target: self, action: #selector(startScan))
         scanButton.bezelStyle = .rounded
         bottomBar.addArrangedSubview(scanButton)
 
@@ -611,9 +611,9 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
 
     private func updateSubnetInfo() {
         if let subnet = scanner.getLocalSubnet() {
-            subnetLabel.stringValue = "Sous-reseau: \(subnet.ip)/\(subnet.prefix)"
+            subnetLabel.stringValue = String(format: NSLocalizedString("neighborhood.subnet.detected", comment: ""), subnet.ip, subnet.prefix)
         } else {
-            subnetLabel.stringValue = "Sous-reseau: non detecte"
+            subnetLabel.stringValue = NSLocalizedString("neighborhood.subnet.notfound", comment: "")
         }
     }
 
@@ -622,13 +622,13 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
     @objc private func startScan() {
         guard !isScanning else { return }
         guard let subnet = scanner.getLocalSubnet() else {
-            statusLabel.stringValue = "Impossible de detecter le sous-reseau"
+            statusLabel.stringValue = NSLocalizedString("neighborhood.error.nosubnet", comment: "")
             return
         }
 
         let ips = scanner.generateIPRange(ip: subnet.ip, mask: subnet.mask)
         guard !ips.isEmpty else {
-            statusLabel.stringValue = "Plage IP vide ou trop grande"
+            statusLabel.stringValue = NSLocalizedString("neighborhood.error.iprange", comment: "")
             return
         }
 
@@ -638,7 +638,7 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
         scanButton.isEnabled = false
         progressIndicator.isHidden = false
         progressIndicator.doubleValue = 0
-        statusLabel.stringValue = "Phase 1/3 — Sollicitation ARP..."
+        statusLabel.stringValue = NSLocalizedString("neighborhood.status.phase1", comment: "")
 
         // Lancer le scan Bonjour en parallele
         startBonjourDiscovery()
@@ -689,7 +689,7 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
             usleep(500_000) // 500ms
 
             DispatchQueue.main.async {
-                self.statusLabel.stringValue = "Phase 2/3 — Ping ICMP..."
+                self.statusLabel.stringValue = NSLocalizedString("neighborhood.status.phase2", comment: "")
             }
 
             // === Phase 2 : Ping ICMP sweep ===
@@ -742,7 +742,7 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
 
                     DispatchQueue.main.async {
                         self.progressIndicator.doubleValue = progress
-                        self.statusLabel.stringValue = "Phase 2/3 — Ping \(scannedCount)/\(totalCount) — \(deviceCount) machines"
+                        self.statusLabel.stringValue = String(format: NSLocalizedString("neighborhood.status.phase2.progress", comment: ""), scannedCount, totalCount, deviceCount)
                         resultLock.lock()
                         let snapshot = self.devices.sorted { self.ipToInt($0.ipAddress) < self.ipToInt($1.ipAddress) }
                         resultLock.unlock()
@@ -757,7 +757,7 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
 
             // === Phase 3 : Recuperer les machines ARP non trouvees par ICMP ===
             DispatchQueue.main.async {
-                self.statusLabel.stringValue = "Phase 3/3 — Analyse table ARP..."
+                self.statusLabel.stringValue = NSLocalizedString("neighborhood.status.phase3", comment: "")
             }
 
             // Relire la table ARP (elle peut avoir ete enrichie)
@@ -819,7 +819,7 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
                 self.isScanning = false
                 self.scanButton.isEnabled = true
                 self.progressIndicator.isHidden = true
-                self.statusLabel.stringValue = "Scan termine — \(self.devices.count) machines trouvees"
+                self.statusLabel.stringValue = String(format: NSLocalizedString("neighborhood.status.done", comment: ""), self.devices.count)
 
                 for b in self.bonjourBrowsers { b.cancel() }
                 self.bonjourBrowsers.removeAll()
@@ -917,8 +917,8 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
         case "_nfs._tcp": return "NFS"
         case "_airplay._tcp": return "AirPlay"
         case "_raop._tcp": return "AirPlay"
-        case "_ipp._tcp", "_ipps._tcp": return "Imprimante"
-        case "_printer._tcp", "_pdl-datastream._tcp": return "Imprimante"
+        case "_ipp._tcp", "_ipps._tcp": return NSLocalizedString("neighborhood.service.printer", comment: "")
+        case "_printer._tcp", "_pdl-datastream._tcp": return NSLocalizedString("neighborhood.service.printer", comment: "")
         case "_companion-link._tcp": return "Companion"
         case "_homekit._tcp": return "HomeKit"
         case "_googlecast._tcp": return "Chromecast"
@@ -1027,7 +1027,7 @@ class DeviceDetailWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "Details — \(device.displayName)"
+        window.title = String(format: NSLocalizedString("neighborhood.detail.window.title", comment: ""), device.displayName)
         window.center()
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 400, height: 300)
@@ -1072,33 +1072,33 @@ class DeviceDetailWindowController: NSWindowController {
 
         // Afficher les infos connues immediatement
         var text = ""
-        text += sectionTitle("IDENTIFICATION")
-        text += line("Adresse IP", ip)
-        text += line("Nom d'hote", device.hostname ?? "Inconnu")
+        text += sectionTitle(NSLocalizedString("neighborhood.detail.section.id", comment: ""))
+        text += line(NSLocalizedString("neighborhood.detail.ip", comment: ""), ip)
+        text += line(NSLocalizedString("neighborhood.detail.hostname", comment: ""), device.hostname ?? NSLocalizedString("neighborhood.detail.unknown", comment: ""))
         if let mac = device.macAddress {
-            text += line("Adresse MAC", mac)
+            text += line(NSLocalizedString("neighborhood.detail.mac", comment: ""), mac)
         } else {
-            text += line("Adresse MAC", "Non disponible")
+            text += line(NSLocalizedString("neighborhood.detail.mac", comment: ""), NSLocalizedString("neighborhood.detail.unavailable", comment: ""))
         }
-        text += line("Fabricant", device.vendor ?? "Inconnu")
+        text += line(NSLocalizedString("neighborhood.detail.vendor", comment: ""), device.vendor ?? NSLocalizedString("neighborhood.detail.unknown", comment: ""))
         if let latency = device.latencyMs {
-            text += line("Latence initiale", String(format: "%.1f ms", latency))
+            text += line(NSLocalizedString("neighborhood.detail.initial.latency", comment: ""), String(format: "%.1f ms", latency))
         }
 
         // Services Bonjour
         text += "\n"
-        text += sectionTitle("SERVICES BONJOUR")
+        text += sectionTitle(NSLocalizedString("neighborhood.detail.section.bonjour", comment: ""))
         if let services = bonjourServices[ip], !services.isEmpty {
             for svc in services.sorted() {
-                text += "  • \(svc)\n"
+                text += "  \u{2022} \(svc)\n"
             }
         } else {
-            text += "  Aucun service detecte\n"
+            text += "  \(NSLocalizedString("neighborhood.detail.noservices", comment: ""))\n"
         }
 
         text += "\n"
-        text += sectionTitle("ANALYSE EN COURS...")
-        text += "  Ping x10, scan de ports, DNS...\n"
+        text += sectionTitle(NSLocalizedString("neighborhood.detail.section.analyzing", comment: ""))
+        text += "  \(NSLocalizedString("neighborhood.detail.analyzing.desc", comment: ""))\n"
 
         setTextViewContent(text)
 
@@ -1139,22 +1139,22 @@ class DeviceDetailWindowController: NSWindowController {
             // Construire le resultat final
             DispatchQueue.main.async {
                 var result = ""
-                result += self.sectionTitle("IDENTIFICATION")
-                result += self.line("Adresse IP", ip)
-                result += self.line("Nom d'hote", hostname ?? self.device.hostname ?? "Inconnu")
+                result += self.sectionTitle(NSLocalizedString("neighborhood.detail.section.id", comment: ""))
+                result += self.line(NSLocalizedString("neighborhood.detail.ip", comment: ""), ip)
+                result += self.line(NSLocalizedString("neighborhood.detail.hostname", comment: ""), hostname ?? self.device.hostname ?? NSLocalizedString("neighborhood.detail.unknown", comment: ""))
                 if let mac = self.device.macAddress {
-                    result += self.line("Adresse MAC", mac)
+                    result += self.line(NSLocalizedString("neighborhood.detail.mac", comment: ""), mac)
                 } else {
-                    result += self.line("Adresse MAC", "Non disponible")
+                    result += self.line(NSLocalizedString("neighborhood.detail.mac", comment: ""), NSLocalizedString("neighborhood.detail.unavailable", comment: ""))
                 }
-                result += self.line("Fabricant", self.device.vendor ?? "Inconnu")
-                result += self.line("Type probable", deviceType)
+                result += self.line(NSLocalizedString("neighborhood.detail.vendor", comment: ""), self.device.vendor ?? NSLocalizedString("neighborhood.detail.unknown", comment: ""))
+                result += self.line(NSLocalizedString("neighborhood.detail.type", comment: ""), deviceType)
 
                 // Ping
                 result += "\n"
-                result += self.sectionTitle("LATENCE (10 pings)")
+                result += self.sectionTitle(NSLocalizedString("neighborhood.detail.section.latency", comment: ""))
                 if pings.isEmpty {
-                    result += "  Aucune reponse\n"
+                    result += "  \(NSLocalizedString("neighborhood.detail.noreply", comment: ""))\n"
                 } else {
                     let minP = pings.min()!
                     let maxP = pings.max()!
@@ -1170,20 +1170,20 @@ class DeviceDetailWindowController: NSWindowController {
                     }
                     let jitter = pings.count > 1 ? jitterSum / Double(pings.count - 1) : 0
 
-                    result += self.line("Reponses", "\(pings.count)/10")
-                    result += self.line("Minimum", String(format: "%.2f ms", minP))
-                    result += self.line("Maximum", String(format: "%.2f ms", maxP))
-                    result += self.line("Moyenne", String(format: "%.2f ms", avg))
-                    result += self.line("Mediane", String(format: "%.2f ms", median))
-                    result += self.line("Jitter", String(format: "%.2f ms", jitter))
-                    result += self.line("Perte", String(format: "%.0f%%", (1.0 - Double(pings.count) / 10.0) * 100))
+                    result += self.line(NSLocalizedString("neighborhood.detail.replies", comment: ""), "\(pings.count)/10")
+                    result += self.line(NSLocalizedString("neighborhood.detail.minimum", comment: ""), String(format: "%.2f ms", minP))
+                    result += self.line(NSLocalizedString("neighborhood.detail.maximum", comment: ""), String(format: "%.2f ms", maxP))
+                    result += self.line(NSLocalizedString("neighborhood.detail.average", comment: ""), String(format: "%.2f ms", avg))
+                    result += self.line(NSLocalizedString("neighborhood.detail.median", comment: ""), String(format: "%.2f ms", median))
+                    result += self.line(NSLocalizedString("neighborhood.detail.jitter", comment: ""), String(format: "%.2f ms", jitter))
+                    result += self.line(NSLocalizedString("neighborhood.detail.loss", comment: ""), String(format: "%.0f%%", (1.0 - Double(pings.count) / 10.0) * 100))
                 }
 
                 // Ports
                 result += "\n"
-                result += self.sectionTitle("PORTS OUVERTS")
+                result += self.sectionTitle(NSLocalizedString("neighborhood.detail.section.ports", comment: ""))
                 if openPorts.isEmpty {
-                    result += "  Aucun port ouvert detecte\n"
+                    result += "  \(NSLocalizedString("neighborhood.detail.noports", comment: ""))\n"
                 } else {
                     for (port, name) in openPorts.sorted(by: { $0.0 < $1.0 }) {
                         result += "  \(String(format: "%5d", port))  \(name)\n"
@@ -1192,13 +1192,13 @@ class DeviceDetailWindowController: NSWindowController {
 
                 // Services Bonjour
                 result += "\n"
-                result += self.sectionTitle("SERVICES BONJOUR")
+                result += self.sectionTitle(NSLocalizedString("neighborhood.detail.section.bonjour", comment: ""))
                 if let services = self.bonjourServices[ip], !services.isEmpty {
                     for svc in services.sorted() {
-                        result += "  • \(svc)\n"
+                        result += "  \u{2022} \(svc)\n"
                     }
                 } else {
-                    result += "  Aucun service detecte\n"
+                    result += "  \(NSLocalizedString("neighborhood.detail.noservices", comment: ""))\n"
                 }
 
                 self.setTextViewContent(result)
@@ -1256,41 +1256,41 @@ class DeviceDetailWindowController: NSWindowController {
             if hostname.contains("mac-mini") || hostname.contains("macmini") { return "Mac mini" }
             if hostname.contains("mac-pro") || hostname.contains("macpro") { return "Mac Pro" }
             if hostname.contains("appletv") || hostname.contains("apple-tv") { return "Apple TV" }
-            if svcSet.contains("AirPlay") && !ports.contains(22) && !ports.contains(445) { return "Apple TV / HomePod" }
+            if svcSet.contains("AirPlay") && !ports.contains(22) && !ports.contains(445) { return NSLocalizedString("neighborhood.device.appletv.homepod", comment: "") }
             if ports.contains(62078) { return "iPhone/iPad" }
-            return "Appareil Apple"
+            return NSLocalizedString("neighborhood.device.apple", comment: "")
         }
-        if vendor == "Samsung" { return "Appareil Samsung" }
+        if vendor == "Samsung" { return NSLocalizedString("neighborhood.device.samsung", comment: "") }
         if vendor == "Google" {
             if svcSet.contains("Chromecast") { return "Chromecast" }
-            return "Appareil Google"
+            return NSLocalizedString("neighborhood.device.google", comment: "")
         }
         if vendor == "Amazon" { return "Amazon Echo / Fire" }
-        if vendor == "Sonos" { return "Enceinte Sonos" }
+        if vendor == "Sonos" { return NSLocalizedString("neighborhood.device.sonos", comment: "") }
         if vendor == "Sony" { return "PlayStation / Sony" }
         if vendor == "Raspberry Pi" { return "Raspberry Pi" }
-        if vendor == "Synology" { return "NAS Synology" }
-        if vendor == "QNAP" { return "NAS QNAP" }
+        if vendor == "Synology" { return NSLocalizedString("neighborhood.device.synology", comment: "") }
+        if vendor == "QNAP" { return NSLocalizedString("neighborhood.device.qnap", comment: "") }
 
         // Par services/ports
         if vendor.contains("box") || vendor.contains("Box") ||
-           ["Freebox", "Livebox", "Bbox", "SFR Box"].contains(vendor) { return "Box Internet / Routeur" }
-        if ["Netgear", "TP-Link"].contains(vendor) { return "Routeur / AP WiFi" }
-        if svcSet.contains("Imprimante") || ports.contains(631) { return "Imprimante" }
+           ["Freebox", "Livebox", "Bbox", "SFR Box"].contains(vendor) { return NSLocalizedString("neighborhood.device.router.isp", comment: "") }
+        if ["Netgear", "TP-Link"].contains(vendor) { return NSLocalizedString("neighborhood.device.router.wifi", comment: "") }
+        if svcSet.contains(NSLocalizedString("neighborhood.service.printer", comment: "")) || ports.contains(631) { return NSLocalizedString("neighborhood.device.printer", comment: "") }
         if ports.contains(445) || ports.contains(548) || svcSet.contains("SMB") || svcSet.contains("AFP") {
-            return "Serveur / NAS"
+            return NSLocalizedString("neighborhood.device.server.nas", comment: "")
         }
-        if ports.contains(80) || ports.contains(443) { return "Serveur Web" }
-        if ports.contains(22) { return "Serveur / Machine Unix" }
+        if ports.contains(80) || ports.contains(443) { return NSLocalizedString("neighborhood.device.server.web", comment: "") }
+        if ports.contains(22) { return NSLocalizedString("neighborhood.device.server.unix", comment: "") }
 
         // Par hostname
-        if hostname.contains("printer") || hostname.contains("imprimante") { return "Imprimante" }
+        if hostname.contains("printer") || hostname.contains("imprimante") { return NSLocalizedString("neighborhood.device.printer", comment: "") }
         if hostname.contains("nas") || hostname.contains("diskstation") { return "NAS" }
-        if hostname.contains("router") || hostname.contains("gateway") { return "Routeur" }
-        if hostname.contains("switch") { return "Switch reseau" }
-        if hostname.contains("cam") || hostname.contains("camera") { return "Camera IP" }
+        if hostname.contains("router") || hostname.contains("gateway") { return NSLocalizedString("neighborhood.device.router", comment: "") }
+        if hostname.contains("switch") { return NSLocalizedString("neighborhood.device.switch", comment: "") }
+        if hostname.contains("cam") || hostname.contains("camera") { return NSLocalizedString("neighborhood.device.camera", comment: "") }
 
-        return "Inconnu"
+        return NSLocalizedString("neighborhood.detail.unknown", comment: "")
     }
 
     private func sectionTitle(_ title: String) -> String {

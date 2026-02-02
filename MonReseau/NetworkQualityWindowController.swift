@@ -135,12 +135,12 @@ class NetworkQualityWindowController: NSWindowController {
         let savedCustomHost = UserDefaults.standard.string(forKey: "CustomPingHost") ?? ""
         customHostField.stringValue = savedCustomHost
 
-        let copyStatsButton = NSButton(title: NSLocalizedString("Copier stats", comment: "Copy stats button"), target: self, action: #selector(copyStats))
+        let copyStatsButton = NSButton(title: NSLocalizedString("quality.button.copy_stats", comment: ""), target: self, action: #selector(copyStats))
         copyStatsButton.bezelStyle = .rounded
         copyStatsButton.controlSize = .small
         copyStatsButton.font = NSFont.systemFont(ofSize: 11)
 
-        let historyButton = NSButton(title: NSLocalizedString("Historique 24h", comment: ""), target: self, action: #selector(showHistory))
+        let historyButton = NSButton(title: NSLocalizedString("quality.button.history_24h", comment: ""), target: self, action: #selector(showHistory))
         historyButton.bezelStyle = .rounded
         historyButton.controlSize = .small
         historyButton.font = NSFont.systemFont(ofSize: 11)
@@ -416,7 +416,7 @@ class NetworkQualityWindowController: NSWindowController {
         }
 
         statsLabel.stringValue = String(format:
-            "Latence: moy %.1f ms | min %.1f ms | max %.1f ms   Jitter: %.1f ms   Perte: %.1f%%   Qualité: %@",
+            NSLocalizedString("quality.stats.format", comment: ""),
             avg, minVal, maxVal, jitter, lossPercent, quality
         )
 
@@ -451,13 +451,13 @@ class NetworkQualityWindowController: NSWindowController {
         }
 
         let text = """
-        Mon Réseau — Qualité réseau
-        Latence moyenne : \(String(format: "%.1f", avg)) ms
-        Latence min : \(String(format: "%.1f", minVal)) ms
-        Latence max : \(String(format: "%.1f", maxVal)) ms
+        \(NSLocalizedString("quality.report.header", comment: ""))
+        \(NSLocalizedString("quality.report.avg_latency", comment: "")) \(String(format: "%.1f", avg)) ms
+        \(NSLocalizedString("quality.report.min_latency", comment: "")) \(String(format: "%.1f", minVal)) ms
+        \(NSLocalizedString("quality.report.max_latency", comment: "")) \(String(format: "%.1f", maxVal)) ms
         Jitter : \(String(format: "%.1f", jitter)) ms
-        Perte de paquets : \(String(format: "%.1f", lossPercent))%
-        Mesures : \(measurements.count)
+        \(NSLocalizedString("quality.report.loss", comment: "")) \(String(format: "%.1f", lossPercent))%
+        \(NSLocalizedString("quality.report.measurements", comment: "")) \(measurements.count)
         """
 
         let pasteboard = NSPasteboard.general
@@ -504,13 +504,13 @@ class NetworkGraphView: NSView {
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         setAccessibilityRole(.image)
-        setAccessibilityLabel("Graphique de qualité réseau")
+        setAccessibilityLabel(NSLocalizedString("quality.accessibility.graph", comment: ""))
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setAccessibilityRole(.image)
-        setAccessibilityLabel("Graphique de qualité réseau")
+        setAccessibilityLabel(NSLocalizedString("quality.accessibility.graph", comment: ""))
     }
 
     // MARK: - Tooltip interactif
@@ -539,9 +539,9 @@ class NetworkGraphView: NSView {
         needsDisplay = true
 
         let m = measurements[index]
-        var text = "Mesure \(index + 1)/\(measurements.count)"
-        if let lat = m.latency { text += String(format: "\nLatence: %.1f ms", lat) }
-        else { text += "\nPerte de paquet" }
+        var text = String(format: NSLocalizedString("quality.tooltip.measurement", comment: ""), index + 1, measurements.count)
+        if let lat = m.latency { text += String(format: "\n\(NSLocalizedString("quality.tooltip.latency", comment: "")) %.1f ms", lat) }
+        else { text += "\n\(NSLocalizedString("quality.tooltip.loss", comment: ""))" }
 
         if tooltipView == nil {
             let label = NSTextField(labelWithString: "")
@@ -574,14 +574,14 @@ class NetworkGraphView: NSView {
 
     private func updateAccessibilityValue() {
         guard !measurements.isEmpty else {
-            setAccessibilityValue("Aucune mesure")
+            setAccessibilityValue(NSLocalizedString("quality.accessibility.no_measurement", comment: ""))
             return
         }
         let latencies = measurements.compactMap(\.latency)
         let avg = latencies.isEmpty ? 0 : latencies.reduce(0, +) / Double(latencies.count)
         let losses = measurements.filter { $0.latency == nil }.count
         let lossPercent = Double(losses) / Double(measurements.count) * 100
-        setAccessibilityValue(String(format: "Latence moyenne %.0f ms, perte %.0f%%", avg, lossPercent))
+        setAccessibilityValue(String(format: NSLocalizedString("quality.accessibility.value_format", comment: ""), avg, lossPercent))
     }
 
     // Dessin principal: fond, cadre, grille, zones de perte, aire de jitter, courbe de latence et points
@@ -894,9 +894,9 @@ class QualityHistoryWindowController: NSWindowController {
             return stack
         }
 
-        legend.addArrangedSubview(dot(color: .systemGreen, label: "Latence (ms)"))
-        legend.addArrangedSubview(dot(color: .systemOrange, label: "Jitter (ms)"))
-        legend.addArrangedSubview(dot(color: .systemRed, label: "Perte (%)"))
+        legend.addArrangedSubview(dot(color: .systemGreen, label: NSLocalizedString("quality.history.legend.latency", comment: "")))
+        legend.addArrangedSubview(dot(color: .systemOrange, label: NSLocalizedString("quality.history.legend.jitter", comment: "")))
+        legend.addArrangedSubview(dot(color: .systemRed, label: NSLocalizedString("quality.history.legend.loss", comment: "")))
 
         historyGraphView = QualityHistoryGraphView()
         historyGraphView.translatesAutoresizingMaskIntoConstraints = false
@@ -927,7 +927,7 @@ class QualityHistoryWindowController: NSWindowController {
         historyGraphView.snapshots = snapshots
 
         guard !snapshots.isEmpty else {
-            summaryLabel.stringValue = "Aucun historique disponible. Les données sont enregistrées automatiquement lors de l'utilisation de la fenêtre Qualité réseau."
+            summaryLabel.stringValue = NSLocalizedString("quality.history.no_data", comment: "")
             return
         }
 
@@ -968,7 +968,7 @@ class QualityHistoryGraphView: NSView {
                     .font: NSFont.systemFont(ofSize: 14),
                     .foregroundColor: NSColor.tertiaryLabelColor,
                 ]
-                let str = NSAttributedString(string: "Aucune donnée", attributes: attrs)
+                let str = NSAttributedString(string: NSLocalizedString("quality.history.no_data_short", comment: ""), attributes: attrs)
                 let size = str.size()
                 str.draw(at: NSPoint(x: bounds.midX - size.width / 2, y: bounds.midY - size.height / 2))
             }

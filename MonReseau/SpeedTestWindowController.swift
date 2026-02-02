@@ -6,6 +6,7 @@
 
 import Cocoa
 import CoreLocation
+import CoreWLAN
 import UniformTypeIdentifiers
 import UserNotifications
 
@@ -163,9 +164,9 @@ class LocationService: NSObject, CLLocationManagerDelegate {
                 let city = placemark.locality ?? ""
                 let country = placemark.country ?? ""
                 let locationStr = [city, country].filter { !$0.isEmpty }.joined(separator: ", ")
-                self.completion?(locationStr.isEmpty ? "Position inconnue" : locationStr)
+                self.completion?(locationStr.isEmpty ? NSLocalizedString("speedtest.location.unknown_position", comment: "") : locationStr)
             } else {
-                self.completion?("Position inconnue")
+                self.completion?(NSLocalizedString("speedtest.location.unknown_position", comment: ""))
             }
         }
     }
@@ -180,7 +181,7 @@ class LocationService: NSObject, CLLocationManagerDelegate {
     // Fallback: geolocalisation IP via ipapi.co (HTTPS)
     private func getIPLocation() {
         guard let url = URL(string: "https://ipapi.co/json/") else {
-            completion?("Lieu inconnu")
+            completion?(NSLocalizedString("speedtest.location.unknown", comment: ""))
             return
         }
 
@@ -196,9 +197,9 @@ class LocationService: NSObject, CLLocationManagerDelegate {
                     let city = json["city"] as? String ?? ""
                     let country = json["country_name"] as? String ?? ""
                     let locationStr = [city, country].filter { !$0.isEmpty }.joined(separator: ", ")
-                    self.completion?(locationStr.isEmpty ? "Lieu inconnu" : locationStr)
+                    self.completion?(locationStr.isEmpty ? NSLocalizedString("speedtest.location.unknown", comment: "") : locationStr)
                 } else {
-                    self.completion?("Lieu inconnu")
+                    self.completion?(NSLocalizedString("speedtest.location.unknown", comment: ""))
                 }
             }
         }.resume()
@@ -220,14 +221,14 @@ class SpeedTestAnimationView: NSView {
         super.init(frame: frameRect)
         setupParticles()
         setAccessibilityRole(.image)
-        setAccessibilityLabel("Animation du test de débit")
+        setAccessibilityLabel(NSLocalizedString("speedtest.accessibility.animation", comment: ""))
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupParticles()
         setAccessibilityRole(.image)
-        setAccessibilityLabel("Animation du test de débit")
+        setAccessibilityLabel(NSLocalizedString("speedtest.accessibility.animation", comment: ""))
     }
 
     private func setupParticles() {
@@ -473,7 +474,7 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
         contentView.addSubview(titleLabel)
 
         // Location label
-        locationLabel = NSTextField(labelWithString: "Localisation...")
+        locationLabel = NSTextField(labelWithString: NSLocalizedString("speedtest.location.loading", comment: ""))
         locationLabel.font = NSFont.systemFont(ofSize: 11)
         locationLabel.textColor = .tertiaryLabelColor
         locationLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -515,11 +516,11 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
         resultsStack.translatesAutoresizingMaskIntoConstraints = false
         resultsBox.contentView?.addSubview(resultsStack)
 
-        downloadLabel = createResultLabel("Download: —")
-        uploadLabel = createResultLabel("Upload: —")
-        latencyLabel = createResultLabel("Latence: —")
-        rpmLabel = createResultLabel("RPM: —")
-        qualityLabel = createResultLabel("Qualité: —")
+        downloadLabel = createResultLabel(NSLocalizedString("speedtest.result.download_default", comment: ""))
+        uploadLabel = createResultLabel(NSLocalizedString("speedtest.result.upload_default", comment: ""))
+        latencyLabel = createResultLabel(NSLocalizedString("speedtest.result.latency_default", comment: ""))
+        rpmLabel = createResultLabel(NSLocalizedString("speedtest.result.rpm_default", comment: ""))
+        qualityLabel = createResultLabel(NSLocalizedString("speedtest.result.quality_default", comment: ""))
         qualityLabel.font = NSFont.systemFont(ofSize: 13, weight: .semibold)
 
         resultsStack.addArrangedSubview(downloadLabel)
@@ -585,7 +586,7 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
         exportButton.translatesAutoresizingMaskIntoConstraints = false
         bottomBar.addArrangedSubview(exportButton)
 
-        let shareButton = NSButton(title: NSLocalizedString("Partager", comment: "Share button"), target: self, action: #selector(shareLastResult(_:)))
+        let shareButton = NSButton(title: NSLocalizedString("speedtest.button.share", comment: ""), target: self, action: #selector(shareLastResult(_:)))
         shareButton.bezelStyle = .rounded
         shareButton.translatesAutoresizingMaskIntoConstraints = false
         bottomBar.addArrangedSubview(shareButton)
@@ -695,8 +696,8 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
         let entries = SpeedTestHistoryStorage.load()
         guard !entries.isEmpty else {
             let alert = NSAlert()
-            alert.messageText = "Aucun historique"
-            alert.informativeText = "Il n'y a pas de données à exporter."
+            alert.messageText = NSLocalizedString("speedtest.export.no_history", comment: "")
+            alert.informativeText = NSLocalizedString("speedtest.export.no_data", comment: "")
             alert.runModal()
             return
         }
@@ -721,7 +722,7 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
             try csv.write(to: url, atomically: true, encoding: .utf8)
         } catch {
             let alert = NSAlert()
-            alert.messageText = "Erreur d'export"
+            alert.messageText = NSLocalizedString("speedtest.export.error", comment: "")
             alert.informativeText = error.localizedDescription
             alert.runModal()
         }
@@ -729,11 +730,11 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
 
     @objc private func clearHistory() {
         let alert = NSAlert()
-        alert.messageText = "Effacer l'historique ?"
-        alert.informativeText = "Cette action est irréversible."
+        alert.messageText = NSLocalizedString("speedtest.clear.confirm_title", comment: "")
+        alert.informativeText = NSLocalizedString("speedtest.clear.confirm_message", comment: "")
         alert.alertStyle = .warning
-        alert.addButton(withTitle: "Effacer")
-        alert.addButton(withTitle: "Annuler")
+        alert.addButton(withTitle: NSLocalizedString("speedtest.clear.confirm_delete", comment: ""))
+        alert.addButton(withTitle: NSLocalizedString("speedtest.clear.confirm_cancel", comment: ""))
 
         if alert.runModal() == .alertFirstButtonReturn {
             SpeedTestHistoryStorage.clear()
@@ -743,11 +744,11 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
 
     /// Réinitialise l'affichage des résultats.
     private func resetResults() {
-        downloadLabel.stringValue = "Download: —"
-        uploadLabel.stringValue = "Upload: —"
-        latencyLabel.stringValue = "Latence: —"
-        rpmLabel.stringValue = "RPM: —"
-        qualityLabel.stringValue = "Qualité: —"
+        downloadLabel.stringValue = NSLocalizedString("speedtest.result.download_default", comment: "")
+        uploadLabel.stringValue = NSLocalizedString("speedtest.result.upload_default", comment: "")
+        latencyLabel.stringValue = NSLocalizedString("speedtest.result.latency_default", comment: "")
+        rpmLabel.stringValue = NSLocalizedString("speedtest.result.rpm_default", comment: "")
+        qualityLabel.stringValue = NSLocalizedString("speedtest.result.quality_default", comment: "")
         qualityLabel.textColor = .labelColor
     }
 
@@ -764,6 +765,13 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
     private func saveToHistory(_ result: SpeedTestResult, isFallback: Bool) {
         let entry = SpeedTestHistoryEntry(result: result, location: currentLocation, isFallback: isFallback)
         SpeedTestHistoryStorage.add(entry)
+
+        // Enregistrer dans le profil réseau actif
+        if let ssid = CWWiFiClient.shared().interface()?.ssid() {
+            let snapshot = PerformanceSnapshot(date: Date(), avgLatency: result.latencyMs, downloadMbps: result.downloadMbps, uploadMbps: result.uploadMbps)
+            NetworkProfileStorage.addSnapshot(ssid: ssid, snapshot: snapshot)
+        }
+
         loadHistory()
     }
 
@@ -775,15 +783,15 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
             guard let self = self else { return }
 
             // Phase 1: Latence (5 requetes HEAD)
-            DispatchQueue.main.async { self.statusLabel.stringValue = "Mesure de la latence..." }
+            DispatchQueue.main.async { self.statusLabel.stringValue = NSLocalizedString("speedtest.status.measuring_latency", comment: "") }
             let latency = self.measureHTTPLatency()
 
             // Phase 2: Download
-            DispatchQueue.main.async { self.statusLabel.stringValue = "Test de download..." }
+            DispatchQueue.main.async { self.statusLabel.stringValue = NSLocalizedString("speedtest.status.measuring_download", comment: "") }
             let downloadMbps = self.measureDownload()
 
             // Phase 3: Upload
-            DispatchQueue.main.async { self.statusLabel.stringValue = "Test d'upload..." }
+            DispatchQueue.main.async { self.statusLabel.stringValue = NSLocalizedString("speedtest.status.measuring_upload", comment: "") }
             let uploadMbps = self.measureUpload()
 
             // Estimation RPM a partir de la latence
@@ -905,7 +913,7 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
             color = .systemRed
         }
 
-        qualityLabel.stringValue = "Qualité: \(quality)"
+        qualityLabel.stringValue = String(format: NSLocalizedString("speedtest.result.quality_format", comment: ""), quality)
         qualityLabel.textColor = color
 
         sendSpeedTestNotification(result)
@@ -959,8 +967,8 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
         let entries = SpeedTestHistoryStorage.load()
         guard let last = entries.first else {
             let alert = NSAlert()
-            alert.messageText = NSLocalizedString("Aucun résultat", comment: "No result alert title")
-            alert.informativeText = NSLocalizedString("Lancez un test de débit avant de partager.", comment: "No result alert message")
+            alert.messageText = NSLocalizedString("speedtest.share.no_result", comment: "")
+            alert.informativeText = NSLocalizedString("speedtest.share.no_result_detail", comment: "")
             alert.runModal()
             return
         }
@@ -970,12 +978,12 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
         df.timeStyle = .short
 
         let text = """
-        Mon Réseau — Test de débit
-        Date : \(df.string(from: last.date))
+        \(NSLocalizedString("speedtest.share.header", comment: ""))
+        \(NSLocalizedString("speedtest.share.date", comment: "")) \(df.string(from: last.date))
         Download : \(String(format: "%.1f", last.downloadMbps)) Mbps
         Upload : \(String(format: "%.1f", last.uploadMbps)) Mbps
-        Latence : \(String(format: "%.0f", last.latencyMs)) ms
-        Lieu : \(last.location)
+        \(NSLocalizedString("speedtest.share.latency", comment: "")) \(String(format: "%.0f", last.latencyMs)) ms
+        \(NSLocalizedString("speedtest.share.location", comment: "")) \(last.location)
         """
 
         let picker = NSSharingServicePicker(items: [text])
@@ -992,8 +1000,8 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
             guard granted else { return }
 
             let content = UNMutableNotificationContent()
-            content.title = NSLocalizedString("Test de débit terminé", comment: "Speed test notification title")
-            content.body = String(format: NSLocalizedString("↓ %.1f Mbps  ↑ %.1f Mbps  Latence: %.0f ms", comment: "Speed test notification body"),
+            content.title = NSLocalizedString("speedtest.notification.title", comment: "")
+            content.body = String(format: NSLocalizedString("speedtest.notification.body", comment: ""),
                                   result.downloadMbps, result.uploadMbps, result.latencyMs)
             content.sound = .default
 

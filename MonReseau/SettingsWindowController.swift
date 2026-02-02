@@ -8,6 +8,101 @@
 
 import Cocoa
 import ServiceManagement
+import CoreWLAN
+
+// MARK: - Network Profiles
+
+struct PerformanceSnapshot: Codable {
+    let date: Date
+    let avgLatency: Double?
+    let downloadMbps: Double?
+    let uploadMbps: Double?
+}
+
+struct NetworkProfile: Codable {
+    let id: UUID
+    var name: String
+    let ssid: String
+    let createdDate: Date
+    var lastConnected: Date?
+    var performanceSnapshots: [PerformanceSnapshot]
+
+    init(name: String, ssid: String) {
+        self.id = UUID()
+        self.name = name
+        self.ssid = ssid
+        self.createdDate = Date()
+        self.lastConnected = Date()
+        self.performanceSnapshots = []
+    }
+}
+
+class NetworkProfileStorage {
+    private static let key = "NetworkProfiles"
+    private static let maxProfiles = 30
+    private static let maxSnapshots = 100
+
+    static func load() -> [NetworkProfile] {
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let profiles = try? JSONDecoder().decode([NetworkProfile].self, from: data) else {
+            return []
+        }
+        return profiles
+    }
+
+    static func save(_ profiles: [NetworkProfile]) {
+        var trimmed = Array(profiles.prefix(maxProfiles))
+        // Trim snapshots per profile
+        for i in trimmed.indices {
+            if trimmed[i].performanceSnapshots.count > maxSnapshots {
+                trimmed[i].performanceSnapshots = Array(trimmed[i].performanceSnapshots.suffix(maxSnapshots))
+            }
+        }
+        if let data = try? JSONEncoder().encode(trimmed) {
+            UserDefaults.standard.set(data, forKey: key)
+        }
+    }
+
+    static func add(_ profile: NetworkProfile) {
+        var profiles = load()
+        profiles.insert(profile, at: 0)
+        save(profiles)
+    }
+
+    static func remove(id: UUID) {
+        var profiles = load()
+        profiles.removeAll { $0.id == id }
+        save(profiles)
+    }
+
+    static func profileForSSID(_ ssid: String) -> NetworkProfile? {
+        return load().first { $0.ssid == ssid }
+    }
+
+    static func updateLastConnected(ssid: String) {
+        var profiles = load()
+        if let idx = profiles.firstIndex(where: { $0.ssid == ssid }) {
+            profiles[idx].lastConnected = Date()
+            save(profiles)
+        }
+    }
+
+    static func addSnapshot(ssid: String, snapshot: PerformanceSnapshot) {
+        var profiles = load()
+        if let idx = profiles.firstIndex(where: { $0.ssid == ssid }) {
+            profiles[idx].performanceSnapshots.append(snapshot)
+            save(profiles)
+        }
+    }
+
+    static func rename(id: UUID, name: String) {
+        var profiles = load()
+        if let idx = profiles.firstIndex(where: { $0.id == id }) {
+            profiles[idx].name = name
+            save(profiles)
+        }
+    }
+}
 
 class SettingsWindowController: NSWindowController {
 
@@ -22,6 +117,7 @@ class SettingsWindowController: NSWindowController {
     private var pingTargetField: NSTextField!
     private var appearanceSegmented: NSSegmentedControl!
     private var geekModeCheckbox: NSButton!
+    private var profilesTableView: NSTableView?
 
     convenience init() {
         let window = NSWindow(
@@ -68,6 +164,12 @@ class SettingsWindowController: NSWindowController {
         advancedTab.label = NSLocalizedString("settings.tab.advanced", comment: "")
         advancedTab.view = buildAdvancedTab()
         tabView.addTabViewItem(advancedTab)
+
+        // Onglet 4 : Profils réseau
+        let profilesTab = NSTabViewItem(identifier: "profiles")
+        profilesTab.label = NSLocalizedString("settings.tab.profiles", comment: "")
+        profilesTab.view = buildProfilesTab()
+        tabView.addTabViewItem(profilesTab)
     }
 
     // MARK: - Onglet Général
@@ -266,6 +368,50 @@ class SettingsWindowController: NSWindowController {
         notifySpeedTestDesc.isSelectable = false
         view.addSubview(notifySpeedTestDesc)
 
+        let sep3 = makeSeparator(in: view)
+
+        // Tests planifiés
+        let scheduledTitle = NSTextField(labelWithString: NSLocalizedString("scheduled.section.title", comment: ""))
+        scheduledTitle.font = NSFont.systemFont(ofSize: 13, weight: .semibold)
+        scheduledTitle.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(scheduledTitle)
+
+        let scheduledEnableCheckbox = NSButton(checkboxWithTitle: NSLocalizedString("scheduled.enable", comment: ""), target: self, action: #selector(scheduledEnableChanged))
+        scheduledEnableCheckbox.translatesAutoresizingMaskIntoConstraints = false
+        scheduledEnableCheckbox.font = NSFont.systemFont(ofSize: 13, weight: .medium)
+        scheduledEnableCheckbox.state = UserDefaults.standard.bool(forKey: "ScheduledQualityTestEnabled") ? .on : .off
+        view.addSubview(scheduledEnableCheckbox)
+
+        let scheduledIntervalLabel = NSTextField(labelWithString: NSLocalizedString("scheduled.interval", comment: ""))
+        scheduledIntervalLabel.font = NSFont.systemFont(ofSize: 12)
+        scheduledIntervalLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(scheduledIntervalLabel)
+
+        let scheduledIntervalPopup = NSPopUpButton()
+        scheduledIntervalPopup.addItems(withTitles: [
+            NSLocalizedString("scheduled.interval.5", comment: ""),
+            NSLocalizedString("scheduled.interval.15", comment: ""),
+            NSLocalizedString("scheduled.interval.30", comment: ""),
+            NSLocalizedString("scheduled.interval.60", comment: ""),
+        ])
+        scheduledIntervalPopup.translatesAutoresizingMaskIntoConstraints = false
+        scheduledIntervalPopup.target = self
+        scheduledIntervalPopup.action = #selector(scheduledIntervalChanged)
+        let savedInterval = UserDefaults.standard.integer(forKey: "ScheduledQualityTestInterval")
+        switch savedInterval {
+        case 15: scheduledIntervalPopup.selectItem(at: 1)
+        case 30: scheduledIntervalPopup.selectItem(at: 2)
+        case 60: scheduledIntervalPopup.selectItem(at: 3)
+        default: scheduledIntervalPopup.selectItem(at: 0)
+        }
+        view.addSubview(scheduledIntervalPopup)
+
+        let scheduledDailyCheckbox = NSButton(checkboxWithTitle: NSLocalizedString("scheduled.daily.enable", comment: ""), target: self, action: #selector(scheduledDailyChanged))
+        scheduledDailyCheckbox.translatesAutoresizingMaskIntoConstraints = false
+        scheduledDailyCheckbox.font = NSFont.systemFont(ofSize: 13, weight: .medium)
+        scheduledDailyCheckbox.state = UserDefaults.standard.bool(forKey: "ScheduledDailyNotification") ? .on : .off
+        view.addSubview(scheduledDailyCheckbox)
+
         NSLayoutConstraint.activate([
             notifyConnectionCheckbox.topAnchor.constraint(equalTo: view.topAnchor, constant: m),
             notifyConnectionCheckbox.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: m),
@@ -308,6 +454,25 @@ class SettingsWindowController: NSWindowController {
             notifySpeedTestDesc.topAnchor.constraint(equalTo: notifySpeedTestCheckbox.bottomAnchor, constant: ssp),
             notifySpeedTestDesc.leadingAnchor.constraint(equalTo: notifySpeedTestCheckbox.leadingAnchor, constant: di),
             notifySpeedTestDesc.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -m),
+
+            sep3.topAnchor.constraint(equalTo: notifySpeedTestDesc.bottomAnchor, constant: sp),
+            sep3.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: m),
+            sep3.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -m),
+
+            scheduledTitle.topAnchor.constraint(equalTo: sep3.bottomAnchor, constant: sp),
+            scheduledTitle.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: m),
+
+            scheduledEnableCheckbox.topAnchor.constraint(equalTo: scheduledTitle.bottomAnchor, constant: 8),
+            scheduledEnableCheckbox.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: m),
+
+            scheduledIntervalLabel.topAnchor.constraint(equalTo: scheduledEnableCheckbox.bottomAnchor, constant: 8),
+            scheduledIntervalLabel.leadingAnchor.constraint(equalTo: scheduledEnableCheckbox.leadingAnchor, constant: di),
+            scheduledIntervalPopup.centerYAnchor.constraint(equalTo: scheduledIntervalLabel.centerYAnchor),
+            scheduledIntervalPopup.leadingAnchor.constraint(equalTo: scheduledIntervalLabel.trailingAnchor, constant: 8),
+            scheduledIntervalPopup.widthAnchor.constraint(equalToConstant: 120),
+
+            scheduledDailyCheckbox.topAnchor.constraint(equalTo: scheduledIntervalLabel.bottomAnchor, constant: 8),
+            scheduledDailyCheckbox.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: m),
         ])
 
         return view
@@ -514,8 +679,230 @@ class SettingsWindowController: NSWindowController {
         (NSApp.delegate as? AppDelegate)?.applyAppearance()
     }
 
+    @objc private func scheduledEnableChanged(_ sender: NSButton) {
+        UserDefaults.standard.set(sender.state == .on, forKey: "ScheduledQualityTestEnabled")
+        (NSApp.delegate as? AppDelegate)?.startScheduledTestsIfNeeded()
+    }
+
+    @objc private func scheduledIntervalChanged(_ sender: NSPopUpButton) {
+        let values = [5, 15, 30, 60]
+        let interval = values[sender.indexOfSelectedItem]
+        UserDefaults.standard.set(interval, forKey: "ScheduledQualityTestInterval")
+        (NSApp.delegate as? AppDelegate)?.startScheduledTestsIfNeeded()
+    }
+
+    @objc private func scheduledDailyChanged(_ sender: NSButton) {
+        UserDefaults.standard.set(sender.state == .on, forKey: "ScheduledDailyNotification")
+    }
+
     @objc private func geekModeChanged(_ sender: NSButton) {
         UserDefaults.standard.set(sender.state == .on, forKey: "GeekMode")
         NotificationCenter.default.post(name: Notification.Name("GeekModeChanged"), object: nil)
+    }
+
+    // MARK: - Onglet Profils réseau
+
+    private func buildProfilesTab() -> NSView {
+        let view = NSView()
+        let m: CGFloat = 20
+
+        let titleLabel = NSTextField(labelWithString: NSLocalizedString("settings.profiles.title", comment: ""))
+        titleLabel.font = NSFont.systemFont(ofSize: 13, weight: .medium)
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(titleLabel)
+
+        let descLabel = NSTextField(wrappingLabelWithString: NSLocalizedString("settings.profiles.description", comment: ""))
+        descLabel.font = NSFont.systemFont(ofSize: 11)
+        descLabel.textColor = .secondaryLabelColor
+        descLabel.isSelectable = false
+        descLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(descLabel)
+
+        let scrollView = NSScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.hasVerticalScroller = true
+        scrollView.borderType = .bezelBorder
+        view.addSubview(scrollView)
+
+        let tableView = NSTableView()
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.rowHeight = 22
+        tableView.usesAlternatingRowBackgroundColors = true
+
+        let nameCol = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("profileName"))
+        nameCol.title = NSLocalizedString("settings.profiles.column.name", comment: "")
+        nameCol.width = 100
+        tableView.addTableColumn(nameCol)
+
+        let ssidCol = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("profileSSID"))
+        ssidCol.title = NSLocalizedString("settings.profiles.column.ssid", comment: "")
+        ssidCol.width = 100
+        tableView.addTableColumn(ssidCol)
+
+        let lastCol = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("profileLastConnected"))
+        lastCol.title = NSLocalizedString("settings.profiles.column.lastconnected", comment: "")
+        lastCol.width = 120
+        tableView.addTableColumn(lastCol)
+
+        let testsCol = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("profileTests"))
+        testsCol.title = NSLocalizedString("settings.profiles.column.tests", comment: "")
+        testsCol.width = 50
+        tableView.addTableColumn(testsCol)
+
+        scrollView.documentView = tableView
+        self.profilesTableView = tableView
+
+        let buttonBar = NSStackView()
+        buttonBar.orientation = .horizontal
+        buttonBar.spacing = 8
+        buttonBar.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(buttonBar)
+
+        let addButton = NSButton(title: NSLocalizedString("settings.profiles.button.add", comment: ""), target: self, action: #selector(addCurrentNetwork))
+        addButton.bezelStyle = .rounded
+        buttonBar.addArrangedSubview(addButton)
+
+        let renameButton = NSButton(title: NSLocalizedString("settings.profiles.button.rename", comment: ""), target: self, action: #selector(renameSelectedProfile))
+        renameButton.bezelStyle = .rounded
+        buttonBar.addArrangedSubview(renameButton)
+
+        let deleteButton = NSButton(title: NSLocalizedString("settings.profiles.button.delete", comment: ""), target: self, action: #selector(deleteSelectedProfile))
+        deleteButton.bezelStyle = .rounded
+        buttonBar.addArrangedSubview(deleteButton)
+
+        NSLayoutConstraint.activate([
+            titleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: m),
+            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: m),
+            descLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
+            descLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: m),
+            descLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -m),
+            scrollView.topAnchor.constraint(equalTo: descLabel.bottomAnchor, constant: 12),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: m),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -m),
+            scrollView.bottomAnchor.constraint(equalTo: buttonBar.topAnchor, constant: -8),
+            buttonBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: m),
+            buttonBar.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -m),
+        ])
+
+        return view
+    }
+
+    @objc private func addCurrentNetwork() {
+        guard let ssid = CWWiFiClient.shared().interface()?.ssid(), !ssid.isEmpty else {
+            let alert = NSAlert()
+            alert.messageText = NSLocalizedString("settings.profiles.no_wifi", comment: "")
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            if let w = self.window { alert.beginSheetModal(for: w) }
+            return
+        }
+
+        if NetworkProfileStorage.profileForSSID(ssid) != nil {
+            let alert = NSAlert()
+            alert.messageText = NSLocalizedString("settings.profiles.already_exists", comment: "")
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            if let w = self.window { alert.beginSheetModal(for: w) }
+            return
+        }
+
+        let profile = NetworkProfile(name: ssid, ssid: ssid)
+        NetworkProfileStorage.add(profile)
+        profilesTableView?.reloadData()
+    }
+
+    @objc private func renameSelectedProfile() {
+        guard let tableView = profilesTableView else { return }
+        let row = tableView.selectedRow
+        guard row >= 0 else { return }
+        let profiles = NetworkProfileStorage.load()
+        guard row < profiles.count else { return }
+        let profile = profiles[row]
+
+        let alert = NSAlert()
+        alert.messageText = NSLocalizedString("settings.profiles.rename.title", comment: "")
+        alert.informativeText = String(format: NSLocalizedString("settings.profiles.rename.message", comment: ""), profile.name)
+        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: NSLocalizedString("speedtest.clear.confirm_cancel", comment: ""))
+
+        let input = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
+        input.stringValue = profile.name
+        alert.accessoryView = input
+
+        if let w = self.window {
+            alert.beginSheetModal(for: w) { response in
+                if response == .alertFirstButtonReturn {
+                    let newName = input.stringValue.trimmingCharacters(in: .whitespaces)
+                    if !newName.isEmpty {
+                        NetworkProfileStorage.rename(id: profile.id, name: newName)
+                        tableView.reloadData()
+                    }
+                }
+            }
+        }
+    }
+
+    @objc private func deleteSelectedProfile() {
+        guard let tableView = profilesTableView else { return }
+        let row = tableView.selectedRow
+        guard row >= 0 else { return }
+        let profiles = NetworkProfileStorage.load()
+        guard row < profiles.count else { return }
+        NetworkProfileStorage.remove(id: profiles[row].id)
+        tableView.reloadData()
+    }
+}
+
+// MARK: - NSTableViewDataSource & NSTableViewDelegate (Profils)
+
+extension SettingsWindowController: NSTableViewDataSource, NSTableViewDelegate {
+
+    func numberOfRows(in tableView: NSTableView) -> Int {
+        return NetworkProfileStorage.load().count
+    }
+
+    func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+        let profiles = NetworkProfileStorage.load()
+        guard row < profiles.count else { return nil }
+        let profile = profiles[row]
+
+        let identifier = tableColumn?.identifier ?? NSUserInterfaceItemIdentifier("")
+        let cellIdentifier = NSUserInterfaceItemIdentifier("ProfileCell_\(identifier.rawValue)")
+
+        let textField: NSTextField
+        if let existing = tableView.makeView(withIdentifier: cellIdentifier, owner: nil) as? NSTextField {
+            textField = existing
+        } else {
+            textField = NSTextField(labelWithString: "")
+            textField.identifier = cellIdentifier
+            textField.font = NSFont.systemFont(ofSize: 11)
+        }
+
+        let df: DateFormatter = {
+            let f = DateFormatter()
+            f.dateStyle = .short
+            f.timeStyle = .short
+            return f
+        }()
+
+        switch identifier.rawValue {
+        case "profileName":
+            textField.stringValue = profile.name
+        case "profileSSID":
+            textField.stringValue = profile.ssid
+        case "profileLastConnected":
+            if let date = profile.lastConnected {
+                textField.stringValue = df.string(from: date)
+            } else {
+                textField.stringValue = "—"
+            }
+        case "profileTests":
+            textField.stringValue = "\(profile.performanceSnapshots.count)"
+        default:
+            textField.stringValue = ""
+        }
+
+        return textField
     }
 }

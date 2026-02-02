@@ -16,6 +16,7 @@ class WhoisWindowController: NSWindowController {
     private var resultTextView: NSTextView!
     private var statusLabel: NSTextField!
     private var copyButton: NSButton!
+    private var favoritesPopup: NSPopUpButton!
     private var isQuerying = false
 
     convenience init() {
@@ -73,6 +74,18 @@ class WhoisWindowController: NSWindowController {
         copyButton = NSButton(title: NSLocalizedString("whois.button.copy", comment: ""), target: self, action: #selector(copyResult))
         copyButton.bezelStyle = .rounded
         inputStack.addArrangedSubview(copyButton)
+
+        let addFavButton = NSButton(title: "★", target: self, action: #selector(toggleFavorite))
+        addFavButton.bezelStyle = .rounded
+        addFavButton.toolTip = NSLocalizedString("favorites.add", comment: "")
+        inputStack.addArrangedSubview(addFavButton)
+
+        favoritesPopup = NSPopUpButton()
+        favoritesPopup.bezelStyle = .rounded
+        favoritesPopup.target = self
+        favoritesPopup.action = #selector(loadFavorite)
+        inputStack.addArrangedSubview(favoritesPopup)
+        refreshFavoritesPopup()
 
         // Status
         statusLabel = NSTextField(labelWithString: NSLocalizedString("whois.status.ready", comment: ""))
@@ -347,9 +360,55 @@ class WhoisWindowController: NSWindowController {
         } else {
             let lineCount = response.components(separatedBy: "\n").count
             statusLabel.stringValue = String(format: NSLocalizedString("whois.status.done", comment: ""), server, lineCount)
-            resultTextView.string = response
+            resultTextView.textStorage?.setAttributedString(Self.colorize(response))
             resultTextView.scrollToBeginningOfDocument(nil)
         }
+    }
+
+    private static let ipv4Regex = try! NSRegularExpression(pattern: "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b")
+
+    private static func colorize(_ text: String) -> NSAttributedString {
+        let baseFont = NSFont.monospacedSystemFont(ofSize: 11, weight: .regular)
+        let boldFont = NSFont.monospacedSystemFont(ofSize: 11, weight: .bold)
+        let result = NSMutableAttributedString()
+
+        for line in text.components(separatedBy: "\n") {
+            if !result.string.isEmpty { result.append(NSAttributedString(string: "\n")) }
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+            // Comment lines (starting with %)
+            if trimmed.hasPrefix("%") || trimmed.hasPrefix("#") {
+                result.append(NSAttributedString(string: line, attributes: [
+                    .font: baseFont, .foregroundColor: NSColor.secondaryLabelColor
+                ]))
+                continue
+            }
+
+            // Key: Value lines
+            if let colonIdx = line.firstIndex(of: ":"), colonIdx > line.startIndex {
+                let key = String(line[..<colonIdx])
+                let rest = String(line[colonIdx...])
+                let attrKey = NSMutableAttributedString(string: key, attributes: [
+                    .font: boldFont, .foregroundColor: NSColor.systemTeal
+                ])
+                let attrVal = NSMutableAttributedString(string: rest, attributes: [
+                    .font: baseFont, .foregroundColor: NSColor.labelColor
+                ])
+                // Colorize IPs in value
+                let nsRest = rest as NSString
+                for match in ipv4Regex.matches(in: rest, range: NSRange(location: 0, length: nsRest.length)) {
+                    attrVal.addAttribute(.foregroundColor, value: NSColor.systemBlue, range: match.range)
+                }
+                attrKey.append(attrVal)
+                result.append(attrKey)
+                continue
+            }
+
+            result.append(NSAttributedString(string: line, attributes: [
+                .font: baseFont, .foregroundColor: NSColor.labelColor
+            ]))
+        }
+        return result
     }
 
     private func showError(_ message: String) {
@@ -359,6 +418,39 @@ class WhoisWindowController: NSWindowController {
         progressIndicator.isHidden = true
         statusLabel.stringValue = message
         resultTextView.string = message
+    }
+
+    // MARK: - Favorites
+
+    @objc private func toggleFavorite() {
+        let target = targetTextField.stringValue.trimmingCharacters(in: .whitespaces)
+        guard !target.isEmpty else { return }
+        let existing = QueryFavoritesStorage.favorites(for: "whois")
+        if let fav = existing.first(where: { $0.target == target }) {
+            QueryFavoritesStorage.remove(id: fav.id)
+        } else {
+            _ = QueryFavoritesStorage.add(QueryFavorite(type: "whois", target: target))
+        }
+        refreshFavoritesPopup()
+    }
+
+    @objc private func loadFavorite() {
+        let index = favoritesPopup.indexOfSelectedItem
+        let favorites = QueryFavoritesStorage.favorites(for: "whois")
+        guard index > 0, index - 1 < favorites.count else { return }
+        targetTextField.stringValue = favorites[index - 1].target
+    }
+
+    private func refreshFavoritesPopup() {
+        favoritesPopup.removeAllItems()
+        favoritesPopup.addItem(withTitle: NSLocalizedString("favorites.button", comment: ""))
+        let favorites = QueryFavoritesStorage.favorites(for: "whois")
+        if favorites.isEmpty {
+            let item = favoritesPopup.menu?.addItem(withTitle: NSLocalizedString("favorites.none", comment: ""), action: nil, keyEquivalent: "")
+            item?.isEnabled = false
+        } else {
+            for fav in favorites { favoritesPopup.addItem(withTitle: fav.target) }
+        }
     }
 }
 
