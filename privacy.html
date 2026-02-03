@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Politique de confidentialité — Mon Réseau</title>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --text: #1d1d1f;
+            --secondary: #6e6e73;
+            --accent: #0071e3;
+            --border: #d2d2d7;
+            --table-bg: #f5f5f7;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #1d1d1f;
+                --text: #f5f5f7;
+                --secondary: #a1a1a6;
+                --accent: #2997ff;
+                --border: #424245;
+                --table-bg: #2d2d2d;
+            }
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 0.2em;
+        }
+        h2 {
+            font-size: 1.5em;
+            font-weight: 600;
+            margin-top: 2em;
+            padding-bottom: 0.3em;
+            border-bottom: 1px solid var(--border);
+        }
+        h3 {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-top: 1.5em;
+        }
+        .update-date {
+            color: var(--secondary);
+            font-size: 0.95em;
+            margin-bottom: 2em;
+        }
+        p, li {
+            color: var(--text);
+        }
+        ul {
+            padding-left: 1.5em;
+        }
+        li {
+            margin-bottom: 0.5em;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+            font-size: 0.95em;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border: 1px solid var(--border);
+        }
+        th {
+            background: var(--table-bg);
+            font-weight: 600;
+        }
+        .highlight-box {
+            background: var(--table-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 1.5em 0;
+        }
+        .highlight-box p {
+            margin: 0.5em 0;
+        }
+        .no-data {
+            color: var(--accent);
+            font-weight: 600;
+        }
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .lang-switch {
+            text-align: right;
+            margin-bottom: 1em;
+        }
+        .lang-switch a {
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+        footer {
+            margin-top: 3em;
+            padding-top: 2em;
+            border-top: 1px solid var(--border);
+            color: var(--secondary);
+            font-size: 0.9em;
+        }
+        .app-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 18px;
+            margin-bottom: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="lang-switch">
+        <a href="#english">English</a>
+    </div>
+
+    <h1>🌐 Mon Réseau</h1>
+    <h2 style="border: none; margin-top: 0.5em;">Politique de confidentialité</h2>
+    <p class="update-date">Dernière mise à jour : 3 février 2025</p>
+
+    <h2>Introduction</h2>
+    <p>Mon Réseau est une application macOS développée par SmartColibri. Cette politique de confidentialité explique comment l'application traite vos données.</p>
+
+    <div class="highlight-box">
+        <p class="no-data">Aucune donnée personnelle n'est collectée, stockée ou partagée par SmartColibri.</p>
+        <p>Toutes les données restent sur votre appareil.</p>
+    </div>
+
+    <h2>Données stockées localement</h2>
+    <p>Mon Réseau stocke les données suivantes <strong>uniquement sur votre appareil</strong> (dans le conteneur sandbox de l'application) :</p>
+    <ul>
+        <li><strong>Historique des tests de débit</strong> : résultats des tests (vitesse, latence, date, localisation approximative)</li>
+        <li><strong>Historique de qualité réseau</strong> : mesures de latence, jitter et perte de paquets sur 24 heures</li>
+        <li><strong>Profils réseau</strong> : noms de réseaux WiFi et statistiques de performance associées</li>
+        <li><strong>Favoris</strong> : cibles de requêtes DNS, WHOIS et Traceroute sauvegardées</li>
+        <li><strong>Préférences</strong> : réglages de l'application (apparence, notifications, etc.)</li>
+    </ul>
+
+    <h2>Services externes</h2>
+    <p>L'application communique avec les services suivants pour son fonctionnement :</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Service</th>
+                <th>Données envoyées</th>
+                <th>Finalité</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>speed.cloudflare.com</td>
+                <td>Requêtes HTTP</td>
+                <td>Mesure de débit (download/upload)</td>
+            </tr>
+            <tr>
+                <td>one.one.one.one</td>
+                <td>Requêtes HTTP HEAD</td>
+                <td>Mesure de latence</td>
+            </tr>
+            <tr>
+                <td>ipify.org</td>
+                <td>Requête HTTP</td>
+                <td>Détection de votre adresse IP publique</td>
+            </tr>
+            <tr>
+                <td>ipapi.co</td>
+                <td>Adresse IP</td>
+                <td>Géolocalisation approximative</td>
+            </tr>
+            <tr>
+                <td>ipwho.is</td>
+                <td>Adresses IP des routeurs</td>
+                <td>Géolocalisation des sauts (traceroute)</td>
+            </tr>
+            <tr>
+                <td>Serveurs WHOIS (port 43)</td>
+                <td>Noms de domaine ou IP</td>
+                <td>Consultation des registres</td>
+            </tr>
+            <tr>
+                <td>Serveurs DNS publics</td>
+                <td>Noms de domaine</td>
+                <td>Résolution DNS</td>
+            </tr>
+        </tbody>
+    </table>
+    <p><strong>Aucune de ces données n'est collectée, stockée ou traitée par SmartColibri.</strong></p>
+
+    <h2>Localisation</h2>
+    <p>Si vous autorisez l'accès à la localisation, Mon Réseau utilise votre position géographique uniquement pour :</p>
+    <ul>
+        <li>Afficher votre emplacement lors des tests de débit</li>
+        <li>Améliorer la précision des diagnostics réseau</li>
+    </ul>
+    <p>Cette information est stockée localement avec l'historique des tests et n'est jamais transmise à SmartColibri.</p>
+
+    <h2>Données non collectées</h2>
+    <p>Mon Réseau <strong>ne collecte pas</strong> :</p>
+    <ul>
+        <li>Données d'identification personnelle</li>
+        <li>Données de navigation</li>
+        <li>Informations de contact</li>
+        <li>Données financières</li>
+        <li>Données de santé</li>
+        <li>Données biométriques</li>
+        <li>Identifiants publicitaires</li>
+    </ul>
+
+    <h2>Analyse et publicité</h2>
+    <div class="highlight-box">
+        <p>✅ <strong>Aucun SDK d'analyse</strong> (pas de Google Analytics, Firebase, etc.)</p>
+        <p>✅ <strong>Aucune publicité</strong></p>
+        <p>✅ <strong>Aucun partage de données</strong> avec des tiers à des fins commerciales</p>
+    </div>
+
+    <h2>Sécurité</h2>
+    <ul>
+        <li>Toutes les communications réseau utilisent HTTPS (sauf WHOIS qui utilise le protocole standard sur port 43)</li>
+        <li>Les données sont stockées dans le conteneur sandbox de l'application, protégé par macOS</li>
+        <li>Aucune donnée n'est transmise à des serveurs SmartColibri</li>
+    </ul>
+
+    <h2>Vos droits</h2>
+    <p>Vous pouvez à tout moment :</p>
+    <ul>
+        <li><strong>Supprimer l'historique</strong> des tests de débit depuis l'application</li>
+        <li><strong>Supprimer l'application</strong> pour effacer toutes les données locales</li>
+        <li><strong>Révoquer l'accès à la localisation</strong> dans Préférences Système → Confidentialité</li>
+    </ul>
+
+    <h2>Contact</h2>
+    <p>Pour toute question concernant cette politique de confidentialité :</p>
+    <p><strong>SmartColibri</strong><br>
+    Email : <a href="mailto:privacy@smartcolibri.com">privacy@smartcolibri.com</a></p>
+
+    <hr style="margin: 3em 0; border: none; border-top: 1px solid var(--border);">
+
+    <h1 id="english">🌐 Mon Réseau</h1>
+    <h2 style="border: none; margin-top: 0.5em;">Privacy Policy</h2>
+    <p class="update-date">Last updated: February 3, 2025</p>
+
+    <h2>Summary</h2>
+    <p>Mon Réseau is a network diagnostic application for macOS developed by SmartColibri.</p>
+
+    <div class="highlight-box">
+        <p class="no-data">No personal data is collected, stored, or shared by SmartColibri.</p>
+        <p>All data stays on your device.</p>
+    </div>
+
+    <h3>What we don't do</h3>
+    <ul>
+        <li>We don't collect any personal information</li>
+        <li>We don't use analytics SDKs</li>
+        <li>We don't show advertisements</li>
+        <li>We don't track you</li>
+        <li>We don't share data with third parties</li>
+    </ul>
+
+    <h3>What the app does</h3>
+    <p>Mon Réseau stores network diagnostics data (speed test results, quality history, favorites) locally on your device only. The app communicates with external services (Cloudflare, ipify.org, ipapi.co, WHOIS servers, DNS servers) solely to perform network diagnostics.</p>
+
+    <h3>Location</h3>
+    <p>If you grant location access, it's used only to display your location in speed test results. This data is stored locally and never transmitted to SmartColibri.</p>
+
+    <h3>Contact</h3>
+    <p>For questions about this privacy policy:<br>
+    <strong>SmartColibri</strong> — <a href="mailto:privacy@smartcolibri.com">privacy@smartcolibri.com</a></p>
+
+    <footer>
+        <p>© 2024-2025 SmartColibri. Tous droits réservés.</p>
+        <p>Mon Réseau est une application macOS disponible sur l'App Store.</p>
+    </footer>
+</body>
+</html>
