@@ -1,5 +1,5 @@
 // GuideWindowController.swift
-// Mon Réseau
+// NetDisco
 //
 // Fenêtre de documentation : présentation de l'app, concepts réseau,
 // astuces d'optimisation et raccourcis clavier.
@@ -221,17 +221,17 @@ class GuideWindowController: NSWindowController {
         addParagraph(NSLocalizedString("guide.urlscheme.intro", comment: ""), to: stack)
 
         let urlSchemes: [(String, String)] = [
-            ("monreseau://speedtest", NSLocalizedString("menu.speedtest", comment: "").replacingOccurrences(of: "…", with: "")),
-            ("monreseau://details", NSLocalizedString("menu.details", comment: "").replacingOccurrences(of: "…", with: "")),
-            ("monreseau://quality", NSLocalizedString("menu.quality", comment: "").replacingOccurrences(of: "…", with: "")),
-            ("monreseau://traceroute", NSLocalizedString("menu.traceroute", comment: "").replacingOccurrences(of: "…", with: "")),
-            ("monreseau://dns", NSLocalizedString("menu.dns", comment: "").replacingOccurrences(of: "…", with: "")),
-            ("monreseau://wifi", NSLocalizedString("menu.wifi", comment: "").replacingOccurrences(of: "…", with: "")),
-            ("monreseau://neighborhood", NSLocalizedString("menu.neighborhood", comment: "").replacingOccurrences(of: "…", with: "")),
-            ("monreseau://bandwidth", NSLocalizedString("menu.bandwidth", comment: "").replacingOccurrences(of: "…", with: "")),
-            ("monreseau://whois", NSLocalizedString("menu.whois", comment: "").replacingOccurrences(of: "…", with: "")),
-            ("monreseau://teletravail", NSLocalizedString("menu.teletravail", comment: "").replacingOccurrences(of: "…", with: "")),
-            ("monreseau://settings", NSLocalizedString("menu.settings", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("netdisco://speedtest", NSLocalizedString("menu.speedtest", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("netdisco://details", NSLocalizedString("menu.details", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("netdisco://quality", NSLocalizedString("menu.quality", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("netdisco://traceroute", NSLocalizedString("menu.traceroute", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("netdisco://dns", NSLocalizedString("menu.dns", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("netdisco://wifi", NSLocalizedString("menu.wifi", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("netdisco://neighborhood", NSLocalizedString("menu.neighborhood", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("netdisco://bandwidth", NSLocalizedString("menu.bandwidth", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("netdisco://whois", NSLocalizedString("menu.whois", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("netdisco://teletravail", NSLocalizedString("menu.teletravail", comment: "").replacingOccurrences(of: "…", with: "")),
+            ("netdisco://settings", NSLocalizedString("menu.settings", comment: "").replacingOccurrences(of: "…", with: "")),
         ]
 
         let urlGrid = NSGridView(numberOfColumns: 2, rows: 0)

@@ -1,14 +1,14 @@
-# Mon Réseau — Documentation technique
+# NetDisco — Documentation technique
 
 ## Vue d'ensemble
 
-Mon Réseau est une application macOS qui surveille la connectivite internet et fournit des outils d'analyse reseau. Elle supporte deux modes : barre de menus (sans icone Dock) ou application classique (Dock + fenetre d'accueil). Un « Mode Geek » permet d'afficher ou masquer les outils techniques. L'application est entierement compatible App Store (aucun appel shell).
+NetDisco est une application macOS qui surveille la connectivite internet et fournit des outils d'analyse reseau. Elle supporte deux modes : barre de menus (sans icone Dock) ou application classique (Dock + fenetre d'accueil). Un « Mode Geek » permet d'afficher ou masquer les outils techniques. L'application est entierement compatible App Store (aucun appel shell).
 
 ## Schema d'architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                         Mon Réseau.app                          │
+│                         NetDisco.app                          │
 │              (macOS — mode barre de menus ou app)               │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
@@ -243,7 +243,7 @@ RPM estime : `60000 / max(latence_ms, 5)`
 
 ### Sandbox
 ```
-~/Library/Containers/com.SmartColibri.MonReseau/Data/Library/Preferences/
+~/Library/Containers/com.SmartColibri.NetDisco/Data/Library/Preferences/
 ```
 
 ## Vues personnalisees (Core Graphics)
@@ -303,28 +303,28 @@ RPM estime : `60000 / max(latence_ms, 5)`
 ## Entitlements et permissions
 
 ```xml
-<!-- MonReseau.entitlements -->
+<!-- NetDisco.entitlements -->
 App Sandbox = YES
 Outgoing Connections (Client) = YES
 
 <!-- Info.plist -->
 LSUIElement = true                    (mode barre de menus par defaut, bascule via setActivationPolicy)
 NSLocationWhenInUseUsageDescription   (localisation pour tests de debit)
-CFBundleURLTypes                      (monreseau:// URL scheme pour deep links)
+CFBundleURLTypes                      (netdisco:// URL scheme pour deep links)
 ```
 
 ## URL Scheme
 
-L'application enregistre le scheme `monreseau://` pour les liens profonds (widgets, liens externes) :
-- `monreseau://speedtest`, `monreseau://details`, `monreseau://quality`, `monreseau://traceroute`
-- `monreseau://dns`, `monreseau://wifi`, `monreseau://neighborhood`, `monreseau://bandwidth`
-- `monreseau://whois`, `monreseau://teletravail`, `monreseau://settings`
+L'application enregistre le scheme `netdisco://` pour les liens profonds (widgets, liens externes) :
+- `netdisco://speedtest`, `netdisco://details`, `netdisco://quality`, `netdisco://traceroute`
+- `netdisco://dns`, `netdisco://wifi`, `netdisco://neighborhood`, `netdisco://bandwidth`
+- `netdisco://whois`, `netdisco://teletravail`, `netdisco://settings`
 
 ## Widgets (WidgetKit)
 
 - **SmallWidget** : icone connexion + statut
-- **MediumWidget** : statut + dernier test de debit (lien `monreseau://details`)
-- **LargeWidget** : statut detaille + bouton « Lancer un test de debit » (`monreseau://speedtest`)
+- **MediumWidget** : statut + dernier test de debit (lien `netdisco://details`)
+- **LargeWidget** : statut detaille + bouton « Lancer un test de debit » (`netdisco://speedtest`)
 
 ## Build
 

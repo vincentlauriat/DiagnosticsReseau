@@ -64,7 +64,7 @@ struct MediumWidgetView: View {
         }
         .padding()
         .containerBackground(.fill.tertiary, for: .widget)
-        .widgetURL(URL(string: "monreseau://details"))
+        .widgetURL(URL(string: "netdisco://details"))
     }
 }
 

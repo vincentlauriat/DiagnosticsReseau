@@ -1,6 +1,6 @@
 //
-//  MonReseauWidget.swift
-//  MonReseauWidget
+//  NetDiscoWidget.swift
+//  NetDiscoWidget
 //
 //  Created by Vincent Lauriat on 01/02/2026.
 //
@@ -15,7 +15,7 @@ struct NetworkStatusWidget: Widget {
         StaticConfiguration(kind: kind, provider: NetworkTimelineProvider()) { entry in
             NetworkWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("Mon Réseau")
+        .configurationDisplayName("NetDisco")
         .description("Statut réseau, latence et derniers tests de débit.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }

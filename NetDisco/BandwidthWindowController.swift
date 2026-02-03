@@ -1,5 +1,5 @@
 // BandwidthWindowController.swift
-// Mon Réseau
+// NetDisco
 //
 // Moniteur de bande passante en temps réel. Affiche le débit entrant/sortant
 // par interface via getifaddrs() avec un graphe Core Graphics (120 points, 2 min).

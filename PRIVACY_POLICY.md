@@ -1,16 +1,16 @@
-# Politique de confidentialité — Mon Réseau
+# Politique de confidentialité — NetDisco
 
 **Dernière mise à jour : 3 février 2025**
 
 ## Introduction
 
-Mon Réseau est une application macOS développée par SmartColibri. Cette politique de confidentialité explique comment l'application traite vos données.
+NetDisco est une application macOS développée par SmartColibri. Cette politique de confidentialité explique comment l'application traite vos données.
 
 ## Données collectées
 
 ### Données stockées localement
 
-Mon Réseau stocke les données suivantes **uniquement sur votre appareil** (dans le conteneur sandbox de l'application) :
+NetDisco stocke les données suivantes **uniquement sur votre appareil** (dans le conteneur sandbox de l'application) :
 
 - **Historique des tests de débit** : résultats des tests (vitesse, latence, date, localisation approximative)
 - **Historique de qualité réseau** : mesures de latence, jitter et perte de paquets sur 24 heures
@@ -36,7 +36,7 @@ L'application communique avec les services suivants pour son fonctionnement :
 
 ## Localisation
 
-Si vous autorisez l'accès à la localisation, Mon Réseau utilise votre position géographique uniquement pour :
+Si vous autorisez l'accès à la localisation, NetDisco utilise votre position géographique uniquement pour :
 - Afficher votre emplacement lors des tests de débit
 - Améliorer la précision des diagnostics réseau
 
@@ -44,7 +44,7 @@ Cette information est stockée localement avec l'historique des tests et n'est j
 
 ## Données non collectées
 
-Mon Réseau **ne collecte pas** :
+NetDisco **ne collecte pas** :
 - Données d'identification personnelle
 - Données de navigation
 - Informations de contact
@@ -55,7 +55,7 @@ Mon Réseau **ne collecte pas** :
 
 ## Analyse et publicité
 
-Mon Réseau :
+NetDisco :
 - N'inclut **aucun SDK d'analyse** (pas de Google Analytics, Firebase, etc.)
 - N'affiche **aucune publicité**
 - Ne partage **aucune donnée** avec des tiers à des fins commerciales
@@ -86,13 +86,13 @@ Email : privacy@smartcolibri.com
 
 ---
 
-## Privacy Policy — Mon Réseau (English)
+## Privacy Policy — NetDisco (English)
 
 **Last updated: February 3, 2025**
 
 ### Summary
 
-Mon Réseau is a network diagnostic application for macOS. It stores all data locally on your device and does not collect, transmit, or share any personal information with SmartColibri or third parties.
+NetDisco is a network diagnostic application for macOS. It stores all data locally on your device and does not collect, transmit, or share any personal information with SmartColibri or third parties.
 
 The app communicates with external services (Cloudflare, ipify.org, ipapi.co, WHOIS servers, DNS servers) solely to perform network diagnostics. These communications are necessary for the app's functionality and do not involve any data collection by SmartColibri.
 

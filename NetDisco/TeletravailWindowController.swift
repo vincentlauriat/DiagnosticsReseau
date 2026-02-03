@@ -738,7 +738,7 @@ class TeletravailWindowController: NSWindowController {
     @objc private func exportPDF() {
         let savePanel = NSSavePanel()
         savePanel.allowedContentTypes = [UTType.pdf]
-        savePanel.nameFieldStringValue = "MonReseau-Diagnostic.pdf"
+        savePanel.nameFieldStringValue = "NetDisco-Diagnostic.pdf"
         savePanel.beginSheetModal(for: window!) { [weak self] response in
             guard response == .OK, let url = savePanel.url, let self = self else { return }
             self.generatePDF(to: url)
@@ -769,7 +769,7 @@ class TeletravailWindowController: NSWindowController {
 
         // --- Title ---
         let titleFont = NSFont.systemFont(ofSize: 20, weight: .bold)
-        let titleStr = NSAttributedString(string: "Mon Réseau — Diagnostic", attributes: [
+        let titleStr = NSAttributedString(string: "NetDisco — Diagnostic", attributes: [
             .font: titleFont,
             .foregroundColor: NSColor.black
         ])
@@ -908,7 +908,7 @@ class TeletravailWindowController: NSWindowController {
 
         // --- Footer ---
         let footerFont = NSFont.systemFont(ofSize: 9)
-        let footerStr = NSAttributedString(string: NSLocalizedString("teletravail.pdf.footer", comment: "Généré par Mon Réseau"), attributes: [
+        let footerStr = NSAttributedString(string: NSLocalizedString("teletravail.pdf.footer", comment: "Généré par NetDisco"), attributes: [
             .font: footerFont,
             .foregroundColor: NSColor.gray
         ])

@@ -26,7 +26,7 @@
 		EE000000000000000000001 /* WhoisWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE000000000000000000002 /* WhoisWindowController.swift */; };
 		BF3F57E62F2F1372007A3185 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF3F57E52F2F1372007A3185 /* WidgetKit.framework */; };
 		BF3F57E82F2F1372007A3185 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF3F57E72F2F1372007A3185 /* SwiftUI.framework */; };
-		BF3F57F72F2F1373007A3185 /* MonReseauWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BF3F57E32F2F1372007A3185 /* MonReseauWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		BF3F57F72F2F1373007A3185 /* NetDiscoWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BF3F57E32F2F1372007A3185 /* NetDiscoWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		BF77DD002F2B892E00DDF5E2 /* ARCHITECTURE.md in Resources */ = {isa = PBXBuildFile; fileRef = BF77DCFF2F2B892E00DDF5E2 /* ARCHITECTURE.md */; };
 		DD000000000000000000001 /* SharedWidgetData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD000000000000000000002 /* SharedWidgetData.swift */; };
 /* End PBXBuildFile section */
@@ -37,7 +37,7 @@
 			containerPortal = A1000040 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = BF3F57E22F2F1372007A3185;
-			remoteInfo = MonReseauWidgetExtension;
+			remoteInfo = NetDiscoWidgetExtension;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -48,7 +48,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				BF3F57F72F2F1373007A3185 /* MonReseauWidgetExtension.appex in Embed Foundation Extensions */,
+				BF3F57F72F2F1373007A3185 /* NetDiscoWidgetExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -61,8 +61,8 @@
 		8B9A000200000000000000F2 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A1000002 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A1000003 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A1000004 /* MonReseau.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MonReseau.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A1000005 /* MonReseau.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MonReseau.entitlements; sourceTree = "<group>"; };
+		A1000004 /* NetDisco.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NetDisco.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1000005 /* NetDisco.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NetDisco.entitlements; sourceTree = "<group>"; };
 		A1000007 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		A1000009 /* NetworkDetailWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkDetailWindowController.swift; sourceTree = "<group>"; };
 		A100000B /* NetworkQualityWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkQualityWindowController.swift; sourceTree = "<group>"; };
@@ -77,10 +77,10 @@
 		BB000000000000000000002 /* TeletravailWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeletravailWindowController.swift; sourceTree = "<group>"; };
 		DD000000000000000000004 /* BandwidthWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BandwidthWindowController.swift; sourceTree = "<group>"; };
 		EE000000000000000000002 /* WhoisWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhoisWindowController.swift; sourceTree = "<group>"; };
-		BF3F57E32F2F1372007A3185 /* MonReseauWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MonReseauWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		BF3F57E32F2F1372007A3185 /* NetDiscoWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NetDiscoWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF3F57E52F2F1372007A3185 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		BF3F57E72F2F1372007A3185 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
-		BF3F58082F2F143B007A3185 /* MonReseauWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MonReseauWidgetExtension.entitlements; sourceTree = "<group>"; };
+		BF3F58082F2F143B007A3185 /* NetDiscoWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NetDiscoWidgetExtension.entitlements; sourceTree = "<group>"; };
 		BF77DCFF2F2B892E00DDF5E2 /* ARCHITECTURE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ARCHITECTURE.md; sourceTree = "<group>"; };
 		BF8500B02F2A5ABC00D6E513 /* CLAUDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CLAUDE.md; sourceTree = "<group>"; };
 		DD000000000000000000002 /* SharedWidgetData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedWidgetData.swift; sourceTree = "<group>"; };
@@ -92,12 +92,12 @@
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = BF3F57E22F2F1372007A3185 /* MonReseauWidgetExtension */;
+			target = BF3F57E22F2F1372007A3185 /* NetDiscoWidgetExtension */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		BF3F57E92F2F1372007A3185 /* MonReseauWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (BF3F57FB2F2F1373007A3185 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = MonReseauWidget; sourceTree = "<group>"; };
+		BF3F57E92F2F1372007A3185 /* NetDiscoWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (BF3F57FB2F2F1373007A3185 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = NetDiscoWidget; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -123,17 +123,17 @@
 		A1000010 = {
 			isa = PBXGroup;
 			children = (
-				BF3F58082F2F143B007A3185 /* MonReseauWidgetExtension.entitlements */,
+				BF3F58082F2F143B007A3185 /* NetDiscoWidgetExtension.entitlements */,
 				BF77DCFF2F2B892E00DDF5E2 /* ARCHITECTURE.md */,
 				BF8500B02F2A5ABC00D6E513 /* CLAUDE.md */,
-				A1000011 /* MonReseau */,
-				BF3F57E92F2F1372007A3185 /* MonReseauWidget */,
+				A1000011 /* NetDisco */,
+				BF3F57E92F2F1372007A3185 /* NetDiscoWidget */,
 				BF3F57E42F2F1372007A3185 /* Frameworks */,
 				A1000012 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		A1000011 /* MonReseau */ = {
+		A1000011 /* NetDisco */ = {
 			isa = PBXGroup;
 			children = (
 				A1000002 /* AppDelegate.swift */,
@@ -155,16 +155,16 @@
 				8B9A000200000000000000F3 /* Localizable.strings */,
 				A2000002 /* Assets.xcassets */,
 				A1000003 /* Info.plist */,
-				A1000005 /* MonReseau.entitlements */,
+				A1000005 /* NetDisco.entitlements */,
 			);
-			path = MonReseau;
+			path = NetDisco;
 			sourceTree = "<group>";
 		};
 		A1000012 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A1000004 /* MonReseau.app */,
-				BF3F57E32F2F1372007A3185 /* MonReseauWidgetExtension.appex */,
+				A1000004 /* NetDisco.app */,
+				BF3F57E32F2F1372007A3185 /* NetDiscoWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -181,9 +181,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A1000020 /* MonReseau */ = {
+		A1000020 /* NetDisco */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A1000030 /* Build configuration list for PBXNativeTarget "MonReseau" */;
+			buildConfigurationList = A1000030 /* Build configuration list for PBXNativeTarget "NetDisco" */;
 			buildPhases = (
 				A1000021 /* Sources */,
 				A1000022 /* Frameworks */,
@@ -196,14 +196,14 @@
 			dependencies = (
 				BF3F57F62F2F1373007A3185 /* PBXTargetDependency */,
 			);
-			name = MonReseau;
-			productName = MonReseau;
-			productReference = A1000004 /* MonReseau.app */;
+			name = NetDisco;
+			productName = NetDisco;
+			productReference = A1000004 /* NetDisco.app */;
 			productType = "com.apple.product-type.application";
 		};
-		BF3F57E22F2F1372007A3185 /* MonReseauWidgetExtension */ = {
+		BF3F57E22F2F1372007A3185 /* NetDiscoWidgetExtension */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = BF3F57FC2F2F1373007A3185 /* Build configuration list for PBXNativeTarget "MonReseauWidgetExtension" */;
+			buildConfigurationList = BF3F57FC2F2F1373007A3185 /* Build configuration list for PBXNativeTarget "NetDiscoWidgetExtension" */;
 			buildPhases = (
 				BF3F57DF2F2F1372007A3185 /* Sources */,
 				BF3F57E02F2F1372007A3185 /* Frameworks */,
@@ -214,13 +214,13 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				BF3F57E92F2F1372007A3185 /* MonReseauWidget */,
+				BF3F57E92F2F1372007A3185 /* NetDiscoWidget */,
 			);
-			name = MonReseauWidgetExtension;
+			name = NetDiscoWidgetExtension;
 			packageProductDependencies = (
 			);
-			productName = MonReseauWidgetExtension;
-			productReference = BF3F57E32F2F1372007A3185 /* MonReseauWidgetExtension.appex */;
+			productName = NetDiscoWidgetExtension;
+			productReference = BF3F57E32F2F1372007A3185 /* NetDiscoWidgetExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -238,7 +238,7 @@
 					};
 				};
 			};
-			buildConfigurationList = A1000041 /* Build configuration list for PBXProject "MonReseau" */;
+			buildConfigurationList = A1000041 /* Build configuration list for PBXProject "NetDisco" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = fr;
 			hasScannedForEncodings = 0;
@@ -252,8 +252,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				A1000020 /* MonReseau */,
-				BF3F57E22F2F1372007A3185 /* MonReseauWidgetExtension */,
+				A1000020 /* NetDisco */,
+				BF3F57E22F2F1372007A3185 /* NetDiscoWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -333,7 +333,7 @@
 /* Begin PBXTargetDependency section */
 		BF3F57F62F2F1373007A3185 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = BF3F57E22F2F1372007A3185 /* MonReseauWidgetExtension */;
+			target = BF3F57E22F2F1372007A3185 /* NetDiscoWidgetExtension */;
 			targetProxy = BF3F57F52F2F1373007A3185 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -453,7 +453,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = MonReseau/MonReseau.entitlements;
+				CODE_SIGN_ENTITLEMENTS = NetDisco/NetDisco.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -461,17 +461,17 @@
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = MonReseau/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Mon Réseau";
+				INFOPLIST_FILE = NetDisco/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "NetDisco";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Vincent LAURIAT. Tous droits reserves.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Mon Réseau utilise votre position pour enregistrer le lieu de vos tests de débit.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "NetDisco utilise votre position pour enregistrer le lieu de vos tests de débit.";
 				INFOPLIST_KEY_NSMainNibFile = "";
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
 				MACOSX_DEPLOYMENT_TARGET = 15.6;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.SmartColibri.MonReseau;
+				PRODUCT_BUNDLE_IDENTIFIER = com.SmartColibri.NetDisco;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
 				SWIFT_VERSION = 5.0;
@@ -482,7 +482,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = MonReseau/MonReseau.entitlements;
+				CODE_SIGN_ENTITLEMENTS = NetDisco/NetDisco.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
@@ -502,18 +502,18 @@
 				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
 				ENABLE_RESOURCE_ACCESS_USB = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = MonReseau/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Mon Réseau";
+				INFOPLIST_FILE = NetDisco/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "NetDisco";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Vincent LAURIAT. Tous droits reserves.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Mon Réseau utilise votre position pour enregistrer le lieu de vos tests de débit.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "NetDisco utilise votre position pour enregistrer le lieu de vos tests de débit.";
 				INFOPLIST_KEY_NSMainNibFile = "";
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
 				MACOSX_DEPLOYMENT_TARGET = 15.6;
 				MARKETING_VERSION = 1.0;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.SmartColibri.MonReseau;
+				PRODUCT_BUNDLE_IDENTIFIER = com.SmartColibri.NetDisco;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
@@ -535,7 +535,7 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_ENTITLEMENTS = MonReseauWidgetExtension.entitlements;
+				CODE_SIGN_ENTITLEMENTS = NetDiscoWidgetExtension.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
@@ -553,8 +553,8 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = MonReseauWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = MonReseauWidget;
+				INFOPLIST_FILE = NetDiscoWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NetDiscoWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -565,7 +565,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
 				MARKETING_VERSION = 1.0;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.SmartColibri.MonReseau.MonReseauWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.SmartColibri.NetDisco.NetDiscoWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SKIP_INSTALL = YES;
@@ -592,7 +592,7 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_ENTITLEMENTS = MonReseauWidgetExtension.entitlements;
+				CODE_SIGN_ENTITLEMENTS = NetDiscoWidgetExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
@@ -607,8 +607,8 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = MonReseauWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = MonReseauWidget;
+				INFOPLIST_FILE = NetDiscoWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NetDiscoWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -620,7 +620,7 @@
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.SmartColibri.MonReseau.MonReseauWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.SmartColibri.NetDisco.NetDiscoWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SKIP_INSTALL = YES;
@@ -635,7 +635,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A1000030 /* Build configuration list for PBXNativeTarget "MonReseau" */ = {
+		A1000030 /* Build configuration list for PBXNativeTarget "NetDisco" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A1000052 /* Debug */,
@@ -644,7 +644,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A1000041 /* Build configuration list for PBXProject "MonReseau" */ = {
+		A1000041 /* Build configuration list for PBXProject "NetDisco" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A1000050 /* Debug */,
@@ -653,7 +653,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		BF3F57FC2F2F1373007A3185 /* Build configuration list for PBXNativeTarget "MonReseauWidgetExtension" */ = {
+		BF3F57FC2F2F1373007A3185 /* Build configuration list for PBXNativeTarget "NetDiscoWidgetExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				BF3F57F92F2F1373007A3185 /* Debug */,

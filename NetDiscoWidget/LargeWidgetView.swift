@@ -99,7 +99,7 @@ struct LargeWidgetView: View {
             }
 
             // Bouton deep link speed test
-            Link(destination: URL(string: "monreseau://speedtest")!) {
+            Link(destination: URL(string: "netdisco://speedtest")!) {
                 Label("Lancer un test de débit", systemImage: "bolt.fill")
                     .font(.caption)
                     .foregroundColor(.blue)

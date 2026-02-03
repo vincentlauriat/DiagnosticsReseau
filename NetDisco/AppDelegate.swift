@@ -527,11 +527,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         }
     }
 
-    // MARK: - URL Scheme (monreseau://)
+    // MARK: - URL Scheme (netdisco://)
 
     func application(_ application: NSApplication, open urls: [URL]) {
         for url in urls {
-            guard url.scheme == "monreseau" else { continue }
+            guard url.scheme == "netdisco" else { continue }
             let command = url.host ?? ""
             switch command {
             case "speedtest": performShowSpeedTest()

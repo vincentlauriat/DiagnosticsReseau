@@ -1,5 +1,5 @@
 // NetworkDetailWindowController.swift
-// Mon Réseau
+// NetDisco
 //
 // Fenêtre split-view affichant les informations réseau détaillées :
 //   - Panneau gauche (sidebar) : liste des sections avec icônes SF Symbols

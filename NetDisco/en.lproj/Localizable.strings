@@ -1,4 +1,4 @@
-/* Mon Réseau — Localizable.strings (English)
+/* NetDisco — Localizable.strings (English)
    Translation from French development language. */
 
 /* =========================
@@ -6,7 +6,7 @@
    ========================= */
 
 /* Status menu */
-"menu.title" = "Mon Réseau";
+"menu.title" = "NetDisco";
 "menu.connected" = "Connected";
 "menu.connected_vpn" = "Connected (VPN active)";
 "menu.disconnected" = "Disconnected";
@@ -28,9 +28,9 @@
 "menu.quit" = "Quit";
 
 /* App menu (mode application) */
-"appmenu.about" = "About Mon Réseau";
+"appmenu.about" = "About NetDisco";
 "appmenu.settings" = "Settings…";
-"appmenu.quit" = "Quit Mon Réseau";
+"appmenu.quit" = "Quit NetDisco";
 "appmenu.window" = "Window";
 "appmenu.home" = "Home";
 
@@ -41,8 +41,8 @@
 "notification.connection_lost.body" = "Your network connection is interrupted.";
 
 /* About panel */
-"about.title" = "About Mon Réseau";
-"about.name" = "Mon Réseau";
+"about.title" = "About NetDisco";
+"about.name" = "NetDisco";
 "about.version" = "Version %@ (%@)";
 "about.description" = "Internet connectivity monitoring\nand network quality for macOS.";
 "about.credits" = "Developed by Vincent LAURIAT";
@@ -51,15 +51,15 @@
 "about.ok" = "OK";
 
 /* Status item */
-"statusitem.tooltip" = "Mon Réseau";
-"statusitem.accessibility_label" = "Mon Réseau";
+"statusitem.tooltip" = "NetDisco";
+"statusitem.accessibility_label" = "NetDisco";
 "statusitem.accessibility_help" = "Network connection status";
 
 /* =========================
    SettingsWindowController
    ========================= */
 
-"settings.title" = "Mon Réseau — Settings";
+"settings.title" = "NetDisco — Settings";
 "settings.tab.general" = "General";
 "settings.tab.notifications" = "Notifications";
 "settings.tab.advanced" = "Advanced";
@@ -110,7 +110,7 @@
    MainWindowController
    ========================= */
 
-"main.title" = "Mon Réseau";
+"main.title" = "NetDisco";
 "main.checking" = "Checking…";
 
 "main.card.details" = "Network Details";
@@ -130,10 +130,10 @@
    GuideWindowController
    ========================= */
 
-"guide.title" = "Mon Réseau — Guide";
+"guide.title" = "NetDisco — Guide";
 
-"guide.about.title" = "About Mon Réseau";
-"guide.about.intro" = "Mon Réseau is a macOS application that monitors your internet connection and gives you a complete view of your network. It works from the menu bar or as a classic application.";
+"guide.about.title" = "About NetDisco";
+"guide.about.intro" = "NetDisco is a macOS application that monitors your internet connection and gives you a complete view of your network. It works from the menu bar or as a classic application.";
 "guide.about.features_intro" = "Main features:";
 "guide.about.feature.monitoring" = "Real-time connectivity monitoring";
 "guide.about.feature.details" = "Network details: interfaces, WiFi, routing, DNS, public IP";
@@ -160,7 +160,7 @@
 "guide.concepts.speed.text" = "Throughput measures the amount of data transferred per second. It distinguishes between download (downstream) and upload (upstream) speed. It is expressed in Mbps (megabits per second). For remote work, a minimum of 10 Mbps download and 5 Mbps upload is recommended. 4K streaming requires about 25 Mbps.";
 
 "guide.concepts.dns.title" = "DNS (Domain Name System)";
-"guide.concepts.dns.text" = "DNS is the internet's phone book: it translates domain names (like google.com) into IP addresses. A slow DNS server slows down the loading of every new web page. Mon Réseau lets you compare the speed of different DNS servers and perform advanced queries.";
+"guide.concepts.dns.text" = "DNS is the internet's phone book: it translates domain names (like google.com) into IP addresses. A slow DNS server slows down the loading of every new web page. NetDisco lets you compare the speed of different DNS servers and perform advanced queries.";
 
 "guide.concepts.traceroute.title" = "Traceroute";
 "guide.concepts.traceroute.text" = "Traceroute traces the path your data takes to reach a server. Each step (\"hop\") is an intermediate router. This helps identify where a slowdown or break occurs along the network path.";
@@ -190,7 +190,7 @@
 "guide.tips.dns.cloudflare" = "Cloudflare: 1.1.1.1 — fast and privacy-friendly";
 "guide.tips.dns.google" = "Google: 8.8.8.8 — reliable and widely used";
 "guide.tips.dns.quad9" = "Quad9: 9.9.9.9 — filters malicious domains";
-"guide.tips.dns.outro" = "Use Mon Réseau's DNS tool to compare their speed from your network.";
+"guide.tips.dns.outro" = "Use NetDisco's DNS tool to compare their speed from your network.";
 
 "guide.tips.reboot.title" = "Regularly Restart Your Router";
 "guide.tips.reboot.text" = "A weekly restart of your router can resolve slowdowns caused by memory saturation or accumulated connections. Unplug, wait 30 seconds, then plug back in.";
@@ -229,8 +229,8 @@
 "guide.teletravail.note" = "WiFi and latency indicators are measured continuously (1 measurement/second). Speed comes from the last test run in the Speed Test window. For up-to-date results, run a speed test before your meeting.";
 
 "guide.urlscheme.title" = "Deep Links (URL Scheme)";
-"guide.urlscheme.intro" = "Mon Réseau registers the monreseau:// scheme to open a specific window directly. These links work from Safari, Terminal, Spotlight, Widgets or any other application.";
-"guide.urlscheme.usage" = "Example: open Terminal and type \"open monreseau://speedtest\" to launch the speed test directly. WidgetKit widgets use these links to navigate to the app.";
+"guide.urlscheme.intro" = "NetDisco registers the netdisco:// scheme to open a specific window directly. These links work from Safari, Terminal, Spotlight, Widgets or any other application.";
+"guide.urlscheme.usage" = "Example: open Terminal and type \"open netdisco://speedtest\" to launch the speed test directly. WidgetKit widgets use these links to navigate to the app.";
 
 "guide.shortcuts.title" = "Keyboard Shortcuts";
 "guide.shortcuts.intro" = "In menu bar mode, global shortcuts use Ctrl+Option+letter. In application mode, use Cmd+letter in the menus.";
@@ -243,7 +243,7 @@
 "notification.speedtest_complete.body" = "↓ %.0f Mbps  ↑ %.0f Mbps  Latency %.0f ms";
 
 /* Bandwidth */
-"bandwidth.title" = "Mon Réseau — Bandwidth";
+"bandwidth.title" = "NetDisco — Bandwidth";
 "bandwidth.session_total" = "Session:";
 "bandwidth.download" = "Download";
 "bandwidth.upload" = "Upload";
@@ -261,7 +261,7 @@
    NetworkQualityWindowController
    ========================= */
 
-"quality.title" = "Mon Réseau — Network Quality";
+"quality.title" = "NetDisco — Network Quality";
 "quality.status.starting" = "Starting measurements...";
 "quality.status.no_data" = "No measurements available";
 "quality.target.label" = "Target:";
@@ -280,13 +280,13 @@
 "quality.rating.good" = "Good";
 "quality.rating.fair" = "Fair";
 "quality.rating.poor" = "Poor";
-"quality.history.title" = "Mon Réseau — Quality History 24h";
+"quality.history.title" = "NetDisco — Quality History 24h";
 
 /* =========================
    SpeedTestWindowController
    ========================= */
 
-"speedtest.title" = "Mon Réseau — Speed Test";
+"speedtest.title" = "NetDisco — Speed Test";
 "speedtest.heading" = "Speed Test";
 "speedtest.status.ready" = "Click the button to start the test";
 "speedtest.status.running" = "Test in progress...";
@@ -300,7 +300,7 @@
    TracerouteWindowController
    ========================= */
 
-"traceroute.title" = "Mon Réseau — Traceroute";
+"traceroute.title" = "NetDisco — Traceroute";
 "traceroute.heading" = "Visual Traceroute";
 "traceroute.button.trace" = "Trace";
 "traceroute.status.ready" = "Enter an address and click Trace";
@@ -311,7 +311,7 @@
    NetworkDetailWindowController
    ========================= */
 
-"details.title" = "Mon Réseau — Network Details";
+"details.title" = "NetDisco — Network Details";
 "details.section.connection" = "Connection Status";
 "details.section.wifi" = "WiFi";
 "details.section.routing" = "Routing";
@@ -323,7 +323,7 @@
    TeletravailWindowController
    ========================= */
 
-"teletravail.title" = "Mon Réseau — Use Cases";
+"teletravail.title" = "NetDisco — Use Cases";
 "teletravail.heading" = "Use Cases";
 "teletravail.subtitle" = "Real-time diagnostic of your connection by usage type.";
 "teletravail.usages.title" = "Usage Compatibility";
@@ -348,7 +348,7 @@
    WhoisWindowController
    ========================= */
 
-"whois.title" = "Mon Réseau — Whois";
+"whois.title" = "NetDisco — Whois";
 "whois.heading" = "Whois Lookup";
 "whois.button.query" = "Lookup";
 "whois.button.copy" = "Copy";
@@ -367,7 +367,7 @@
    DNSWindowController
    ========================= */
 
-"dns.window.title" = "Mon Réseau — DNS";
+"dns.window.title" = "NetDisco — DNS";
 "dns.label.domain" = "Domain:";
 "dns.label.type" = "Type:";
 "dns.label.server" = "Server:";
@@ -404,7 +404,7 @@
    NeighborhoodWindowController
    ========================= */
 
-"neighborhood.window.title" = "Mon Réseau — Network Neighborhood";
+"neighborhood.window.title" = "NetDisco — Network Neighborhood";
 "neighborhood.title" = "Network Neighborhood";
 "neighborhood.subnet.loading" = "Subnet: ...";
 "neighborhood.subnet.detected" = "Subnet: %@/%d";
@@ -479,9 +479,9 @@
    WiFiWindowController
    ========================= */
 
-"wifi.window.title" = "Mon Réseau — WiFi";
-"wifi.window.title.disconnected" = "Mon Réseau — WiFi (disconnected)";
-"wifi.window.title.connected" = "Mon Réseau — WiFi — %@";
+"wifi.window.title" = "NetDisco — WiFi";
+"wifi.window.title.disconnected" = "NetDisco — WiFi (disconnected)";
+"wifi.window.title.connected" = "NetDisco — WiFi — %@";
 "wifi.heading" = "WiFi Information";
 
 /* Labels */
@@ -557,7 +557,7 @@
 "teletravail.speed.date_format" = "Test from %@";
 "teletravail.global.impacted_usages" = "Impacted use cases: %@";
 "teletravail.global.watch_usages" = "Watch: %@";
-"teletravail.report.header" = "Mon Réseau — Use Cases Report";
+"teletravail.report.header" = "NetDisco — Use Cases Report";
 "teletravail.report.wifi" = "WiFi:";
 "teletravail.report.latency" = "Latency:";
 "teletravail.report.speed" = "Speed:";
@@ -568,7 +568,7 @@
 "teletravail.pdf.section.global_verdict" = "Global Verdict";
 "teletravail.pdf.col.usage" = "Usage";
 "teletravail.pdf.col.verdict" = "Verdict";
-"teletravail.pdf.footer" = "Generated by Mon Réseau";
+"teletravail.pdf.footer" = "Generated by NetDisco";
 
 /* SpeedTestWindowController */
 "speedtest.location.unknown_position" = "Unknown position";
@@ -594,7 +594,7 @@
 "speedtest.status.measuring_upload" = "Testing upload...";
 "speedtest.share.no_result" = "No result";
 "speedtest.share.no_result_detail" = "Run a speed test before sharing.";
-"speedtest.share.header" = "Mon Réseau — Speed Test";
+"speedtest.share.header" = "NetDisco — Speed Test";
 "speedtest.share.date" = "Date:";
 "speedtest.share.latency" = "Latency:";
 "speedtest.share.location" = "Location:";
@@ -640,7 +640,7 @@
 "netdetail.label.security" = "Security";
 "netdetail.security.none" = "None";
 "netdetail.label.country_code" = "Country code";
-"netdetail.report.header" = "Mon Réseau — Network Details";
+"netdetail.report.header" = "NetDisco — Network Details";
 
 /* TracerouteWindowController */
 "traceroute.location.local_network" = "Local network";
@@ -654,7 +654,7 @@
 "traceroute.callout.org" = "Org:";
 "traceroute.callout.asn" = "ASN:";
 "traceroute.callout.latency" = "Latency:";
-"traceroute.report.header" = "Mon Réseau — Traceroute to %@";
+"traceroute.report.header" = "NetDisco — Traceroute to %@";
 "traceroute.report.latency" = "Latency";
 "traceroute.report.location" = "Location";
 
@@ -662,7 +662,7 @@
 "quality.button.copy_stats" = "Copy stats";
 "quality.button.history_24h" = "History 24h";
 "quality.stats.format" = "Latency: avg %.1f ms | min %.1f ms | max %.1f ms   Jitter: %.1f ms   Loss: %.1f%%   Quality: %@";
-"quality.report.header" = "Mon Réseau — Network Quality";
+"quality.report.header" = "NetDisco — Network Quality";
 "quality.report.avg_latency" = "Average latency:";
 "quality.report.min_latency" = "Min latency:";
 "quality.report.max_latency" = "Max latency:";

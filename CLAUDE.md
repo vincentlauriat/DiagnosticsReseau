@@ -4,9 +4,9 @@ Instructions for Claude Code when working on this repository.
 
 ## Project Overview
 
-**Mon Réseau** — macOS app (Swift/Cocoa) for monitoring internet connectivity and network quality. Supports two modes: menu bar only (`LSUIElement`) or full application (Dock + main menu). Features a "Geek Mode" to show/hide technical tools. All UI is in French. Fully App Store compatible (no shell commands, sandboxed).
+**NetDisco** — macOS app (Swift/Cocoa) for monitoring internet connectivity and network quality. Supports two modes: menu bar only (`LSUIElement`) or full application (Dock + main menu). Features a "Geek Mode" to show/hide technical tools. All UI is in French. Fully App Store compatible (no shell commands, sandboxed).
 
-- **Bundle ID:** `com.SmartColibri.MonReseau`
+- **Bundle ID:** `com.SmartColibri.NetDisco`
 - **Deployment target:** macOS 13.0+
 - **Dependencies:** None — system frameworks only
 
@@ -14,13 +14,13 @@ Instructions for Claude Code when working on this repository.
 
 ```bash
 # Debug build
-xcodebuild -project MonReseau.xcodeproj -scheme MonReseau -configuration Debug build
+xcodebuild -project NetDisco.xcodeproj -scheme NetDisco -configuration Debug build
 
 # Release build
-xcodebuild -project MonReseau.xcodeproj -scheme MonReseau -configuration Release build
+xcodebuild -project NetDisco.xcodeproj -scheme NetDisco -configuration Release build
 
 # Run (after build)
-open ~/Library/Developer/Xcode/DerivedData/MonReseau-*/Build/Products/Debug/MonReseau.app
+open ~/Library/Developer/Xcode/DerivedData/NetDisco-*/Build/Products/Debug/NetDisco.app
 ```
 
 CLI arguments: `--traceroute`, `--speedtest`, `--details`, `--quality`
@@ -38,7 +38,7 @@ These rules **must** be followed for every change:
 
 ## Architecture
 
-15 Swift files in `MonReseau/`, ~13,000 LOC total:
+15 Swift files in `NetDisco/`, ~13,000 LOC total:
 
 | File | LOC | Role |
 |------|-----|------|
@@ -114,7 +114,7 @@ All via UserDefaults (sandbox-compatible):
 - **Scheduled quality test:** Key `ScheduledQualityTestEnabled` (bool), `ScheduledQualityTestInterval` (int, minutes), `ScheduledDailyNotification` (bool)
 - **Login item:** Managed by SMAppService (system-level)
 
-Path: `~/Library/Containers/com.SmartColibri.MonReseau/Data/Library/Preferences/com.SmartColibri.MonReseau.plist`
+Path: `~/Library/Containers/com.SmartColibri.NetDisco/Data/Library/Preferences/com.SmartColibri.NetDisco.plist`
 
 ## Custom Views
 
@@ -126,16 +126,16 @@ Path: `~/Library/Containers/com.SmartColibri.MonReseau/Data/Library/Preferences/
 
 ## URL Scheme
 
-`monreseau://` deep links for widgets and external navigation:
-- `monreseau://speedtest`, `monreseau://details`, `monreseau://quality`, `monreseau://traceroute`
-- `monreseau://dns`, `monreseau://wifi`, `monreseau://neighborhood`, `monreseau://bandwidth`
-- `monreseau://whois`, `monreseau://teletravail`, `monreseau://settings`
+`netdisco://` deep links for widgets and external navigation:
+- `netdisco://speedtest`, `netdisco://details`, `netdisco://quality`, `netdisco://traceroute`
+- `netdisco://dns`, `netdisco://wifi`, `netdisco://neighborhood`, `netdisco://bandwidth`
+- `netdisco://whois`, `netdisco://teletravail`, `netdisco://settings`
 
 ## Widgets (WidgetKit)
 
 - **SmallWidget** — Connection icon + status
-- **MediumWidget** — Status + last speed test (deep link `monreseau://details`)
-- **LargeWidget** — Detailed status + "Run speed test" button (`monreseau://speedtest`)
+- **MediumWidget** — Status + last speed test (deep link `netdisco://details`)
+- **LargeWidget** — Detailed status + "Run speed test" button (`netdisco://speedtest`)
 
 ## Implemented Features
 
@@ -158,7 +158,7 @@ Path: `~/Library/Containers/com.SmartColibri.MonReseau/Data/Library/Preferences/
 - **Whois Lookup** — WHOIS queries via NWConnection TCP, auto TLD server detection, redirect following
 - **Interactive Graph Tooltips** — Mouse tracking with cursor line and value bubbles on NetworkGraphView and RSSIGraphView
 - **Tabbed Settings** — Settings reorganized into 4 tabs (General, Notifications, Advanced, Profiles)
-- **Widget Deep Links** — WidgetKit widgets with `monreseau://` URL scheme navigation
+- **Widget Deep Links** — WidgetKit widgets with `netdisco://` URL scheme navigation
 - **Query Favorites** — Save frequent DNS/Whois/Traceroute targets (★ button + popup, UserDefaults, max 20)
 - **Syntax Coloring** — NSAttributedString colorization: IPs in blue, errors in red, headers bold, keys in teal (DNS, Whois, Traceroute)
 - **PDF Export** — Generate A4 PDF report from Teletravail diagnostic (CGContext, NSSavePanel)

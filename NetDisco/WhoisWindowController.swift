@@ -1,5 +1,5 @@
 // WhoisWindowController.swift
-// Mon Réseau
+// NetDisco
 //
 // Fenêtre Whois : interroge les serveurs WHOIS via NWConnection (TCP port 43).
 // Détecte automatiquement le bon serveur WHOIS selon le TLD.

@@ -1,10 +1,10 @@
 // SharedWidgetData.swift
 // Modeles partages entre l'app principale et le widget.
-// Ce fichier doit etre ajoute aux deux targets (MonReseau + MonReseauWidget).
+// Ce fichier doit etre ajoute aux deux targets (NetDisco + NetDiscoWidget).
 
 import Foundation
 
-let appGroupID = "group.com.SmartColibri.MonReseau"
+let appGroupID = "group.com.SmartColibri.NetDisco"
 let widgetDataKey = "WidgetData"
 
 struct WidgetData: Codable {

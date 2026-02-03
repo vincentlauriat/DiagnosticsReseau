@@ -1,5 +1,5 @@
 // SettingsWindowController.swift
-// Mon Réseau
+// NetDisco
 //
 // Fenêtre de réglages avec onglets :
 //   - Général : mode d'affichage, démarrage, apparence

@@ -186,7 +186,7 @@ class LocationService: NSObject, CLLocationManagerDelegate {
         }
 
         var request = URLRequest(url: url, timeoutInterval: 5)
-        request.setValue("MonReseau/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("NetDisco/1.0", forHTTPHeaderField: "User-Agent")
 
         URLSession.shared.dataTask(with: request) { [weak self] data, _, error in
             DispatchQueue.main.async {
@@ -703,7 +703,7 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
         }
 
         let panel = NSSavePanel()
-        panel.nameFieldStringValue = "MonReseau_SpeedTest.csv"
+        panel.nameFieldStringValue = "NetDisco_SpeedTest.csv"
         panel.allowedContentTypes = [.commaSeparatedText]
         panel.canCreateDirectories = true
 
