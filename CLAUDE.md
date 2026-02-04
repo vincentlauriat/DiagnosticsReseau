@@ -38,7 +38,7 @@ These rules **must** be followed for every change:
 
 ## Architecture
 
-15 Swift files in `NetDisco/`, ~13,000 LOC total:
+17 Swift files in `NetDisco/`, ~14,000 LOC total:
 
 | File | LOC | Role |
 |------|-----|------|
@@ -57,6 +57,8 @@ These rules **must** be followed for every change:
 | `NeighborhoodWindowController.swift` | ~1327 | LAN device scanner + port scan + device detail |
 | `BandwidthWindowController.swift` | ~400 | Real-time bandwidth monitor (getifaddrs), throughput graph, session totals |
 | `WhoisWindowController.swift` | ~500 | WHOIS lookup via NWConnection TCP port 43, auto-redirect, 27 TLDs + syntax coloring + favorites |
+| `AppIntents.swift` | ~220 | Siri Shortcuts via App Intents framework (8 intents with French phrases) |
+| `iCloudSyncManager.swift` | ~370 | Optional iCloud sync via NSUbiquitousKeyValueStore for history, favorites, settings |
 
 ## Frameworks & System APIs
 
@@ -70,6 +72,7 @@ These rules **must** be followed for every change:
 | MapKit | Traceroute map |
 | ServiceManagement | SMAppService (login item) |
 | UserNotifications | Connection change alerts, quality degradation, speed test completion |
+| AppIntents | Siri Shortcuts integration (8 intents) |
 | dnssd | DNSServiceQueryRecord |
 | WidgetKit / SwiftUI | Home screen widgets (small, medium, large) |
 
@@ -164,6 +167,8 @@ Path: `~/Library/Containers/com.SmartColibri.NetDisco/Data/Library/Preferences/c
 - **PDF Export** — Generate A4 PDF report from Teletravail diagnostic (CGContext, NSSavePanel)
 - **Network Profiles** — Named WiFi profiles (SSID-based), automatic detection, performance snapshots from speed tests
 - **Scheduled Quality Tests** — Background ICMP ping at configurable intervals (5/15/30/60 min), daily reports with latency/jitter/loss stats
+- **Siri Shortcuts (App Intents)** — 8 intents for Siri and Shortcuts app: speed test, network details, quality, traceroute, WiFi info, teletravail diagnostic, DNS query, WHOIS query. French phrases supported.
+- **iCloud Sync** — Optional NSUbiquitousKeyValueStore sync for history, favorites, profiles, and settings. Graceful fallback when iCloud unavailable. Requires iCloud capability in provisioning profile.
 
 ## Feature Ideas
 
@@ -185,5 +190,34 @@ Potential additions that respect all constraints (sandbox, no shell, App Store c
 
 ### Idées futures
 
-1. **iPad / iPhone version** — Port to iOS/iPadOS.
+#### Fonctionnalités réseau
+
+- **MTR (My Traceroute)** — Combinaison traceroute + ping continu avec stats en temps réel
+- **Multi-ping** — Ping simultané vers plusieurs cibles (Google, Cloudflare, custom) avec comparaison
+- **Test HTTP/HTTPS** — Vérifier la disponibilité et le temps de réponse de sites web
+- **Certificat SSL** — Afficher les infos du certificat SSL d'un domaine (expiration, émetteur)
+- **Détection changement IP** — Notification quand l'IP publique change
+- **Wake on LAN** — Réveiller des appareils sur le réseau local
+
+#### Visualisation & rapports
+
+- **Timeline déconnexions** — Graphe visuel des périodes connecté/déconnecté sur 7/30 jours
+- **Comparaison de profils** — Comparer les performances entre différents réseaux WiFi
+- **Rapports hebdo/mensuels** — Résumé automatique avec tendances et alertes
+- **Zoom sur graphiques** — Sélection de période sur les graphes (1h, 6h, 24h, 7j)
+
+#### Intégration système (Complétée)
+
+- ~~**Raccourcis Siri**~~ — ✅ App Intents implémentés (8 intents avec phrases françaises)
+- ~~**Synchronisation iCloud**~~ — ✅ NSUbiquitousKeyValueStore pour historique, favoris, profils
+- ~~**Widget Notification Center**~~ — ✅ WidgetKit avec 3 tailles (small, medium, large)
+
+#### Diagnostic avancé
+
+- **Analyse automatique** — Détection de problèmes avec suggestions (ex: "Latence élevée, vérifiez votre routeur")
+- **Monitoring continu** — Mode "dashboard" avec refresh automatique de toutes les stats
+
+#### Autre
+
+- **iPad / iPhone version** — Port to iOS/iPadOS
 

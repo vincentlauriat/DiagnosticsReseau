@@ -703,7 +703,10 @@ class SpeedTestWindowController: NSWindowController, NSTableViewDataSource, NSTa
         }
 
         let panel = NSSavePanel()
-        panel.nameFieldStringValue = "NetDisco_SpeedTest.csv"
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
+        let timestamp = dateFormatter.string(from: Date())
+        panel.nameFieldStringValue = "NetDisco_SpeedTest_\(timestamp).csv"
         panel.allowedContentTypes = [.commaSeparatedText]
         panel.canCreateDirectories = true
 

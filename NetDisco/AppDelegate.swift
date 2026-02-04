@@ -10,6 +10,7 @@ import ServiceManagement
 import UserNotifications
 import WidgetKit
 import CoreWLAN
+import CoreLocation
 
 // MARK: - Scheduled Quality Tests
 
@@ -113,12 +114,13 @@ class ScheduledTestStorage {
 }
 
 /// AppDelegate gerant deux modes : barre de menus (status item) ou application normale (Dock + barre de menus macOS).
-class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDelegate, CLLocationManagerDelegate {
 
     // Fenêtres et surveillance
     private var statusItem: NSStatusItem?
     private var statusMenu: NSMenu?
     private let monitor = NWPathMonitor()
+    private let locationManager = CLLocationManager()
     private let monitorQueue = DispatchQueue(label: "NetworkMonitor")
     private var detailWindowController: NetworkDetailWindowController?
     private var qualityWindowController: NetworkQualityWindowController?
@@ -181,6 +183,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
         UNUserNotificationCenter.current().delegate = self
 
+        // Demander l'autorisation de localisation (nécessaire pour accéder au SSID WiFi sur macOS Sonoma+)
+        locationManager.delegate = self
+        if locationManager.authorizationStatus == .notDetermined {
+            locationManager.requestWhenInUseAuthorization()
+        }
+
         NotificationCenter.default.addObserver(self, selector: #selector(updateGeekModeVisibility), name: Notification.Name("GeekModeChanged"), object: nil)
 
         applyAppearance()
@@ -236,9 +244,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
 
         // Tests qualité planifiés
         startScheduledTestsIfNeeded()
+
+        // Démarrer la synchronisation iCloud si activée
+        if UserDefaults.standard.bool(forKey: "iCloudSyncEnabled") {
+            iCloudSyncManager.shared.startSync()
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        // Arrêter la synchronisation iCloud
+        iCloudSyncManager.shared.stopSync()
         monitor.cancel()
         menuBarPingTimer?.invalidate()
         scheduledTestTimer?.invalidate()
@@ -1216,6 +1231,18 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         completionHandler([.banner, .sound])
+    }
+}
+
+// MARK: - CLLocationManagerDelegate
+
+extension AppDelegate {
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        // Quand l'autorisation change, rafraîchir les données WiFi
+        // L'accès au SSID nécessite l'autorisation de localisation sur macOS Sonoma+
+        DispatchQueue.main.async { [weak self] in
+            self?.updateWidgetData()
+        }
     }
 }
 

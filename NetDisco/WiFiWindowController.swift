@@ -630,8 +630,16 @@ class WiFiWindowController: NSWindowController {
         }
 
         // Verifier que le WiFi est associe a un reseau
+        // Note: ssid() peut retourner nil sur macOS Sonoma+ si les permissions de localisation ne sont pas accordees
+        // On utilise wlanChannel() pour detecter si le WiFi est connecte meme sans acces au SSID
         let ssid = client.ssid()
-        guard let ssid = ssid, !ssid.isEmpty else {
+        let channel = client.wlanChannel()
+        let rssi = client.rssiValue()
+
+        // Si pas de canal et RSSI invalide, le WiFi n'est vraiment pas connecte
+        let isConnected = channel != nil || (rssi != 0 && rssi > -100)
+
+        guard isConnected else {
             ssidLabel.stringValue = NSLocalizedString("wifi.status.disconnected", comment: "")
             bssidLabel.stringValue = "—"
             securityLabel.stringValue = "—"
@@ -652,8 +660,10 @@ class WiFiWindowController: NSWindowController {
             return
         }
 
-        ssidLabel.stringValue = ssid
-        window?.title = String(format: NSLocalizedString("wifi.window.title.connected", comment: ""), ssid)
+        // Afficher le SSID ou "SSID privé" si non accessible (permissions de localisation)
+        let displaySSID = (ssid != nil && !ssid!.isEmpty) ? ssid! : NSLocalizedString("wifi.status.private_ssid", comment: "")
+        ssidLabel.stringValue = displaySSID
+        window?.title = String(format: NSLocalizedString("wifi.window.title.connected", comment: ""), displaySSID)
 
         // BSSID
         bssidLabel.stringValue = client.bssid() ?? "—"
@@ -674,8 +684,7 @@ class WiFiWindowController: NSWindowController {
         }
         securityLabel.stringValue = secStr
 
-        // RSSI et bruit
-        let rssi = client.rssiValue()
+        // RSSI et bruit (rssi deja recupere plus haut pour detecter la connexion)
         let noise = client.noiseMeasurement()
         let snr = rssi - noise
 

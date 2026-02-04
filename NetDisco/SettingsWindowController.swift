@@ -117,11 +117,12 @@ class SettingsWindowController: NSWindowController {
     private var pingTargetField: NSTextField!
     private var appearanceSegmented: NSSegmentedControl!
     private var geekModeCheckbox: NSButton!
+    private var iCloudSyncCheckbox: NSButton!
     private var profilesTableView: NSTableView?
 
     convenience init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 480, height: 380),
+            contentRect: NSRect(x: 0, y: 0, width: 500, height: 480),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -283,9 +284,32 @@ class SettingsWindowController: NSWindowController {
     // MARK: - Onglet Notifications
 
     private func buildNotificationsTab() -> NSView {
+        let containerView = NSView()
+
+        // Créer un scroll view pour gérer le contenu
+        let scrollView = NSScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.hasVerticalScroller = true
+        scrollView.hasHorizontalScroller = false
+        scrollView.autohidesScrollers = true
+        scrollView.borderType = .noBorder
+        scrollView.drawsBackground = false
+        containerView.addSubview(scrollView)
+
+        NSLayoutConstraint.activate([
+            scrollView.topAnchor.constraint(equalTo: containerView.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+        ])
+
+        // Document view (contenu scrollable)
         let view = NSView()
-        let m: CGFloat = 20
-        let sp: CGFloat = 16
+        view.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.documentView = view
+
+        let m: CGFloat = 16
+        let sp: CGFloat = 12
         let ssp: CGFloat = 4
         let di: CGFloat = 18
 
@@ -312,45 +336,62 @@ class SettingsWindowController: NSWindowController {
         notifyQualityCheckbox.state = UserDefaults.standard.bool(forKey: "NotifyQualityDegradation") ? .on : .off
         view.addSubview(notifyQualityCheckbox)
 
+        // Conteneur horizontal pour les seuils (plus compact)
+        let thresholdsStack = NSStackView()
+        thresholdsStack.orientation = .horizontal
+        thresholdsStack.spacing = 20
+        thresholdsStack.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(thresholdsStack)
+
+        // Seuil latence
+        let latencyStack = NSStackView()
+        latencyStack.orientation = .horizontal
+        latencyStack.spacing = 4
+
         let latencyThresholdLabel = NSTextField(labelWithString: NSLocalizedString("settings.notify_quality.latency_threshold", comment: ""))
-        latencyThresholdLabel.font = NSFont.systemFont(ofSize: 12)
-        latencyThresholdLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(latencyThresholdLabel)
+        latencyThresholdLabel.font = NSFont.systemFont(ofSize: 11)
+        latencyStack.addArrangedSubview(latencyThresholdLabel)
 
         latencyThresholdField = NSTextField()
-        latencyThresholdField.translatesAutoresizingMaskIntoConstraints = false
         latencyThresholdField.placeholderString = "100"
         let savedLatThreshold = UserDefaults.standard.object(forKey: "NotifyLatencyThreshold") as? Double ?? 100
         latencyThresholdField.stringValue = String(format: "%.0f", savedLatThreshold)
         latencyThresholdField.formatter = NumberFormatter()
         latencyThresholdField.target = self
         latencyThresholdField.action = #selector(latencyThresholdChanged)
-        view.addSubview(latencyThresholdField)
+        latencyThresholdField.widthAnchor.constraint(equalToConstant: 50).isActive = true
+        latencyStack.addArrangedSubview(latencyThresholdField)
 
         let latencyUnitLabel = NSTextField(labelWithString: "ms")
-        latencyUnitLabel.font = NSFont.systemFont(ofSize: 12)
-        latencyUnitLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(latencyUnitLabel)
+        latencyUnitLabel.font = NSFont.systemFont(ofSize: 11)
+        latencyStack.addArrangedSubview(latencyUnitLabel)
+
+        thresholdsStack.addArrangedSubview(latencyStack)
+
+        // Seuil perte
+        let lossStack = NSStackView()
+        lossStack.orientation = .horizontal
+        lossStack.spacing = 4
 
         let lossThresholdLabel = NSTextField(labelWithString: NSLocalizedString("settings.notify_quality.loss_threshold", comment: ""))
-        lossThresholdLabel.font = NSFont.systemFont(ofSize: 12)
-        lossThresholdLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(lossThresholdLabel)
+        lossThresholdLabel.font = NSFont.systemFont(ofSize: 11)
+        lossStack.addArrangedSubview(lossThresholdLabel)
 
         lossThresholdField = NSTextField()
-        lossThresholdField.translatesAutoresizingMaskIntoConstraints = false
         lossThresholdField.placeholderString = "5"
         let savedLossThreshold = UserDefaults.standard.object(forKey: "NotifyLossThreshold") as? Double ?? 5
         lossThresholdField.stringValue = String(format: "%.0f", savedLossThreshold)
         lossThresholdField.formatter = NumberFormatter()
         lossThresholdField.target = self
         lossThresholdField.action = #selector(lossThresholdChanged)
-        view.addSubview(lossThresholdField)
+        lossThresholdField.widthAnchor.constraint(equalToConstant: 50).isActive = true
+        lossStack.addArrangedSubview(lossThresholdField)
 
         let lossUnitLabel = NSTextField(labelWithString: "%")
-        lossUnitLabel.font = NSFont.systemFont(ofSize: 12)
-        lossUnitLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(lossUnitLabel)
+        lossUnitLabel.font = NSFont.systemFont(ofSize: 11)
+        lossStack.addArrangedSubview(lossUnitLabel)
+
+        thresholdsStack.addArrangedSubview(lossStack)
 
         let sep2 = makeSeparator(in: view)
 
@@ -382,10 +423,16 @@ class SettingsWindowController: NSWindowController {
         scheduledEnableCheckbox.state = UserDefaults.standard.bool(forKey: "ScheduledQualityTestEnabled") ? .on : .off
         view.addSubview(scheduledEnableCheckbox)
 
+        // Intervalle sur la même ligne
+        let intervalStack = NSStackView()
+        intervalStack.orientation = .horizontal
+        intervalStack.spacing = 8
+        intervalStack.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(intervalStack)
+
         let scheduledIntervalLabel = NSTextField(labelWithString: NSLocalizedString("scheduled.interval", comment: ""))
-        scheduledIntervalLabel.font = NSFont.systemFont(ofSize: 12)
-        scheduledIntervalLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(scheduledIntervalLabel)
+        scheduledIntervalLabel.font = NSFont.systemFont(ofSize: 11)
+        intervalStack.addArrangedSubview(scheduledIntervalLabel)
 
         let scheduledIntervalPopup = NSPopUpButton()
         scheduledIntervalPopup.addItems(withTitles: [
@@ -394,7 +441,6 @@ class SettingsWindowController: NSWindowController {
             NSLocalizedString("scheduled.interval.30", comment: ""),
             NSLocalizedString("scheduled.interval.60", comment: ""),
         ])
-        scheduledIntervalPopup.translatesAutoresizingMaskIntoConstraints = false
         scheduledIntervalPopup.target = self
         scheduledIntervalPopup.action = #selector(scheduledIntervalChanged)
         let savedInterval = UserDefaults.standard.integer(forKey: "ScheduledQualityTestInterval")
@@ -404,7 +450,7 @@ class SettingsWindowController: NSWindowController {
         case 60: scheduledIntervalPopup.selectItem(at: 3)
         default: scheduledIntervalPopup.selectItem(at: 0)
         }
-        view.addSubview(scheduledIntervalPopup)
+        intervalStack.addArrangedSubview(scheduledIntervalPopup)
 
         let scheduledDailyCheckbox = NSButton(checkboxWithTitle: NSLocalizedString("scheduled.daily.enable", comment: ""), target: self, action: #selector(scheduledDailyChanged))
         scheduledDailyCheckbox.translatesAutoresizingMaskIntoConstraints = false
@@ -412,7 +458,12 @@ class SettingsWindowController: NSWindowController {
         scheduledDailyCheckbox.state = UserDefaults.standard.bool(forKey: "ScheduledDailyNotification") ? .on : .off
         view.addSubview(scheduledDailyCheckbox)
 
+        // Contraintes pour le document view
         NSLayoutConstraint.activate([
+            view.leadingAnchor.constraint(equalTo: scrollView.contentView.leadingAnchor),
+            view.trailingAnchor.constraint(equalTo: scrollView.contentView.trailingAnchor),
+            view.widthAnchor.constraint(equalTo: scrollView.contentView.widthAnchor),
+
             notifyConnectionCheckbox.topAnchor.constraint(equalTo: view.topAnchor, constant: m),
             notifyConnectionCheckbox.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: m),
             notifyConnectionCheckbox.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -m),
@@ -428,23 +479,10 @@ class SettingsWindowController: NSWindowController {
             notifyQualityCheckbox.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: m),
             notifyQualityCheckbox.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -m),
 
-            latencyThresholdLabel.topAnchor.constraint(equalTo: notifyQualityCheckbox.bottomAnchor, constant: 8),
-            latencyThresholdLabel.leadingAnchor.constraint(equalTo: notifyQualityCheckbox.leadingAnchor, constant: di),
-            latencyThresholdField.centerYAnchor.constraint(equalTo: latencyThresholdLabel.centerYAnchor),
-            latencyThresholdField.leadingAnchor.constraint(equalTo: latencyThresholdLabel.trailingAnchor, constant: 8),
-            latencyThresholdField.widthAnchor.constraint(equalToConstant: 60),
-            latencyUnitLabel.centerYAnchor.constraint(equalTo: latencyThresholdField.centerYAnchor),
-            latencyUnitLabel.leadingAnchor.constraint(equalTo: latencyThresholdField.trailingAnchor, constant: 4),
+            thresholdsStack.topAnchor.constraint(equalTo: notifyQualityCheckbox.bottomAnchor, constant: 6),
+            thresholdsStack.leadingAnchor.constraint(equalTo: notifyQualityCheckbox.leadingAnchor, constant: di),
 
-            lossThresholdLabel.topAnchor.constraint(equalTo: latencyThresholdLabel.bottomAnchor, constant: 6),
-            lossThresholdLabel.leadingAnchor.constraint(equalTo: latencyThresholdLabel.leadingAnchor),
-            lossThresholdField.centerYAnchor.constraint(equalTo: lossThresholdLabel.centerYAnchor),
-            lossThresholdField.leadingAnchor.constraint(equalTo: lossThresholdLabel.trailingAnchor, constant: 8),
-            lossThresholdField.widthAnchor.constraint(equalToConstant: 60),
-            lossUnitLabel.centerYAnchor.constraint(equalTo: lossThresholdField.centerYAnchor),
-            lossUnitLabel.leadingAnchor.constraint(equalTo: lossThresholdField.trailingAnchor, constant: 4),
-
-            sep2.topAnchor.constraint(equalTo: lossThresholdLabel.bottomAnchor, constant: sp),
+            sep2.topAnchor.constraint(equalTo: thresholdsStack.bottomAnchor, constant: sp),
             sep2.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: m),
             sep2.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -m),
 
@@ -462,20 +500,18 @@ class SettingsWindowController: NSWindowController {
             scheduledTitle.topAnchor.constraint(equalTo: sep3.bottomAnchor, constant: sp),
             scheduledTitle.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: m),
 
-            scheduledEnableCheckbox.topAnchor.constraint(equalTo: scheduledTitle.bottomAnchor, constant: 8),
+            scheduledEnableCheckbox.topAnchor.constraint(equalTo: scheduledTitle.bottomAnchor, constant: 6),
             scheduledEnableCheckbox.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: m),
 
-            scheduledIntervalLabel.topAnchor.constraint(equalTo: scheduledEnableCheckbox.bottomAnchor, constant: 8),
-            scheduledIntervalLabel.leadingAnchor.constraint(equalTo: scheduledEnableCheckbox.leadingAnchor, constant: di),
-            scheduledIntervalPopup.centerYAnchor.constraint(equalTo: scheduledIntervalLabel.centerYAnchor),
-            scheduledIntervalPopup.leadingAnchor.constraint(equalTo: scheduledIntervalLabel.trailingAnchor, constant: 8),
-            scheduledIntervalPopup.widthAnchor.constraint(equalToConstant: 120),
+            intervalStack.topAnchor.constraint(equalTo: scheduledEnableCheckbox.bottomAnchor, constant: 6),
+            intervalStack.leadingAnchor.constraint(equalTo: scheduledEnableCheckbox.leadingAnchor, constant: di),
 
-            scheduledDailyCheckbox.topAnchor.constraint(equalTo: scheduledIntervalLabel.bottomAnchor, constant: 8),
+            scheduledDailyCheckbox.topAnchor.constraint(equalTo: intervalStack.bottomAnchor, constant: 6),
             scheduledDailyCheckbox.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: m),
+            scheduledDailyCheckbox.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -m),
         ])
 
-        return view
+        return containerView
     }
 
     // MARK: - Onglet Avancé
@@ -558,6 +594,22 @@ class SettingsWindowController: NSWindowController {
         geekDesc.isSelectable = false
         view.addSubview(geekDesc)
 
+        let sep3 = makeSeparator(in: view)
+
+        // Synchronisation iCloud
+        iCloudSyncCheckbox = NSButton(checkboxWithTitle: NSLocalizedString("settings.icloud.title", comment: ""), target: self, action: #selector(iCloudSyncChanged))
+        iCloudSyncCheckbox.translatesAutoresizingMaskIntoConstraints = false
+        iCloudSyncCheckbox.font = NSFont.systemFont(ofSize: 13, weight: .medium)
+        iCloudSyncCheckbox.state = UserDefaults.standard.bool(forKey: "iCloudSyncEnabled") ? .on : .off
+        view.addSubview(iCloudSyncCheckbox)
+
+        let iCloudDesc = NSTextField(wrappingLabelWithString: NSLocalizedString("settings.icloud.description", comment: ""))
+        iCloudDesc.translatesAutoresizingMaskIntoConstraints = false
+        iCloudDesc.font = NSFont.systemFont(ofSize: 11)
+        iCloudDesc.textColor = .secondaryLabelColor
+        iCloudDesc.isSelectable = false
+        view.addSubview(iCloudDesc)
+
         NSLayoutConstraint.activate([
             menuBarLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: m),
             menuBarLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: m),
@@ -591,6 +643,17 @@ class SettingsWindowController: NSWindowController {
             geekDesc.topAnchor.constraint(equalTo: geekModeCheckbox.bottomAnchor, constant: ssp),
             geekDesc.leadingAnchor.constraint(equalTo: geekModeCheckbox.leadingAnchor, constant: di),
             geekDesc.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -m),
+
+            sep3.topAnchor.constraint(equalTo: geekDesc.bottomAnchor, constant: sp),
+            sep3.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: m),
+            sep3.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -m),
+
+            iCloudSyncCheckbox.topAnchor.constraint(equalTo: sep3.bottomAnchor, constant: sp),
+            iCloudSyncCheckbox.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: m),
+            iCloudSyncCheckbox.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -m),
+            iCloudDesc.topAnchor.constraint(equalTo: iCloudSyncCheckbox.bottomAnchor, constant: ssp),
+            iCloudDesc.leadingAnchor.constraint(equalTo: iCloudSyncCheckbox.leadingAnchor, constant: di),
+            iCloudDesc.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -m),
         ])
 
         return view
@@ -698,6 +761,17 @@ class SettingsWindowController: NSWindowController {
     @objc private func geekModeChanged(_ sender: NSButton) {
         UserDefaults.standard.set(sender.state == .on, forKey: "GeekMode")
         NotificationCenter.default.post(name: Notification.Name("GeekModeChanged"), object: nil)
+    }
+
+    @objc private func iCloudSyncChanged(_ sender: NSButton) {
+        let enabled = sender.state == .on
+        UserDefaults.standard.set(enabled, forKey: "iCloudSyncEnabled")
+        if enabled {
+            iCloudSyncManager.shared.startSync()
+            iCloudSyncManager.shared.uploadToCloud()
+        } else {
+            iCloudSyncManager.shared.stopSync()
+        }
     }
 
     // MARK: - Onglet Profils réseau

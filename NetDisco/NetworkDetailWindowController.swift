@@ -675,16 +675,26 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
 
     private func getWiFiInfo() -> [(String, String)]? {
         guard let client = CWWiFiClient.shared().interface() else { return nil }
+
+        // Verifier que le WiFi est connecte via wlanChannel() (fonctionne sans permissions de localisation)
+        let channel = client.wlanChannel()
+        let rssi = client.rssiValue()
+        let isConnected = channel != nil || (rssi != 0 && rssi > -100)
+        guard isConnected else { return nil }
+
         var items: [(String, String)] = []
 
-        if let ssid = client.ssid() {
+        // Afficher le SSID ou "SSID privé" si non accessible (permissions de localisation sur macOS Sonoma+)
+        if let ssid = client.ssid(), !ssid.isEmpty {
             items.append(("SSID", ssid))
+        } else {
+            items.append(("SSID", NSLocalizedString("wifi.status.private_ssid", comment: "")))
         }
         if let bssid = client.bssid() {
             items.append(("BSSID", bssid))
         }
 
-        items.append(("RSSI", "\(client.rssiValue()) dBm"))
+        items.append(("RSSI", "\(rssi) dBm"))
         items.append((NSLocalizedString("netdetail.label.noise", comment: ""), "\(client.noiseMeasurement()) dBm"))
 
         if let channel = client.wlanChannel() {

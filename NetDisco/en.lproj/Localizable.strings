@@ -106,6 +106,9 @@
 "settings.geek.title" = "Geek Mode";
 "settings.geek.description" = "Shows technical tools in the menu: network details, quality, speed test, traceroute, DNS, WiFi, and neighborhood.";
 
+"settings.icloud.title" = "iCloud Sync";
+"settings.icloud.description" = "Syncs test history, favorites, and network profiles across your devices via iCloud. Requires an active iCloud account.";
+
 /* =========================
    MainWindowController
    ========================= */
@@ -231,6 +234,34 @@
 "guide.urlscheme.title" = "Deep Links (URL Scheme)";
 "guide.urlscheme.intro" = "NetDisco registers the netdisco:// scheme to open a specific window directly. These links work from Safari, Terminal, Spotlight, Widgets or any other application.";
 "guide.urlscheme.usage" = "Example: open Terminal and type \"open netdisco://speedtest\" to launch the speed test directly. WidgetKit widgets use these links to navigate to the app.";
+
+/* Siri and Shortcuts */
+"guide.siri.title" = "Siri and Shortcuts";
+"guide.siri.intro" = "NetDisco integrates with Siri and the Shortcuts app to run network diagnostics by voice or through automations.";
+"guide.siri.examples.title" = "Voice command examples";
+"guide.siri.example.speedtest" = "\"Hey Siri, run a speed test with NetDisco\"";
+"guide.siri.example.quality" = "\"Hey Siri, network quality with NetDisco\"";
+"guide.siri.example.wifi" = "\"Hey Siri, WiFi info with NetDisco\"";
+"guide.siri.example.teletravail" = "\"Hey Siri, remote work diagnostic with NetDisco\"";
+"guide.siri.example.details" = "\"Hey Siri, show network details with NetDisco\"";
+"guide.siri.available.title" = "Available shortcuts";
+"guide.siri.intent.speedtest" = "Speed Test";
+"guide.siri.intent.speedtest.desc" = "Run a speed test";
+"guide.siri.intent.details" = "Network Details";
+"guide.siri.intent.details.desc" = "Display network info";
+"guide.siri.intent.quality" = "Network Quality";
+"guide.siri.intent.quality.desc" = "Measure latency and jitter";
+"guide.siri.intent.traceroute" = "Traceroute";
+"guide.siri.intent.traceroute.desc" = "Trace the network path";
+"guide.siri.intent.wifi" = "WiFi Info";
+"guide.siri.intent.wifi.desc" = "WiFi connection details";
+"guide.siri.intent.teletravail" = "Remote Work Diagnostic";
+"guide.siri.intent.teletravail.desc" = "Full diagnostic";
+"guide.siri.intent.dns" = "DNS Query";
+"guide.siri.intent.dns.desc" = "Query DNS servers";
+"guide.siri.intent.whois" = "WHOIS Query";
+"guide.siri.intent.whois.desc" = "Domain information";
+"guide.siri.shortcuts_app" = "To create custom automations, open the Shortcuts app and search for \"NetDisco\" in the available actions. You can combine these shortcuts with other actions, trigger them at specific times or based on events.";
 
 "guide.shortcuts.title" = "Keyboard Shortcuts";
 "guide.shortcuts.intro" = "In menu bar mode, global shortcuts use Ctrl+Option+letter. In application mode, use Cmd+letter in the menus.";
@@ -504,6 +535,7 @@
 
 /* Status */
 "wifi.status.disconnected" = "Not connected";
+"wifi.status.private_ssid" = "WiFi Network (Private SSID)";
 "wifi.unknown" = "Unknown";
 
 /* Security */

@@ -433,21 +433,35 @@ class TeletravailWindowController: NSWindowController {
     }
 
     private func refreshWiFi() {
-        guard let client = CWWiFiClient.shared().interface(),
-              let ssid = client.ssid(), !ssid.isEmpty else {
+        guard let client = CWWiFiClient.shared().interface() else {
             wifiValueLabel.stringValue = NSLocalizedString("teletravail.wifi.disconnected", comment: "")
             wifiDetailLabel.stringValue = ""
             wifiStatusDot.layer?.backgroundColor = NSColor.systemRed.cgColor
             return
         }
 
+        // Note: ssid() peut retourner nil sur macOS Sonoma+ si les permissions de localisation ne sont pas accordees
+        // On utilise wlanChannel() pour detecter si le WiFi est connecte meme sans acces au SSID
+        let ssid = client.ssid()
+        let channel = client.wlanChannel()
         let rssi = client.rssiValue()
         let txRate = client.transmitRate()
 
+        // Si pas de canal et RSSI invalide, le WiFi n'est vraiment pas connecte
+        let isConnected = channel != nil || (rssi != 0 && rssi > -100)
+
+        guard isConnected else {
+            wifiValueLabel.stringValue = NSLocalizedString("teletravail.wifi.disconnected", comment: "")
+            wifiDetailLabel.stringValue = ""
+            wifiStatusDot.layer?.backgroundColor = NSColor.systemRed.cgColor
+            return
+        }
+
         wifiValueLabel.stringValue = "\(rssi) dBm"
 
-        var detail = ssid
-        if let ch = client.wlanChannel() {
+        // Afficher le SSID ou "SSID privé" si non accessible
+        var detail = (ssid != nil && !ssid!.isEmpty) ? ssid! : NSLocalizedString("wifi.status.private_ssid", comment: "")
+        if let ch = channel {
             switch ch.channelBand {
             case .band2GHz: detail += " · 2.4 GHz"
             case .band5GHz: detail += " · 5 GHz"
@@ -738,7 +752,10 @@ class TeletravailWindowController: NSWindowController {
     @objc private func exportPDF() {
         let savePanel = NSSavePanel()
         savePanel.allowedContentTypes = [UTType.pdf]
-        savePanel.nameFieldStringValue = "NetDisco-Diagnostic.pdf"
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
+        let timestamp = dateFormatter.string(from: Date())
+        savePanel.nameFieldStringValue = "NetDisco-Diagnostic_\(timestamp).pdf"
         savePanel.beginSheetModal(for: window!) { [weak self] response in
             guard response == .OK, let url = savePanel.url, let self = self else { return }
             self.generatePDF(to: url)

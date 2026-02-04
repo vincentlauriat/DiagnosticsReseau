@@ -258,7 +258,57 @@ class GuideWindowController: NSWindowController {
 
         addSpacer(to: stack)
 
-        // ── Raccourcis ──
+        // ── Siri et Raccourcis ──
+        addSectionTitle(NSLocalizedString("guide.siri.title", comment: ""), to: stack)
+        addParagraph(NSLocalizedString("guide.siri.intro", comment: ""), to: stack)
+
+        addSubTitle(NSLocalizedString("guide.siri.examples.title", comment: ""), to: stack)
+        addBulletList([
+            NSLocalizedString("guide.siri.example.speedtest", comment: ""),
+            NSLocalizedString("guide.siri.example.quality", comment: ""),
+            NSLocalizedString("guide.siri.example.wifi", comment: ""),
+            NSLocalizedString("guide.siri.example.teletravail", comment: ""),
+            NSLocalizedString("guide.siri.example.details", comment: ""),
+        ], to: stack)
+
+        addSubTitle(NSLocalizedString("guide.siri.available.title", comment: ""), to: stack)
+
+        let siriIntents: [(String, String)] = [
+            (NSLocalizedString("guide.siri.intent.speedtest", comment: ""), NSLocalizedString("guide.siri.intent.speedtest.desc", comment: "")),
+            (NSLocalizedString("guide.siri.intent.details", comment: ""), NSLocalizedString("guide.siri.intent.details.desc", comment: "")),
+            (NSLocalizedString("guide.siri.intent.quality", comment: ""), NSLocalizedString("guide.siri.intent.quality.desc", comment: "")),
+            (NSLocalizedString("guide.siri.intent.traceroute", comment: ""), NSLocalizedString("guide.siri.intent.traceroute.desc", comment: "")),
+            (NSLocalizedString("guide.siri.intent.wifi", comment: ""), NSLocalizedString("guide.siri.intent.wifi.desc", comment: "")),
+            (NSLocalizedString("guide.siri.intent.teletravail", comment: ""), NSLocalizedString("guide.siri.intent.teletravail.desc", comment: "")),
+            (NSLocalizedString("guide.siri.intent.dns", comment: ""), NSLocalizedString("guide.siri.intent.dns.desc", comment: "")),
+            (NSLocalizedString("guide.siri.intent.whois", comment: ""), NSLocalizedString("guide.siri.intent.whois.desc", comment: "")),
+        ]
+
+        let siriGrid = NSGridView(numberOfColumns: 2, rows: 0)
+        siriGrid.translatesAutoresizingMaskIntoConstraints = false
+        siriGrid.columnSpacing = 16
+        siriGrid.rowSpacing = 4
+        siriGrid.column(at: 0).xPlacement = .leading
+        siriGrid.column(at: 1).xPlacement = .leading
+
+        for (intent, desc) in siriIntents {
+            let intentLabel = NSTextField(labelWithString: intent)
+            intentLabel.font = NSFont.systemFont(ofSize: 12, weight: .medium)
+            intentLabel.textColor = .controlAccentColor
+            let descLabel = NSTextField(labelWithString: desc)
+            descLabel.font = NSFont.systemFont(ofSize: 12)
+            descLabel.textColor = .secondaryLabelColor
+            siriGrid.addRow(with: [intentLabel, descLabel])
+        }
+
+        stack.addArrangedSubview(siriGrid)
+        siriGrid.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -56).isActive = true
+
+        addParagraph(NSLocalizedString("guide.siri.shortcuts_app", comment: ""), to: stack)
+
+        addSpacer(to: stack)
+
+        // ── Raccourcis clavier ──
         addSectionTitle(NSLocalizedString("guide.shortcuts.title", comment: ""), to: stack)
         addParagraph(NSLocalizedString("guide.shortcuts.intro", comment: ""), to: stack)
 

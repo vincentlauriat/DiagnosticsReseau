@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		8B9A0001290000000000001B /* GuideWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B9A0001290000000000001A /* GuideWindowController.swift */; };
 		8B9A000200000000000000F4 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 8B9A000200000000000000F3 /* Localizable.strings */; };
+		FF000000000000000000001 /* AppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF000000000000000000002 /* AppIntents.swift */; };
+		FF000000000000000000003 /* iCloudSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF000000000000000000004 /* iCloudSyncManager.swift */; };
 		A1000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002 /* AppDelegate.swift */; };
 		A1000006 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000007 /* main.swift */; };
 		A1000008 /* NetworkDetailWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000009 /* NetworkDetailWindowController.swift */; };
@@ -84,6 +86,8 @@
 		BF77DCFF2F2B892E00DDF5E2 /* ARCHITECTURE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ARCHITECTURE.md; sourceTree = "<group>"; };
 		BF8500B02F2A5ABC00D6E513 /* CLAUDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CLAUDE.md; sourceTree = "<group>"; };
 		DD000000000000000000002 /* SharedWidgetData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedWidgetData.swift; sourceTree = "<group>"; };
+		FF000000000000000000002 /* AppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntents.swift; sourceTree = "<group>"; };
+		FF000000000000000000004 /* iCloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iCloudSyncManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -152,6 +156,8 @@
 				EE000000000000000000002 /* WhoisWindowController.swift */,
 				8B9A0001290000000000001A /* GuideWindowController.swift */,
 				DD000000000000000000002 /* SharedWidgetData.swift */,
+				FF000000000000000000002 /* AppIntents.swift */,
+				FF000000000000000000004 /* iCloudSyncManager.swift */,
 				8B9A000200000000000000F3 /* Localizable.strings */,
 				A2000002 /* Assets.xcassets */,
 				A1000003 /* Info.plist */,
@@ -318,6 +324,8 @@
 				EE000000000000000000001 /* WhoisWindowController.swift in Sources */,
 				8B9A0001290000000000001B /* GuideWindowController.swift in Sources */,
 				DD000000000000000000001 /* SharedWidgetData.swift in Sources */,
+				FF000000000000000000001 /* AppIntents.swift in Sources */,
+				FF000000000000000000003 /* iCloudSyncManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
