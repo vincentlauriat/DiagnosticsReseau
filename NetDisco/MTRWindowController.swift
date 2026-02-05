@@ -13,44 +13,102 @@ class MTRHop {
     let hopNumber: Int
     var ipAddress: String
     var hostname: String?
-    var latencies: [Double] = []
-    var sentCount: Int = 0
-    var timeoutCount: Int = 0
+    private let lock = NSLock()
+    private var _latencies: [Double] = []
+    private var _sentCount: Int = 0
+    private var _timeoutCount: Int = 0
 
     init(hopNumber: Int, ipAddress: String) {
         self.hopNumber = hopNumber
         self.ipAddress = ipAddress
     }
 
+    // Thread-safe accessors
+    var latencies: [Double] {
+        lock.lock()
+        let copy = _latencies
+        lock.unlock()
+        return copy
+    }
+
+    var sentCount: Int {
+        lock.lock()
+        let count = _sentCount
+        lock.unlock()
+        return count
+    }
+
+    var timeoutCount: Int {
+        lock.lock()
+        let count = _timeoutCount
+        lock.unlock()
+        return count
+    }
+
+    // Thread-safe mutation methods
+    func incrementSentCount() {
+        lock.lock()
+        _sentCount += 1
+        lock.unlock()
+    }
+
+    func incrementTimeoutCount() {
+        lock.lock()
+        _timeoutCount += 1
+        lock.unlock()
+    }
+
+    func addLatency(_ latency: Double, maxCount: Int) {
+        lock.lock()
+        _latencies.append(latency)
+        if _latencies.count > maxCount {
+            _latencies.removeFirst()
+        }
+        lock.unlock()
+    }
+
     var receivedCount: Int {
-        return sentCount - timeoutCount
+        lock.lock()
+        let count = _sentCount - _timeoutCount
+        lock.unlock()
+        return count
     }
 
     var avgLatency: Double {
-        guard !latencies.isEmpty else { return 0 }
-        return latencies.reduce(0, +) / Double(latencies.count)
+        lock.lock()
+        defer { lock.unlock() }
+        guard !_latencies.isEmpty else { return 0 }
+        return _latencies.reduce(0, +) / Double(_latencies.count)
     }
 
     var minLatency: Double {
-        latencies.min() ?? 0
+        lock.lock()
+        defer { lock.unlock() }
+        return _latencies.min() ?? 0
     }
 
     var maxLatency: Double {
-        latencies.max() ?? 0
+        lock.lock()
+        defer { lock.unlock() }
+        return _latencies.max() ?? 0
     }
 
     var jitter: Double {
-        guard latencies.count > 1 else { return 0 }
+        lock.lock()
+        defer { lock.unlock() }
+        guard _latencies.count > 1 else { return 0 }
         var diffs: [Double] = []
-        for i in 1..<latencies.count {
-            diffs.append(abs(latencies[i] - latencies[i-1]))
+        for i in 1..<_latencies.count {
+            diffs.append(abs(_latencies[i] - _latencies[i-1]))
         }
         return diffs.reduce(0, +) / Double(diffs.count)
     }
 
     var lossPercent: Double {
-        guard sentCount > 0 else { return 0 }
-        return Double(timeoutCount) / Double(sentCount) * 100
+        lock.lock()
+        defer { lock.unlock() }
+        guard _sentCount > 0 else { return 0 }
+        return Double(_timeoutCount) / Double(_sentCount) * 100
     }
 }
 
@@ -468,14 +526,11 @@ class MTRWindowController: NSWindowController {
             for hop in hopsToTest {
                 guard self?.isRunning == true else { break }
 
-                hop.sentCount += 1
+                hop.incrementSentCount()
                 if let latency = self?.pingHost(hop.ipAddress) {
-                    hop.latencies.append(latency)
-                    if hop.latencies.count > (self?.maxLatencies ?? 100) {
-                        hop.latencies.removeFirst()
-                    }
+                    hop.addLatency(latency, maxCount: self?.maxLatencies ?? 100)
                 } else {
-                    hop.timeoutCount += 1
+                    hop.incrementTimeoutCount()
                 }
             }
 

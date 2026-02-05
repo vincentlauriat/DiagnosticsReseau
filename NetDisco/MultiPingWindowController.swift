@@ -65,6 +65,7 @@ class MultiPingWindowController: NSWindowController {
     private var packetCount = 0
 
     // State
+    private let targetsLock = NSLock()
     private var targets: [PingTarget] = []
     private var pingTimer: Timer?
     private var isRunning = false
@@ -277,6 +278,7 @@ class MultiPingWindowController: NSWindowController {
     }
 
     private func setupTargets() {
+        targetsLock.lock()
         for target in defaultTargets {
             var host = target.host
             if target.id == "gateway" {
@@ -290,6 +292,7 @@ class MultiPingWindowController: NSWindowController {
                 color: target.color
             ))
         }
+        targetsLock.unlock()
         updateGraphTargets()
     }
 
@@ -310,13 +313,18 @@ class MultiPingWindowController: NSWindowController {
 
     @objc private func targetCheckboxChanged(_ sender: NSButton) {
         let index = sender.tag
-        guard index < targets.count else { return }
+        targetsLock.lock()
+        guard index < targets.count else {
+            targetsLock.unlock()
+            return
+        }
         targets[index].isEnabled = sender.state == .on
 
         // Pour custom, mettre à jour le host
         if targets[index].id == "custom" {
             targets[index].host = customHostField.stringValue.trimmingCharacters(in: .whitespaces)
         }
+        targetsLock.unlock()
 
         updateGraphTargets()
     }
@@ -330,6 +338,8 @@ class MultiPingWindowController: NSWindowController {
     }
 
     private func startPing() {
+        targetsLock.lock()
+
         // Mettre à jour le host custom si nécessaire
         if let idx = targets.firstIndex(where: { $0.id == "custom" }) {
             targets[idx].host = customHostField.stringValue.trimmingCharacters(in: .whitespaces)
@@ -343,6 +353,7 @@ class MultiPingWindowController: NSWindowController {
         // Vérifier qu'au moins une cible est active
         let activeTargets = targets.filter { $0.isEnabled && !$0.host.isEmpty }
         guard !activeTargets.isEmpty else {
+            targetsLock.unlock()
             statusLabel.stringValue = NSLocalizedString("multiping.status.no_target", comment: "")
             statusLabel.textColor = .systemOrange
             return
@@ -352,6 +363,8 @@ class MultiPingWindowController: NSWindowController {
         for i in targets.indices {
             targets[i].latencies.removeAll()
         }
+        targetsLock.unlock()
+
         packetCount = 0
 
         isRunning = true
@@ -381,7 +394,12 @@ class MultiPingWindowController: NSWindowController {
         var results: [(String, Double?)] = []
         let lock = NSLock()
 
-        for target in targets where target.isEnabled && !target.host.isEmpty {
+        // Capture immutable snapshot for background threads
+        targetsLock.lock()
+        let targetsSnapshot = targets.filter { $0.isEnabled && !$0.host.isEmpty }
+        targetsLock.unlock()
+
+        for target in targetsSnapshot {
             group.enter()
             DispatchQueue.global(qos: .userInitiated).async {
                 let latency = self.ping(host: target.host)
@@ -397,6 +415,7 @@ class MultiPingWindowController: NSWindowController {
 
             self.packetCount += 1
 
+            self.targetsLock.lock()
             for (targetId, latency) in results {
                 if let idx = self.targets.firstIndex(where: { $0.id == targetId }) {
                     self.targets[idx].latencies.append(latency)
@@ -405,6 +424,7 @@ class MultiPingWindowController: NSWindowController {
                     }
                 }
             }
+            self.targetsLock.unlock()
 
             // Update status
             self.statusLabel.stringValue = String(format: NSLocalizedString("multiping.status.running", comment: ""), self.packetCount)
@@ -542,13 +562,21 @@ class MultiPingWindowController: NSWindowController {
 extension MultiPingWindowController: NSTableViewDataSource, NSTableViewDelegate {
 
     func numberOfRows(in tableView: NSTableView) -> Int {
-        return targets.filter { $0.isEnabled && !$0.host.isEmpty }.count
+        targetsLock.lock()
+        let count = targets.filter { $0.isEnabled && !$0.host.isEmpty }.count
+        targetsLock.unlock()
+        return count
     }
 
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+        targetsLock.lock()
         let activeTargets = targets.filter { $0.isEnabled && !$0.host.isEmpty }
-        guard row < activeTargets.count else { return nil }
+        guard row < activeTargets.count else {
+            targetsLock.unlock()
+            return nil
+        }
         let target = activeTargets[row]
+        targetsLock.unlock()
 
         let identifier = tableColumn?.identifier ?? NSUserInterfaceItemIdentifier("")
         let cellIdentifier = NSUserInterfaceItemIdentifier("MultiPingCell_\(identifier.rawValue)")
@@ -603,10 +631,12 @@ extension MultiPingWindowController: NSTextFieldDelegate {
             if let checkbox = checkboxes["custom"] {
                 checkbox.state = .on
             }
+            targetsLock.lock()
             if let idx = targets.firstIndex(where: { $0.id == "custom" }) {
                 targets[idx].isEnabled = true
                 targets[idx].host = text
             }
+            targetsLock.unlock()
         }
 
         updateGraphTargets()

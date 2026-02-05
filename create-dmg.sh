@@ -1,3 +1,4 @@
+
 #!/bin/bash
 # Script de création de DMG pour NetDisco
 # Usage: ./create-dmg.sh

@@ -1,0 +1,5 @@
+{
+  "hooks": {
+    "pre-commit": "xcodebuild -scheme NetDisco -configuration Debug build 2>&1 | head -50"
+  }
+}

@@ -568,12 +568,18 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
 
             if family == UInt8(AF_INET) {
                 let ipAddr = addr.pointee.ifa_addr.withMemoryRebound(to: sockaddr_in.self, capacity: 1) {
-                    String(cString: inet_ntoa($0.pointee.sin_addr))
+                    var buffer = [CChar](repeating: 0, count: Int(INET_ADDRSTRLEN))
+                    var addrCopy = $0.pointee.sin_addr
+                    inet_ntop(AF_INET, &addrCopy, &buffer, socklen_t(INET_ADDRSTRLEN))
+                    return String(cString: buffer)
                 }
                 var netmask: String?
                 if let mask = addr.pointee.ifa_netmask {
                     netmask = mask.withMemoryRebound(to: sockaddr_in.self, capacity: 1) {
-                        String(cString: inet_ntoa($0.pointee.sin_addr))
+                        var buffer = [CChar](repeating: 0, count: Int(INET_ADDRSTRLEN))
+                        var addrCopy = $0.pointee.sin_addr
+                        inet_ntop(AF_INET, &addrCopy, &buffer, socklen_t(INET_ADDRSTRLEN))
+                        return String(cString: buffer)
                     }
                 }
                 result.append(InterfaceInfo(name: name, family: "IPv4", address: ipAddr, netmask: netmask))

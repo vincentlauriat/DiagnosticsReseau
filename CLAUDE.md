@@ -10,12 +10,6 @@ Instructions for Claude Code when working on this repository.
 - **Deployment target:** macOS 13.0+
 - **Dependencies:** None — system frameworks only
 
-Add under a ## macOS Development section (create if needed)\n\nWhen adding new app modes or features that affect network access, always verify sandbox entitlements are properly configured before testing.
-
-Add under ## Testing section or ## macOS Development section\n\nAfter implementing mode-switching features (e.g., menu bar vs regular app mode), test both modes thoroughly and watch for timing/memory issues that cause crashes.
-
-Add under ## Refactoring section (create if needed)\n\nWhen renaming projects or replacing references (like InternetCheck → MonReseau → NetDisco), update ALL files including: code, documentation, directory names, build configs, and commit messages.
-
 ## Build & Run
 
 ```bash
@@ -30,6 +24,46 @@ open ~/Library/Developer/Xcode/DerivedData/NetDisco-*/Build/Products/Debug/NetDi
 ```
 
 CLI arguments: `--traceroute`, `--speedtest`, `--details`, `--quality`
+
+## macOS Development
+
+**Sandbox Entitlements:**
+- When adding new app modes or features that affect network access, always verify sandbox entitlements are properly configured before testing
+- Check `Info.plist` and `.entitlements` files for required permissions
+- Common pitfalls: missing network client entitlement, incorrect outgoing connections configuration
+
+**Mode Switching:**
+- When implementing mode-switching features (menu bar ↔ application mode), test the transition multiple times
+- Add deliberate delays for async operations to avoid race conditions
+- Watch for timing and memory issues that cause crashes
+- Verify state cleanup when switching between modes
+
+## Testing
+
+**Mode Testing:**
+- After implementing mode-switching features, test both modes thoroughly
+- Watch for timing/memory issues that cause crashes
+- Test edge cases: rapid mode switching, state persistence, window cleanup
+
+**Race Conditions:**
+- Be vigilant about async operations, especially in:
+  - Network monitoring (NWPathMonitor callbacks)
+  - ICMP socket operations
+  - Thread-unsafe functions like `inet_ntoa`
+- Add synchronization where needed (DispatchQueue, locks)
+
+## Refactoring
+
+**Project Renaming:**
+- When renaming projects or replacing references (e.g., InternetCheck → MonReseau → NetDisco), update ALL files:
+  - Swift source files
+  - Documentation (README, CLAUDE.md)
+  - Code comments
+  - Bundle identifiers (Info.plist)
+  - Directory names
+  - Build configurations
+  - Commit messages
+- Use project-wide search to ensure no references are missed
 
 ## Constraints
 

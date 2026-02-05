@@ -459,6 +459,7 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
     private var progressIndicator: NSProgressIndicator!
 
     private let scanner = NetworkScanner()
+    private let devicesLock = NSLock()
     private var devices: [NetworkDevice] = []
     private var isScanning = false
     private var bonjourBrowsers: [NWBrowser] = [] // liste des browsers Bonjour actifs
@@ -633,7 +634,9 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
         }
 
         isScanning = true
+        devicesLock.lock()
         devices.removeAll()
+        devicesLock.unlock()
         tableView.reloadData()
         scanButton.isEnabled = false
         progressIndicator.isHidden = false
@@ -644,7 +647,6 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
         startBonjourDiscovery()
 
         let totalCount = ips.count
-        let resultLock = NSLock()
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
@@ -728,25 +730,25 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
 
                         device.hostname = self.scanner.reverseDNS(ip: ip)
 
-                        resultLock.lock()
+                        devicesLock.lock()
                         self.devices.append(device)
                         foundIPs.insert(ip)
-                        resultLock.unlock()
+                        devicesLock.unlock()
                     }
 
-                    resultLock.lock()
+                    devicesLock.lock()
                     scannedCount += 1
                     let progress = Double(scannedCount) / Double(totalCount) * 100
                     let deviceCount = self.devices.count
-                    resultLock.unlock()
+                    devicesLock.unlock()
 
                     DispatchQueue.main.async {
                         self.progressIndicator.doubleValue = progress
                         self.statusLabel.stringValue = String(format: NSLocalizedString("neighborhood.status.phase2.progress", comment: ""), scannedCount, totalCount, deviceCount)
-                        resultLock.lock()
+                        self.devicesLock.lock()
                         let snapshot = self.devices.sorted { self.ipToInt($0.ipAddress) < self.ipToInt($1.ipAddress) }
-                        resultLock.unlock()
                         self.devices = snapshot
+                        self.devicesLock.unlock()
                         self.tableView.reloadData()
                     }
 
@@ -768,9 +770,9 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
 
             for (ip, mac) in finalArpTable {
                 // Ignorer les machines deja trouvees par ping
-                resultLock.lock()
+                devicesLock.lock()
                 let alreadyFound = foundIPs.contains(ip)
-                resultLock.unlock()
+                devicesLock.unlock()
                 if alreadyFound { continue }
 
                 // Ignorer les MAC broadcast/multicast
@@ -791,9 +793,9 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
                     // Pas de latence car n'a pas repondu au ping
                     dnsSemaphore.signal()
 
-                    resultLock.lock()
+                    devicesLock.lock()
                     self.devices.append(device)
-                    resultLock.unlock()
+                    devicesLock.unlock()
 
                     dnsGroup.leave()
                 }
@@ -805,6 +807,7 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
                 guard let self = self else { return }
                 self.enrichWithBonjour()
 
+                self.devicesLock.lock()
                 // Aussi enrichir les MAC pour les devices trouves par ping qui n'avaient pas de MAC
                 for device in self.devices {
                     if device.macAddress == nil, let mac = finalArpTable[device.ipAddress] {
@@ -814,12 +817,15 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
                 }
 
                 self.devices.sort { self.ipToInt($0.ipAddress) < self.ipToInt($1.ipAddress) }
+                let finalCount = self.devices.count
+                self.devicesLock.unlock()
+
                 self.tableView.reloadData()
 
                 self.isScanning = false
                 self.scanButton.isEnabled = true
                 self.progressIndicator.isHidden = true
-                self.statusLabel.stringValue = String(format: NSLocalizedString("neighborhood.status.done", comment: ""), self.devices.count)
+                self.statusLabel.stringValue = String(format: NSLocalizedString("neighborhood.status.done", comment: ""), finalCount)
 
                 for b in self.bonjourBrowsers { b.cancel() }
                 self.bonjourBrowsers.removeAll()
@@ -938,14 +944,22 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
     // MARK: - NSTableViewDataSource
 
     func numberOfRows(in tableView: NSTableView) -> Int {
-        return devices.count
+        devicesLock.lock()
+        let count = devices.count
+        devicesLock.unlock()
+        return count
     }
 
     // MARK: - NSTableViewDelegate
 
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
-        guard row < devices.count else { return nil }
+        devicesLock.lock()
+        guard row < devices.count else {
+            devicesLock.unlock()
+            return nil
+        }
         let device = devices[row]
+        devicesLock.unlock()
 
         let identifier = tableColumn?.identifier ?? NSUserInterfaceItemIdentifier("")
         let cellId = NSUserInterfaceItemIdentifier("Cell_\(identifier.rawValue)")
@@ -988,8 +1002,13 @@ class NeighborhoodWindowController: NSWindowController, NSTableViewDataSource, N
 
     @objc private func tableDoubleClick() {
         let row = tableView.clickedRow
-        guard row >= 0, row < devices.count else { return }
+        devicesLock.lock()
+        guard row >= 0, row < devices.count else {
+            devicesLock.unlock()
+            return
+        }
         let device = devices[row]
+        devicesLock.unlock()
         let detailCtrl = DeviceDetailWindowController(device: device, scanner: scanner, bonjourServices: bonjourServices)
         detailCtrl.showWindow(nil)
         detailCtrl.window?.makeKeyAndOrderFront(nil)

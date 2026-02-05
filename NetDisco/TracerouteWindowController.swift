@@ -345,6 +345,7 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
     private var favoritesPopup: NSPopUpButton!
 
     private let tracerouteService = TracerouteService()
+    private let hopsLock = NSLock()
     private var hops: [TracerouteHop] = []
     private var isRunning = false
 
@@ -526,7 +527,9 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
     private func runTraceroute(for target: String) {
 
         isRunning = true
+        hopsLock.lock()
         hops.removeAll()
+        hopsLock.unlock()
         hopsTableView.reloadData()
         mapView.removeAnnotations(mapView.annotations)
         mapView.removeOverlays(mapView.overlays)
@@ -538,9 +541,12 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
 
         tracerouteService.run(host: target, progressHandler: { [weak self] hop in
             guard let self = self else { return }
+            self.hopsLock.lock()
             self.hops.append(hop)
+            let count = self.hops.count
+            self.hopsLock.unlock()
             self.hopsTableView.reloadData()
-            self.hopsTableView.scrollRowToVisible(self.hops.count - 1)
+            self.hopsTableView.scrollRowToVisible(count - 1)
             self.statusLabel.stringValue = "Hop \(hop.hopNumber): \(hop.ipAddress)"
         }, geoHandler: { [weak self] hop in
             guard let self = self else { return }
@@ -548,7 +554,9 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
             self.addHopToMap(hop)
         }, completion: { [weak self] finalHops in
             guard let self = self else { return }
+            self.hopsLock.lock()
             self.hops = finalHops
+            self.hopsLock.unlock()
             self.hopsTableView.reloadData()
             self.finishTraceroute()
         })
@@ -559,7 +567,10 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
         startButton.isEnabled = true
         progressIndicator.stopAnimation(nil)
         progressIndicator.isHidden = true
-        statusLabel.stringValue = String(format: NSLocalizedString("traceroute.status.done", comment: ""), hops.count)
+        hopsLock.lock()
+        let count = hops.count
+        hopsLock.unlock()
+        statusLabel.stringValue = String(format: NSLocalizedString("traceroute.status.done", comment: ""), count)
     }
 
     // Ajoute un hop sur la carte, met a jour la polyline et autozoom
@@ -571,7 +582,9 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
 
         // Redessiner la polyline avec tous les hops geolocalises
         mapView.removeOverlays(mapView.overlays)
+        hopsLock.lock()
         let coordinates = hops.compactMap { $0.coordinate }
+        hopsLock.unlock()
         if coordinates.count >= 2 {
             let polyline = MKPolyline(coordinates: coordinates, count: coordinates.count)
             mapView.addOverlay(polyline)
@@ -663,8 +676,13 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
 
     func tableViewSelectionDidChange(_ notification: Notification) {
         let row = hopsTableView.selectedRow
-        guard row >= 0, row < hops.count else { return }
+        hopsLock.lock()
+        guard row >= 0, row < hops.count else {
+            hopsLock.unlock()
+            return
+        }
         let hop = hops[row]
+        hopsLock.unlock()
         guard let coord = hop.coordinate else { return }
 
         // Centrer la carte sur le hop selectionne
@@ -683,14 +701,20 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
     // MARK: - Copier / Partager
 
     private func formatTracerouteText() -> String {
-        guard !hops.isEmpty else { return "" }
+        hopsLock.lock()
+        guard !hops.isEmpty else {
+            hopsLock.unlock()
+            return ""
+        }
+        let hopsSnapshot = hops
+        hopsLock.unlock()
         let target = targetTextField.stringValue
         var text = String(format: NSLocalizedString("traceroute.report.header", comment: ""), target) + "\n"
         text += String(repeating: "═", count: 60) + "\n"
         text += String(format: "%-4s  %-16s  %-30s  %-8s  %@\n", "#", "IP", NSLocalizedString("traceroute.column.hostname", comment: ""), NSLocalizedString("traceroute.report.latency", comment: ""), NSLocalizedString("traceroute.report.location", comment: ""))
         text += String(repeating: "─", count: 80) + "\n"
 
-        for hop in hops {
+        for hop in hopsSnapshot {
             let num = String(format: "%-4d", hop.hopNumber)
             let ip = hop.isTimeout ? "* * *" : hop.ipAddress
             let hostname = hop.hostname ?? "—"
@@ -753,15 +777,23 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
 
     // Nombre de lignes = nombre de hops
     func numberOfRows(in tableView: NSTableView) -> Int {
-        return hops.count
+        hopsLock.lock()
+        let count = hops.count
+        hopsLock.unlock()
+        return count
     }
 
     // MARK: - NSTableViewDelegate
 
     // Configure la cellule pour chaque colonne et ligne
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
-        guard row < hops.count else { return nil }
+        hopsLock.lock()
+        guard row < hops.count else {
+            hopsLock.unlock()
+            return nil
+        }
         let hop = hops[row]
+        hopsLock.unlock()
 
         let identifier = tableColumn?.identifier ?? NSUserInterfaceItemIdentifier("")
         let cellIdentifier = NSUserInterfaceItemIdentifier("Cell_\(identifier.rawValue)")
