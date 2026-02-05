@@ -133,9 +133,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
     private var whoisWindowController: WhoisWindowController?
     private var teletravailWindowController: TeletravailWindowController?
     private var guideWindowController: GuideWindowController?
+    private var reportsWindowController: ReportsWindowController?
     private var settingsWindowController: SettingsWindowController?
     private var aboutWindow: NSWindow?
     private var mainWindowController: MainWindowController?
+
+    // Nouvelles fenêtres avancées
+    private var mtrWindowController: MTRWindowController?
+    private var multiPingWindowController: MultiPingWindowController?
+    private var httpTestWindowController: HTTPTestWindowController?
+    private var sslInspectorWindowController: SSLInspectorWindowController?
+    private var wakeOnLANWindowController: WakeOnLANWindowController?
+    private var dashboardWindowController: DashboardWindowController?
 
     /// Mode courant de l'application.
     private(set) var currentMode: AppMode = .menubar
@@ -249,11 +258,33 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         if UserDefaults.standard.bool(forKey: "iCloudSyncEnabled") {
             iCloudSyncManager.shared.startSync()
         }
+
+        // Démarrer la surveillance du changement d'IP publique
+        startIPChangeMonitoringIfNeeded()
+    }
+
+    // MARK: - IP Change Monitoring
+
+    private func startIPChangeMonitoringIfNeeded() {
+        guard UserDefaults.standard.bool(forKey: "IPChangeMonitoringEnabled") else {
+            IPChangeMonitor.shared.stop()
+            return
+        }
+
+        IPChangeMonitor.shared.onIPChanged = { [weak self] oldIP, newIP in
+            self?.sendNotification(
+                title: NSLocalizedString("notification.ip_changed.title", comment: ""),
+                body: String(format: NSLocalizedString("notification.ip_changed.body", comment: ""), oldIP, newIP)
+            )
+        }
+        IPChangeMonitor.shared.start()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         // Arrêter la synchronisation iCloud
         iCloudSyncManager.shared.stopSync()
+        // Arrêter la surveillance du changement d'IP
+        IPChangeMonitor.shared.stop()
         monitor.cancel()
         menuBarPingTimer?.invalidate()
         scheduledTestTimer?.invalidate()
@@ -385,8 +416,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         windowMenu.addItem(NSMenuItem(title: NSLocalizedString("menu.neighborhood", comment: ""), action: #selector(showNeighborhood), keyEquivalent: "b"))
         windowMenu.addItem(NSMenuItem(title: NSLocalizedString("menu.bandwidth", comment: ""), action: #selector(showBandwidth), keyEquivalent: "u"))
         windowMenu.addItem(NSMenuItem(title: NSLocalizedString("menu.whois", comment: ""), action: #selector(showWhois), keyEquivalent: "o"))
+        windowMenu.addItem(NSMenuItem(title: NSLocalizedString("menu.mtr", comment: ""), action: #selector(showMTR), keyEquivalent: "m"))
+        // Multi-ping masqué temporairement
+        windowMenu.addItem(NSMenuItem(title: NSLocalizedString("menu.httptest", comment: ""), action: #selector(showHTTPTest), keyEquivalent: "x"))
+        windowMenu.addItem(NSMenuItem(title: NSLocalizedString("menu.ssl", comment: ""), action: #selector(showSSLInspector), keyEquivalent: "l"))
+        windowMenu.addItem(NSMenuItem(title: NSLocalizedString("menu.wol", comment: ""), action: #selector(showWakeOnLAN), keyEquivalent: "k"))
         windowMenu.addItem(NSMenuItem.separator())
+        windowMenu.addItem(NSMenuItem(title: NSLocalizedString("menu.dashboard", comment: ""), action: #selector(showDashboard), keyEquivalent: "a"))
         windowMenu.addItem(NSMenuItem(title: NSLocalizedString("menu.teletravail", comment: ""), action: #selector(showTeletravail), keyEquivalent: "e"))
+        let reportsItem = NSMenuItem(title: NSLocalizedString("menu.reports", comment: ""), action: #selector(showReports), keyEquivalent: "p")
+        reportsItem.keyEquivalentModifierMask = [.control, .option]
+        windowMenu.addItem(reportsItem)
         windowMenu.addItem(NSMenuItem(title: NSLocalizedString("menu.guide", comment: ""), action: #selector(showGuide), keyEquivalent: "h"))
         windowMenuItem.submenu = windowMenu
         mainMenu.addItem(windowMenuItem)
@@ -431,13 +471,23 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
             (NSLocalizedString("menu.neighborhood", comment: ""), #selector(showNeighborhood), "b"),
             (NSLocalizedString("menu.bandwidth", comment: ""), #selector(showBandwidth), "u"),
             (NSLocalizedString("menu.whois", comment: ""), #selector(showWhois), "o"),
+            (NSLocalizedString("menu.mtr", comment: ""), #selector(showMTR), "m"),
+            // Multi-ping masqué temporairement
+            (NSLocalizedString("menu.httptest", comment: ""), #selector(showHTTPTest), "x"),
+            (NSLocalizedString("menu.ssl", comment: ""), #selector(showSSLInspector), "l"),
+            (NSLocalizedString("menu.wol", comment: ""), #selector(showWakeOnLAN), "k"),
         ] as [(String, Selector, String)] {
             let item = NSMenuItem(title: title, action: action, keyEquivalent: key)
             item.tag = 100
             menu.addItem(item)
         }
+        // Dashboard (non-geek, toujours visible)
+        menu.addItem(NSMenuItem(title: NSLocalizedString("menu.dashboard", comment: ""), action: #selector(showDashboard), keyEquivalent: "a"))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: NSLocalizedString("menu.teletravail", comment: ""), action: #selector(showTeletravail), keyEquivalent: "e"))
+        let reportsMenuItem = NSMenuItem(title: NSLocalizedString("menu.reports", comment: ""), action: #selector(showReports), keyEquivalent: "p")
+        reportsMenuItem.tag = 100  // Geek mode item
+        menu.addItem(reportsMenuItem)
         menu.addItem(NSMenuItem(title: NSLocalizedString("menu.guide", comment: ""), action: #selector(showGuide), keyEquivalent: "h"))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: NSLocalizedString("menu.settings", comment: ""), action: #selector(showSettings), keyEquivalent: ","))
@@ -559,7 +609,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
             case "bandwidth": performShowBandwidth()
             case "whois": performShowWhois()
             case "teletravail": performShowTeletravail()
+            case "reports": performShowReports()
             case "settings": performShowSettings()
+            case "mtr": performShowMTR()
+            // case "multiping": performShowMultiPing()  // masqué temporairement
+            case "httptest": performShowHTTPTest()
+            case "ssl": performShowSSLInspector()
+            case "wol": performShowWakeOnLAN()
+            case "dashboard": performShowDashboard()
             default: break
             }
         }
@@ -638,8 +695,38 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         present(&guideWindowController) { GuideWindowController() }
     }
 
+    @objc private func showReports() {
+        present(&reportsWindowController) { ReportsWindowController() }
+    }
+
     @objc private func showSettings() {
         present(&settingsWindowController) { SettingsWindowController() }
+    }
+
+    // MARK: - Nouvelles fenêtres avancées
+
+    @objc private func showMTR() {
+        present(&mtrWindowController) { MTRWindowController() }
+    }
+
+    @objc private func showMultiPing() {
+        present(&multiPingWindowController) { MultiPingWindowController() }
+    }
+
+    @objc private func showHTTPTest() {
+        present(&httpTestWindowController) { HTTPTestWindowController() }
+    }
+
+    @objc private func showSSLInspector() {
+        present(&sslInspectorWindowController) { SSLInspectorWindowController() }
+    }
+
+    @objc private func showWakeOnLAN() {
+        present(&wakeOnLANWindowController) { WakeOnLANWindowController() }
+    }
+
+    @objc private func showDashboard() {
+        present(&dashboardWindowController) { DashboardWindowController() }
     }
 
     /// Affiche la fenêtre A propos.
@@ -848,7 +935,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
             case "u": DispatchQueue.main.async { self.showBandwidth() }
             case "o": DispatchQueue.main.async { self.showWhois() }
             case "e": DispatchQueue.main.async { self.showTeletravail() }
+            case "p": DispatchQueue.main.async { self.showReports() }
             case "h": DispatchQueue.main.async { self.showGuide() }
+            case "m": DispatchQueue.main.async { self.showMTR() }
+            // Multi-ping masqué temporairement
+            case "x": DispatchQueue.main.async { self.showHTTPTest() }
+            case "l": DispatchQueue.main.async { self.showSSLInspector() }
+            case "k": DispatchQueue.main.async { self.showWakeOnLAN() }
+            case "a": DispatchQueue.main.async { self.showDashboard() }
             default: break
             }
         }
@@ -1205,8 +1299,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
     func performShowBandwidth() { showBandwidth() }
     func performShowWhois() { showWhois() }
     func performShowTeletravail() { showTeletravail() }
+    func performShowReports() { showReports() }
     func performShowGuide() { showGuide() }
     func performShowSettings() { showSettings() }
+
+    // Nouvelles fenêtres avancées
+    func performShowMTR() { showMTR() }
+    func performShowMultiPing() { showMultiPing() }
+    func performShowHTTPTest() { showHTTPTest() }
+    func performShowSSLInspector() { showSSLInspector() }
+    func performShowWakeOnLAN() { showWakeOnLAN() }
+    func performShowDashboard() { showDashboard() }
 }
 
 extension AppDelegate {

@@ -10,6 +10,12 @@ Instructions for Claude Code when working on this repository.
 - **Deployment target:** macOS 13.0+
 - **Dependencies:** None — system frameworks only
 
+Add under a ## macOS Development section (create if needed)\n\nWhen adding new app modes or features that affect network access, always verify sandbox entitlements are properly configured before testing.
+
+Add under ## Testing section or ## macOS Development section\n\nAfter implementing mode-switching features (e.g., menu bar vs regular app mode), test both modes thoroughly and watch for timing/memory issues that cause crashes.
+
+Add under ## Refactoring section (create if needed)\n\nWhen renaming projects or replacing references (like InternetCheck → MonReseau → NetDisco), update ALL files including: code, documentation, directory names, build configs, and commit messages.
+
 ## Build & Run
 
 ```bash
@@ -38,13 +44,13 @@ These rules **must** be followed for every change:
 
 ## Architecture
 
-17 Swift files in `NetDisco/`, ~14,000 LOC total:
+26 Swift files in `NetDisco/`, ~19,000 LOC total:
 
 | File | LOC | Role |
 |------|-----|------|
 | `main.swift` | 19 | Entry point, NSApplication setup |
-| `AppDelegate.swift` | ~1100 | Dual-mode (menubar/app), NWPathMonitor, NSMenuDelegate, window coordination, VPN detection, notifications, uptime tracking, global shortcuts, appearance, URL scheme handler, scheduled quality tests, network profile tracking |
-| `MainWindowController.swift` | ~265 | App mode home window with card grid, Geek Mode filtering |
+| `AppDelegate.swift` | ~1300 | Dual-mode (menubar/app), NWPathMonitor, NSMenuDelegate, window coordination, VPN detection, notifications, uptime tracking, global shortcuts, appearance, URL scheme handler, scheduled quality tests, network profile tracking, IP change monitoring |
+| `MainWindowController.swift` | ~280 | App mode home window with card grid, Geek Mode filtering |
 | `SettingsWindowController.swift` | ~750 | Tabbed settings (General, Notifications, Advanced, Profiles): app mode, login item, appearance, notifications, menu bar stats, ping target, Geek Mode, network profiles, scheduled tests config |
 | `GuideWindowController.swift` | ~237 | Documentation: app overview, network concepts, optimization tips, keyboard shortcuts |
 | `TeletravailWindowController.swift` | ~850 | Remote work diagnostic (latency, jitter, loss, speed, DNS, VPN) + PDF export |
@@ -59,6 +65,15 @@ These rules **must** be followed for every change:
 | `WhoisWindowController.swift` | ~500 | WHOIS lookup via NWConnection TCP port 43, auto-redirect, 27 TLDs + syntax coloring + favorites |
 | `AppIntents.swift` | ~220 | Siri Shortcuts via App Intents framework (8 intents with French phrases) |
 | `iCloudSyncManager.swift` | ~370 | Optional iCloud sync via NSUbiquitousKeyValueStore for history, favorites, settings |
+| `MTRWindowController.swift` | ~600 | MTR (My Traceroute): traceroute + continuous ping with real-time stats per hop |
+| `MultiPingWindowController.swift` | ~550 | Simultaneous ping to multiple targets with comparative graph |
+| `HTTPTestWindowController.swift` | ~500 | HTTP/HTTPS availability and response time testing |
+| `SSLInspectorWindowController.swift` | ~550 | SSL certificate inspection (subject, issuer, validity, chain) |
+| `WakeOnLANWindowController.swift` | ~450 | Wake on LAN: send magic packets to wake devices |
+| `DashboardWindowController.swift` | ~700 | Real-time dashboard with connection, latency, throughput, WiFi, alerts |
+| `IPChangeMonitor.swift` | ~300 | Public IP change detection service with notification |
+| `AutoAnalyzer.swift` | ~250 | Automatic network problem detection with suggestions |
+| `MultiTargetGraphView.swift` | ~350 | Multi-series graph view for Multi-ping and Dashboard |
 
 ## Frameworks & System APIs
 
@@ -115,6 +130,9 @@ All via UserDefaults (sandbox-compatible):
 - **Scheduled test results:** Key `ScheduledTestResults`, JSON-encoded, max 288 entries (raw ICMP results)
 - **Daily reports:** Key `DailyReports`, JSON-encoded, max 30 days (compiled quality summaries)
 - **Scheduled quality test:** Key `ScheduledQualityTestEnabled` (bool), `ScheduledQualityTestInterval` (int, minutes), `ScheduledDailyNotification` (bool)
+- **IP change monitoring:** Key `IPChangeMonitoringEnabled` (bool), `IPChangeInterval` (int, minutes), `LastKnownPublicIP` (string), `LastKnownPublicIPv6` (string), `IPChangeHistory` (JSON-encoded, max 50)
+- **Wake on LAN devices:** Key `WoLDevices`, JSON-encoded list of {name, mac, lastUsed}
+- **HTTP test history:** Key `HTTPTestHistory`, JSON-encoded, max 20 entries
 - **Login item:** Managed by SMAppService (system-level)
 
 Path: `~/Library/Containers/com.SmartColibri.NetDisco/Data/Library/Preferences/com.SmartColibri.NetDisco.plist`
@@ -126,6 +144,7 @@ Path: `~/Library/Containers/com.SmartColibri.NetDisco/Data/Library/Preferences/c
 - **SpeedTestAnimationView** — Wave/particle animation (CVDisplayLink, 60 fps)
 - **BandwidthGraphView** — Real-time throughput graph (Core Graphics, 120 data points, dual curves in/out)
 - **QualityHistoryGraphView** — 24h quality history dual-axis graph (latency/jitter + loss%)
+- **MultiTargetGraphView** — Multi-series comparison graph (Core Graphics, 120 data points, color-coded targets)
 
 ## URL Scheme
 
@@ -133,6 +152,8 @@ Path: `~/Library/Containers/com.SmartColibri.NetDisco/Data/Library/Preferences/c
 - `netdisco://speedtest`, `netdisco://details`, `netdisco://quality`, `netdisco://traceroute`
 - `netdisco://dns`, `netdisco://wifi`, `netdisco://neighborhood`, `netdisco://bandwidth`
 - `netdisco://whois`, `netdisco://teletravail`, `netdisco://settings`
+- `netdisco://mtr`, `netdisco://multiping`, `netdisco://httptest`, `netdisco://ssl`
+- `netdisco://wol`, `netdisco://dashboard`
 
 ## Widgets (WidgetKit)
 
@@ -169,6 +190,14 @@ Path: `~/Library/Containers/com.SmartColibri.NetDisco/Data/Library/Preferences/c
 - **Scheduled Quality Tests** — Background ICMP ping at configurable intervals (5/15/30/60 min), daily reports with latency/jitter/loss stats
 - **Siri Shortcuts (App Intents)** — 8 intents for Siri and Shortcuts app: speed test, network details, quality, traceroute, WiFi info, teletravail diagnostic, DNS query, WHOIS query. French phrases supported.
 - **iCloud Sync** — Optional NSUbiquitousKeyValueStore sync for history, favorites, profiles, and settings. Graceful fallback when iCloud unavailable. Requires iCloud capability in provisioning profile.
+- **MTR (My Traceroute)** — Traceroute + continuous ping with real-time statistics per hop (latency, jitter, loss). ICMP socket with PID/seq validation.
+- **Multi-ping** — Simultaneous ping to multiple targets (Google, Cloudflare, gateway, custom) with comparative graph and statistics.
+- **HTTP/HTTPS Test** — Test website availability and response time, SSL certificate status, redirect chain tracking.
+- **SSL Certificate Inspector** — Inspect SSL certificates: subject, issuer, validity dates, serial number, algorithm, certificate chain.
+- **IP Change Detection** — Background monitoring of public IP (IPv4/IPv6) via ipify.org with notification on change.
+- **Wake on LAN** — Send magic packets to wake devices on LAN. Device management with MAC address storage.
+- **Dashboard** — Real-time monitoring dashboard: connection status, latency, throughput, WiFi signal, public IP, 24h quality, alerts.
+- **Auto Analyzer** — Automatic network problem detection with suggestions (high latency, packet loss, slow DNS, weak WiFi, VPN overhead).
 
 ## Feature Ideas
 
@@ -190,14 +219,14 @@ Potential additions that respect all constraints (sandbox, no shell, App Store c
 
 ### Idées futures
 
-#### Fonctionnalités réseau
+#### Fonctionnalités réseau (Complétées)
 
-- **MTR (My Traceroute)** — Combinaison traceroute + ping continu avec stats en temps réel
-- **Multi-ping** — Ping simultané vers plusieurs cibles (Google, Cloudflare, custom) avec comparaison
-- **Test HTTP/HTTPS** — Vérifier la disponibilité et le temps de réponse de sites web
-- **Certificat SSL** — Afficher les infos du certificat SSL d'un domaine (expiration, émetteur)
-- **Détection changement IP** — Notification quand l'IP publique change
-- **Wake on LAN** — Réveiller des appareils sur le réseau local
+- ~~**MTR (My Traceroute)**~~ — ✅ Traceroute + ping continu avec stats en temps réel par hop
+- ~~**Multi-ping**~~ — ✅ Ping simultané vers plusieurs cibles avec graphe comparatif
+- ~~**Test HTTP/HTTPS**~~ — ✅ Disponibilité et temps de réponse de sites web + état SSL
+- ~~**Certificat SSL**~~ — ✅ Infos certificat (sujet, émetteur, validité, chaîne)
+- ~~**Détection changement IP**~~ — ✅ Notification quand l'IP publique change (IPv4/IPv6)
+- ~~**Wake on LAN**~~ — ✅ Magic packets pour réveiller des appareils
 
 #### Visualisation & rapports
 
@@ -212,12 +241,19 @@ Potential additions that respect all constraints (sandbox, no shell, App Store c
 - ~~**Synchronisation iCloud**~~ — ✅ NSUbiquitousKeyValueStore pour historique, favoris, profils
 - ~~**Widget Notification Center**~~ — ✅ WidgetKit avec 3 tailles (small, medium, large)
 
-#### Diagnostic avancé
+#### Diagnostic avancé (Complété)
 
-- **Analyse automatique** — Détection de problèmes avec suggestions (ex: "Latence élevée, vérifiez votre routeur")
-- **Monitoring continu** — Mode "dashboard" avec refresh automatique de toutes les stats
+- ~~**Analyse automatique**~~ — ✅ Détection de problèmes avec suggestions (latence, perte, DNS, WiFi, VPN)
+- ~~**Monitoring continu**~~ — ✅ Dashboard avec refresh automatique de toutes les stats
 
-#### Autre
+#### Diagnostic satellite (Starlink, HughesNet, Viasat...)
 
-- **iPad / iPhone version** — Port to iOS/iPadOS
+- **Détection de micro-coupures** — Ping rapide (intervalle 100ms) pour détecter les handovers satellite et obstructions momentanées
+- **Statistiques de latence avancées** — Percentiles P50/P95/P99 + histogramme de distribution des latences
+- **Test de stabilité longue durée** — Ping sur 1-6h avec graphe des interruptions et temps de rétablissement
+- **Profil "Satellite"** — Seuils d'alerte ajustés (100ms normal pour GEO, 40ms pour LEO type Starlink)
+- **Mesure du buffer bloat** — Test de latence sous charge (pendant téléchargement) pour détecter la congestion
+- **Journal météo/interruptions** — Horodatage des problèmes pour corrélation manuelle avec conditions météo
+
+
 

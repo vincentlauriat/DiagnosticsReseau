@@ -38,6 +38,12 @@ NetDisco est une application macOS qui surveille la connectivite internet et fou
 │                                   ├── Voisinage       [geek]    │
 │                                   ├── Bande passante  [geek]    │
 │                                   ├── Whois           [geek]    │
+│                                   ├── MTR             [geek]    │
+│                                   ├── Multi-ping      [geek]    │
+│                                   ├── Test HTTP       [geek]    │
+│                                   ├── Certificat SSL  [geek]    │
+│                                   ├── Wake on LAN     [geek]    │
+│                                   ├── Dashboard                 │
 │                                   ├── Teletravail               │
 │                                   ├── Guide                     │
 │                                   ├── Reglages                  │
@@ -120,6 +126,17 @@ NetDisco est une application macOS qui surveille la connectivite internet et fou
 | `NeighborhoodWindowController.swift` | ~1327 | Scan voisinage (ARP+ICMP+Bonjour), details machine, scan de ports |
 | `BandwidthWindowController.swift` | ~400 | Moniteur bande passante temps reel (getifaddrs), graphe debit, totaux session |
 | `WhoisWindowController.swift` | ~500 | Recherche WHOIS via NWConnection TCP port 43, redirection auto, 27 TLDs, coloration syntaxique, favoris |
+| `MTRWindowController.swift` | ~900 | MTR (My Traceroute) : traceroute + ping continu avec stats par hop en temps reel |
+| `MultiPingWindowController.swift` | ~700 | Ping simultane multi-cibles avec graphe comparatif |
+| `HTTPTestWindowController.swift` | ~600 | Test disponibilite HTTP/HTTPS avec temps de reponse et redirections |
+| `SSLInspectorWindowController.swift` | ~550 | Inspection certificats SSL (expiration, emetteur, chaine) |
+| `WakeOnLANWindowController.swift` | ~500 | Wake on LAN : envoi magic packet UDP pour reveiller appareils |
+| `DashboardWindowController.swift` | ~1100 | Dashboard monitoring temps reel avec vue d'ensemble reseau |
+| `IPChangeMonitor.swift` | ~250 | Service detection changement IP publique avec notification |
+| `AutoAnalyzer.swift` | ~400 | Moteur diagnostic automatique avec regles et suggestions |
+| `MultiTargetGraphView.swift` | ~350 | Vue graphe multi-series reutilisable (Core Graphics) |
+| `AppIntents.swift` | ~220 | Siri Shortcuts via App Intents framework (8 intents avec phrases francaises) |
+| `iCloudSyncManager.swift` | ~370 | Sync iCloud optionnel via NSUbiquitousKeyValueStore |
 
 ## APIs et protocoles reseau
 
@@ -240,6 +257,11 @@ RPM estime : `60000 / max(latence_ms, 5)`
 - `ScheduledQualityTestEnabled` : bool — active/desactive les tests planifies
 - `ScheduledQualityTestInterval` : int — intervalle en minutes (5, 15, 30, 60)
 - `ScheduledDailyNotification` : bool — notification rapport quotidien
+- `IPChangeDetectionEnabled` : bool — active/desactive la detection de changement IP
+- `IPChangeInterval` : int — intervalle de verification IP en minutes (defaut 5)
+- `LastKnownPublicIP` : string — derniere IP publique connue
+- `WoLDevices` : JSON `[WoLDevice]` — appareils enregistres pour Wake on LAN (nom, MAC, derniere utilisation)
+- `HTTPTestHistory` : JSON `[HTTPTestResult]`, max 50 — historique des tests HTTP/HTTPS
 
 ### Sandbox
 ```
@@ -270,6 +292,13 @@ RPM estime : `60000 / max(latence_ms, 5)`
 - Deux courbes : reception (bleu) et envoi (vert)
 - Echelle auto-adaptative
 
+### MultiTargetGraphView
+
+- Graphe multi-series reutilisable (jusqu'a 8 cibles)
+- Courbes colorees avec legende interactive
+- Utilise par Multi-ping et Dashboard
+- Echelle auto-adaptative, 120 points par serie
+
 ### Tooltips interactifs (NetworkGraphView, RSSIGraphView)
 - NSTrackingArea + mouseMoved pour affichage valeurs sous le curseur
 - Ligne verticale et bulle tooltip avec valeurs exactes
@@ -281,7 +310,8 @@ RPM estime : `60000 / max(latence_ms, 5)`
 - **Pattern** : `NSLocalizedString("key", comment: "")`
 - **Phase 1 (fait)** : AppDelegate, SettingsWindowController, MainWindowController, GuideWindowController (~180 cles)
 - **Phase 2 (fait)** : fenetres techniques partiellement localisees (NetworkDetail, NetworkQuality, SpeedTest, Traceroute, Teletravail, WhoisWindowController)
-- **Cles totales** : ~400+ cles fr/en
+- **Phase 3 (fait)** : nouvelles fonctionnalites avancees (MTR, Multi-ping, HTTP Test, SSL, WoL, Dashboard, AutoAnalyzer)
+- **Cles totales** : ~550+ cles fr/en
 
 ## Accessibilite
 
@@ -319,6 +349,8 @@ L'application enregistre le scheme `netdisco://` pour les liens profonds (widget
 - `netdisco://speedtest`, `netdisco://details`, `netdisco://quality`, `netdisco://traceroute`
 - `netdisco://dns`, `netdisco://wifi`, `netdisco://neighborhood`, `netdisco://bandwidth`
 - `netdisco://whois`, `netdisco://teletravail`, `netdisco://settings`
+- `netdisco://mtr`, `netdisco://multiping`, `netdisco://httptest`
+- `netdisco://ssl`, `netdisco://wol`, `netdisco://dashboard`
 
 ## Widgets (WidgetKit)
 

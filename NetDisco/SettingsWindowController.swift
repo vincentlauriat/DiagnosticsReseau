@@ -303,8 +303,8 @@ class SettingsWindowController: NSWindowController {
             scrollView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
         ])
 
-        // Document view (contenu scrollable)
-        let view = NSView()
+        // Document view (contenu scrollable) - FlippedView pour aligner en haut
+        let view = FlippedView()
         view.translatesAutoresizingMaskIntoConstraints = false
         scrollView.documentView = view
 
@@ -460,6 +460,7 @@ class SettingsWindowController: NSWindowController {
 
         // Contraintes pour le document view
         NSLayoutConstraint.activate([
+            view.topAnchor.constraint(equalTo: scrollView.contentView.topAnchor),
             view.leadingAnchor.constraint(equalTo: scrollView.contentView.leadingAnchor),
             view.trailingAnchor.constraint(equalTo: scrollView.contentView.trailingAnchor),
             view.widthAnchor.constraint(equalTo: scrollView.contentView.widthAnchor),
@@ -926,6 +927,12 @@ class SettingsWindowController: NSWindowController {
         NetworkProfileStorage.remove(id: profiles[row].id)
         tableView.reloadData()
     }
+}
+
+// MARK: - FlippedView (pour scroll content aligné en haut)
+
+private class FlippedView: NSView {
+    override var isFlipped: Bool { true }
 }
 
 // MARK: - NSTableViewDataSource & NSTableViewDelegate (Profils)

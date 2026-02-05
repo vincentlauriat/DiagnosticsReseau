@@ -26,6 +26,16 @@
 		BB000000000000000000001 /* TeletravailWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002 /* TeletravailWindowController.swift */; };
 		DD000000000000000000003 /* BandwidthWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD000000000000000000004 /* BandwidthWindowController.swift */; };
 		EE000000000000000000001 /* WhoisWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE000000000000000000002 /* WhoisWindowController.swift */; };
+		EE000000000000000000003 /* ReportsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE000000000000000000004 /* ReportsWindowController.swift */; };
+		CC100001 /* MultiTargetGraphView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC100002 /* MultiTargetGraphView.swift */; };
+		CC100003 /* AutoAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC100004 /* AutoAnalyzer.swift */; };
+		CC100005 /* IPChangeMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC100006 /* IPChangeMonitor.swift */; };
+		CC100007 /* HTTPTestWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC100008 /* HTTPTestWindowController.swift */; };
+		CC100009 /* WakeOnLANWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC10000A /* WakeOnLANWindowController.swift */; };
+		CC10000B /* MultiPingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC10000C /* MultiPingWindowController.swift */; };
+		CC10000D /* SSLInspectorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC10000E /* SSLInspectorWindowController.swift */; };
+		CC10000F /* MTRWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC100010 /* MTRWindowController.swift */; };
+		CC100011 /* DashboardWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC100012 /* DashboardWindowController.swift */; };
 		BF3F57E62F2F1372007A3185 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF3F57E52F2F1372007A3185 /* WidgetKit.framework */; };
 		BF3F57E82F2F1372007A3185 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF3F57E72F2F1372007A3185 /* SwiftUI.framework */; };
 		BF3F57F72F2F1373007A3185 /* NetDiscoWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BF3F57E32F2F1372007A3185 /* NetDiscoWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -79,6 +89,7 @@
 		BB000000000000000000002 /* TeletravailWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeletravailWindowController.swift; sourceTree = "<group>"; };
 		DD000000000000000000004 /* BandwidthWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BandwidthWindowController.swift; sourceTree = "<group>"; };
 		EE000000000000000000002 /* WhoisWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhoisWindowController.swift; sourceTree = "<group>"; };
+		EE000000000000000000004 /* ReportsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportsWindowController.swift; sourceTree = "<group>"; };
 		BF3F57E32F2F1372007A3185 /* NetDiscoWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NetDiscoWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF3F57E52F2F1372007A3185 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		BF3F57E72F2F1372007A3185 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -88,6 +99,15 @@
 		DD000000000000000000002 /* SharedWidgetData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedWidgetData.swift; sourceTree = "<group>"; };
 		FF000000000000000000002 /* AppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntents.swift; sourceTree = "<group>"; };
 		FF000000000000000000004 /* iCloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iCloudSyncManager.swift; sourceTree = "<group>"; };
+		CC100002 /* MultiTargetGraphView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiTargetGraphView.swift; sourceTree = "<group>"; };
+		CC100004 /* AutoAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoAnalyzer.swift; sourceTree = "<group>"; };
+		CC100006 /* IPChangeMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPChangeMonitor.swift; sourceTree = "<group>"; };
+		CC100008 /* HTTPTestWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPTestWindowController.swift; sourceTree = "<group>"; };
+		CC10000A /* WakeOnLANWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WakeOnLANWindowController.swift; sourceTree = "<group>"; };
+		CC10000C /* MultiPingWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiPingWindowController.swift; sourceTree = "<group>"; };
+		CC10000E /* SSLInspectorWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSLInspectorWindowController.swift; sourceTree = "<group>"; };
+		CC100010 /* MTRWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTRWindowController.swift; sourceTree = "<group>"; };
+		CC100012 /* DashboardWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardWindowController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -154,10 +174,20 @@
 				BB000000000000000000002 /* TeletravailWindowController.swift */,
 				DD000000000000000000004 /* BandwidthWindowController.swift */,
 				EE000000000000000000002 /* WhoisWindowController.swift */,
+				EE000000000000000000004 /* ReportsWindowController.swift */,
 				8B9A0001290000000000001A /* GuideWindowController.swift */,
 				DD000000000000000000002 /* SharedWidgetData.swift */,
 				FF000000000000000000002 /* AppIntents.swift */,
 				FF000000000000000000004 /* iCloudSyncManager.swift */,
+				CC100002 /* MultiTargetGraphView.swift */,
+				CC100004 /* AutoAnalyzer.swift */,
+				CC100006 /* IPChangeMonitor.swift */,
+				CC100008 /* HTTPTestWindowController.swift */,
+				CC10000A /* WakeOnLANWindowController.swift */,
+				CC10000C /* MultiPingWindowController.swift */,
+				CC10000E /* SSLInspectorWindowController.swift */,
+				CC100010 /* MTRWindowController.swift */,
+				CC100012 /* DashboardWindowController.swift */,
 				8B9A000200000000000000F3 /* Localizable.strings */,
 				A2000002 /* Assets.xcassets */,
 				A1000003 /* Info.plist */,
@@ -322,10 +352,20 @@
 				BB000000000000000000001 /* TeletravailWindowController.swift in Sources */,
 				DD000000000000000000003 /* BandwidthWindowController.swift in Sources */,
 				EE000000000000000000001 /* WhoisWindowController.swift in Sources */,
+				EE000000000000000000003 /* ReportsWindowController.swift in Sources */,
 				8B9A0001290000000000001B /* GuideWindowController.swift in Sources */,
 				DD000000000000000000001 /* SharedWidgetData.swift in Sources */,
 				FF000000000000000000001 /* AppIntents.swift in Sources */,
 				FF000000000000000000003 /* iCloudSyncManager.swift in Sources */,
+				CC100001 /* MultiTargetGraphView.swift in Sources */,
+				CC100003 /* AutoAnalyzer.swift in Sources */,
+				CC100005 /* IPChangeMonitor.swift in Sources */,
+				CC100007 /* HTTPTestWindowController.swift in Sources */,
+				CC100009 /* WakeOnLANWindowController.swift in Sources */,
+				CC10000B /* MultiPingWindowController.swift in Sources */,
+				CC10000D /* SSLInspectorWindowController.swift in Sources */,
+				CC10000F /* MTRWindowController.swift in Sources */,
+				CC100011 /* DashboardWindowController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

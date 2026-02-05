@@ -709,6 +709,14 @@
 "quality.history.legend.loss" = "Perte (%)";
 "quality.history.no_data" = "Aucun historique disponible. Les données sont enregistrées automatiquement lors de l'utilisation de la fenêtre Qualité réseau.";
 "quality.history.no_data_short" = "Aucune donnée";
+
+/* Zoom controls */
+"quality.zoom.label" = "Période :";
+"quality.zoom.1h" = "1h";
+"quality.zoom.6h" = "6h";
+"quality.zoom.24h" = "24h";
+"quality.zoom.7d" = "7j";
+
 "quality.tooltip.measurement" = "Mesure %d/%d";
 "quality.tooltip.latency" = "Latence:";
 "quality.tooltip.loss" = "Perte de paquet";
@@ -753,3 +761,420 @@
 "scheduled.degradation.body" = "Latence: %.0f ms — Perte: %.1f%%";
 "scheduled.daily.title" = "Rapport quotidien";
 "scheduled.daily.body" = "Latence moy: %.0f ms — Perte: %.1f%% — Dégradations: %d";
+
+/* =========================
+   ReportsWindowController
+   ========================= */
+
+/* Menu */
+"menu.reports" = "Rapports…";
+
+/* Main window card */
+"main.card.reports" = "Rapports";
+
+/* Reports window */
+"reports.title" = "NetDisco — Rapports";
+"reports.tab.timeline" = "Timeline";
+"reports.tab.comparison" = "Comparaison";
+"reports.tab.reports" = "Rapports";
+
+/* Timeline tab */
+"reports.timeline.period" = "Période :";
+"reports.timeline.7days" = "7 jours";
+"reports.timeline.30days" = "30 jours";
+"reports.timeline.uptime_avg" = "Uptime moyen :";
+"reports.timeline.disconnections" = "Déconnexions :";
+"reports.timeline.longest_disconnect" = "Plus longue déconnexion :";
+"reports.timeline.longest_connect" = "Plus longue connexion :";
+"reports.timeline.no_data" = "Aucune donnée disponible";
+"reports.timeline.accessibility" = "Graphique de la timeline de connexion";
+"reports.timeline.connected" = "Connecté";
+"reports.timeline.disconnected" = "Déconnecté";
+
+/* Duration formatting */
+"reports.duration.days_hours" = "%dj %dh";
+"reports.duration.hours_minutes" = "%dh %dmin";
+"reports.duration.minutes" = "%d min";
+
+/* Comparison tab */
+"reports.comparison.compare" = "Comparer :";
+"reports.comparison.vs" = "avec";
+"reports.comparison.select_profiles" = "Sélectionnez deux profils à comparer";
+"reports.comparison.latency" = "Latence (ms)";
+"reports.comparison.download" = "Download (Mbps)";
+"reports.comparison.upload" = "Upload (Mbps)";
+"reports.comparison.diff" = "Différence";
+"reports.comparison.no_profiles" = "Aucun profil réseau";
+
+/* Reports tab */
+"reports.summary.type" = "Type :";
+"reports.summary.period" = "Période :";
+"reports.summary.weekly" = "Hebdomadaire";
+"reports.summary.monthly" = "Mensuel";
+"reports.summary.no_data" = "Aucun rapport disponible";
+"reports.summary.no_data_detail" = "Pas assez de données pour générer un rapport.\nActivez les tests planifiés dans les réglages.";
+
+/* Trend */
+"reports.trend.improving" = "En amélioration";
+"reports.trend.stable" = "Stable";
+"reports.trend.degrading" = "En dégradation";
+
+/* Buttons */
+"reports.button.copy" = "Copier";
+"reports.button.export_pdf" = "Exporter PDF";
+
+/* =========================
+   Nouvelles fonctionnalités avancées
+   ========================= */
+
+/* Menu items */
+"menu.mtr" = "MTR…";
+"menu.multiping" = "Multi-ping…";
+"menu.httptest" = "Test HTTP…";
+"menu.ssl" = "Certificat SSL…";
+"menu.wol" = "Wake on LAN…";
+"menu.dashboard" = "Dashboard…";
+
+/* Main window cards */
+"main.card.mtr" = "MTR";
+"main.card.multiping" = "Multi-ping";
+"main.card.httptest" = "Test HTTP";
+"main.card.ssl" = "Certificat SSL";
+"main.card.wol" = "Wake on LAN";
+"main.card.dashboard" = "Dashboard";
+
+/* IP Change notification */
+"notification.ip_changed.title" = "IP publique changée";
+"notification.ip_changed.body" = "Votre IP publique a changé de %@ à %@.";
+"settings.ipchange.title" = "Détection changement IP";
+"settings.ipchange.description" = "Recevez une notification lorsque votre adresse IP publique change.";
+
+/* =========================
+   MTRWindowController
+   ========================= */
+
+"mtr.title" = "NetDisco — MTR";
+"mtr.heading" = "My Traceroute";
+"mtr.target.label" = "Cible :";
+"mtr.button.start" = "Démarrer";
+"mtr.button.stop" = "Arrêter";
+"mtr.button.copy" = "Copier";
+"mtr.button.export" = "Exporter CSV";
+"mtr.status.ready" = "Entrez une adresse et cliquez sur Démarrer";
+"mtr.status.discovering" = "Découverte des hops…";
+"mtr.status.running" = "Ping continu en cours — %d hops — %d paquets envoyés";
+"mtr.status.done" = "Terminé — %d hops";
+"mtr.column.hop" = "#";
+"mtr.column.ip" = "IP";
+"mtr.column.hostname" = "Hostname";
+"mtr.column.sent" = "Envoyés";
+"mtr.column.loss" = "Perte";
+"mtr.column.avg" = "Moy";
+"mtr.column.best" = "Min";
+"mtr.column.worst" = "Max";
+"mtr.column.jitter" = "Jitter";
+
+/* =========================
+   MultiPingWindowController
+   ========================= */
+
+"multiping.title" = "NetDisco — Multi-ping";
+"multiping.heading" = "Multi-ping";
+"multiping.target.google" = "Google (8.8.8.8)";
+"multiping.target.cloudflare" = "Cloudflare (1.1.1.1)";
+"multiping.target.gateway" = "Passerelle";
+"multiping.target.custom" = "Personnalisé :";
+"multiping.button.start" = "Démarrer";
+"multiping.button.stop" = "Arrêter";
+"multiping.button.copy" = "Copier";
+"multiping.status.ready" = "Sélectionnez des cibles et cliquez sur Démarrer";
+"multiping.status.running" = "Ping en cours — %d paquets envoyés";
+"multiping.status.no_target" = "Sélectionnez au moins une cible";
+"multiping.status.starting" = "Démarrage…";
+"multiping.status.stopped" = "Arrêté";
+
+/* Clés courtes pour Multi-ping */
+"multiping.targets" = "Cibles";
+"multiping.gateway" = "Passerelle";
+"multiping.custom" = "Personnalisé";
+"multiping.start" = "Démarrer";
+"multiping.stop" = "Arrêter";
+"multiping.stats" = "Statistiques";
+"multiping.copy" = "Copier";
+"multiping.col.target" = "Cible";
+"multiping.col.avg" = "Moy";
+"multiping.col.min" = "Min";
+"multiping.col.max" = "Max";
+"multiping.col.jitter" = "Jitter";
+"multiping.col.loss" = "Perte";
+
+"multiping.column.target" = "Cible";
+"multiping.column.avg" = "Moy";
+"multiping.column.min" = "Min";
+"multiping.column.max" = "Max";
+"multiping.column.jitter" = "Jitter";
+"multiping.column.loss" = "Perte";
+"multiping.legend" = "Légende";
+
+/* =========================
+   HTTPTestWindowController
+   ========================= */
+
+"httptest.title" = "NetDisco — Test HTTP";
+"httptest.heading" = "Test HTTP/HTTPS";
+"httptest.url.label" = "URL :";
+"httptest.url.placeholder" = "https://example.com";
+"httptest.button.test" = "Tester";
+"httptest.button.copy" = "Copier";
+"httptest.status.ready" = "Entrez une URL et cliquez sur Tester";
+"httptest.status.testing" = "Test en cours…";
+"httptest.result.status" = "Statut :";
+"httptest.result.time" = "Temps de réponse :";
+"httptest.result.ssl" = "SSL :";
+"httptest.result.ssl.valid" = "Valide";
+"httptest.result.ssl.invalid" = "Invalide";
+"httptest.result.ssl.expires" = "Expire dans %d jours";
+"httptest.result.redirects" = "Redirections :";
+"httptest.history.title" = "Historique (20 derniers)";
+"httptest.column.url" = "URL";
+"httptest.column.date" = "Date";
+"httptest.column.status" = "Statut";
+"httptest.column.time" = "Temps";
+"httptest.column.ssl" = "SSL";
+"httptest.error.invalid_url" = "URL invalide";
+"httptest.error.network" = "Erreur réseau : %@";
+
+/* =========================
+   SSLInspectorWindowController
+   ========================= */
+
+"ssl.title" = "NetDisco — Certificat SSL";
+"ssl.heading" = "Inspecteur de certificat SSL";
+"ssl.domain.label" = "Domaine :";
+"ssl.domain.placeholder" = "example.com";
+"ssl.button.inspect" = "Inspecter";
+"ssl.button.copy" = "Copier";
+"ssl.status.ready" = "Entrez un domaine et cliquez sur Inspecter";
+"ssl.status.connecting" = "Connexion à %@…";
+"ssl.status.done" = "Certificat récupéré";
+"ssl.warning.expires_soon" = "⚠️ Le certificat expire dans %d jours";
+"ssl.warning.expired" = "⛔️ Le certificat a expiré";
+"ssl.section.subject" = "SUJET";
+"ssl.section.issuer" = "ÉMETTEUR";
+"ssl.section.validity" = "VALIDITÉ";
+"ssl.section.details" = "DÉTAILS";
+"ssl.section.chain" = "CHAÎNE DE CERTIFICATS";
+"ssl.label.common_name" = "Nom commun :";
+"ssl.label.organization" = "Organisation :";
+"ssl.label.country" = "Pays :";
+"ssl.label.valid_from" = "Valide du :";
+"ssl.label.valid_to" = "Au :";
+"ssl.label.serial" = "N° série :";
+"ssl.label.algorithm" = "Algorithme :";
+"ssl.label.key_size" = "Taille clé :";
+"ssl.error.connection" = "Impossible de se connecter à %@";
+"ssl.error.no_certificate" = "Aucun certificat trouvé";
+
+/* =========================
+   WakeOnLANWindowController
+   ========================= */
+
+"wol.title" = "NetDisco — Wake on LAN";
+"wol.devices" = "Appareils enregistrés";
+"wol.add_device" = "Ajouter un appareil";
+"wol.name" = "Nom";
+"wol.name.placeholder" = "Mon PC";
+"wol.mac" = "Adresse MAC";
+"wol.add" = "Ajouter";
+"wol.delete" = "Supprimer";
+"wol.wake" = "Réveiller";
+"wol.wake_selected" = "Réveiller";
+"wol.column.name" = "Nom";
+"wol.column.mac" = "Adresse MAC";
+"wol.column.last" = "Dernière utilisation";
+"wol.never" = "Jamais";
+"wol.packet_sent" = "Magic packet envoyé à %@";
+"wol.device_added" = "Appareil ajouté";
+"wol.device_deleted" = "Appareil supprimé";
+"wol.error.name_required" = "Le nom est requis";
+"wol.error.invalid_mac" = "Adresse MAC invalide";
+"wol.error.duplicate" = "Cet appareil existe déjà";
+"wol.error.select_device" = "Sélectionnez un appareil";
+"wol.error.send_failed" = "Échec de l'envoi du magic packet";
+
+/* =========================
+   DashboardWindowController
+   ========================= */
+
+"dashboard.title" = "NetDisco — Dashboard";
+"dashboard.heading" = "Dashboard";
+"dashboard.refresh.label" = "Rafraîchissement :";
+"dashboard.refresh.5s" = "5s";
+"dashboard.refresh.10s" = "10s";
+"dashboard.refresh.30s" = "30s";
+"dashboard.refresh.60s" = "60s";
+
+/* Panels */
+"dashboard.panel.connection" = "CONNEXION";
+"dashboard.panel.latency" = "LATENCE";
+"dashboard.panel.throughput" = "DÉBIT";
+"dashboard.panel.wifi" = "WIFI";
+"dashboard.panel.publicip" = "IP PUBLIQUE";
+"dashboard.panel.quality24h" = "QUALITÉ 24H";
+"dashboard.panel.alerts" = "ALERTES";
+
+/* Connection panel */
+"dashboard.connection.connected" = "Connecté";
+"dashboard.connection.disconnected" = "Déconnecté";
+"dashboard.connection.vpn" = "VPN actif";
+
+/* Latency panel */
+"dashboard.latency.jitter" = "Jitter :";
+
+/* Throughput panel */
+"dashboard.throughput.in" = "↓";
+"dashboard.throughput.out" = "↑";
+
+/* WiFi panel */
+"dashboard.wifi.signal" = "Signal :";
+"dashboard.wifi.channel" = "Canal :";
+"dashboard.wifi.not_connected" = "Non connecté";
+
+/* Public IP panel */
+"dashboard.publicip.unchanged" = "(inchangée)";
+"dashboard.publicip.changed" = "(changée)";
+"dashboard.publicip.loading" = "Chargement…";
+
+/* Quality 24h panel */
+"dashboard.quality.avg" = "Moy :";
+"dashboard.quality.loss" = "Perte :";
+
+/* Alerts */
+"dashboard.alerts.none" = "✓ Aucun problème détecté";
+
+/* Quick actions */
+"dashboard.action.speedtest" = "Test de débit";
+"dashboard.action.traceroute" = "Traceroute";
+"dashboard.action.details" = "Détails réseau";
+
+/* =========================
+   AutoAnalyzer
+   ========================= */
+
+"diagnostic.high_latency.title" = "Latence élevée";
+"diagnostic.high_latency.suggestion" = "La latence dépasse %d ms. Vérifiez la charge de votre réseau local ou rapprochez-vous de votre routeur WiFi.";
+"diagnostic.packet_loss.title" = "Perte de paquets";
+"diagnostic.packet_loss.suggestion" = "%.1f%% de paquets perdus. Vérifiez la qualité de votre connexion WiFi ou câble Ethernet.";
+"diagnostic.dns_slow.title" = "DNS lent";
+"diagnostic.dns_slow.suggestion" = "La résolution DNS prend plus de %d ms. Essayez de changer de serveur DNS (1.1.1.1 ou 8.8.8.8).";
+"diagnostic.jitter_high.title" = "Gigue élevée";
+"diagnostic.jitter_high.suggestion" = "La gigue dépasse %d ms. Cela peut affecter les appels vidéo et le streaming.";
+"diagnostic.wifi_weak.title" = "Signal WiFi faible";
+"diagnostic.wifi_weak.suggestion" = "Le signal WiFi est faible (%d dBm). Rapprochez-vous de votre routeur ou utilisez un répéteur.";
+"diagnostic.no_internet.title" = "Pas de connexion Internet";
+"diagnostic.no_internet.suggestion" = "Vérifiez votre routeur et votre fournisseur d'accès Internet.";
+"diagnostic.vpn_overhead.title" = "VPN actif";
+"diagnostic.vpn_overhead.suggestion" = "Un VPN est actif. Il peut ajouter de la latence et réduire le débit.";
+
+/* =========================
+   IPChangeMonitor
+   ========================= */
+
+"ipmonitor.history.title" = "Historique des changements d'IP";
+"ipmonitor.history.empty" = "Aucun changement d'IP enregistré";
+
+/* =========================
+   Clés utilisées par le code
+   (correspondances exactes)
+   ========================= */
+
+/* MTR - clés courtes */
+"mtr.target" = "Cible :";
+"mtr.start" = "Démarrer";
+"mtr.stop" = "Arrêter";
+"mtr.copy" = "Copier";
+"mtr.export" = "Exporter CSV";
+"mtr.discovering" = "Découverte des hops…";
+"mtr.running" = "Ping continu — %d hops — %d paquets";
+"mtr.stopped" = "Arrêté";
+"mtr.error.resolve" = "Impossible de résoudre l'adresse";
+"mtr.col.hostname" = "Hostname";
+"mtr.col.sent" = "Envoyés";
+"mtr.col.loss" = "Perte";
+"mtr.col.avg" = "Moy";
+"mtr.col.min" = "Min";
+"mtr.col.max" = "Max";
+"mtr.col.jitter" = "Jitter";
+
+/* Multi-ping - clés courtes */
+"multiping.targets" = "Cibles";
+"multiping.gateway" = "Passerelle";
+"multiping.custom" = "Personnalisé :";
+"multiping.start" = "Démarrer";
+"multiping.stop" = "Arrêter";
+"multiping.copy" = "Copier";
+"multiping.stats" = "Statistiques";
+"multiping.col.target" = "Cible";
+"multiping.col.avg" = "Moy";
+"multiping.col.min" = "Min";
+"multiping.col.max" = "Max";
+"multiping.col.jitter" = "Jitter";
+"multiping.col.loss" = "Perte";
+
+/* HTTP Test - clés courtes */
+"httptest.test" = "Tester";
+"httptest.results" = "Résultats";
+"httptest.history" = "Historique";
+"httptest.clear" = "Effacer";
+"httptest.copy" = "Copier";
+"httptest.error.unknown" = "Erreur inconnue";
+"httptest.response_time" = "Temps de réponse : %d ms";
+"httptest.ssl.valid" = "SSL : Valide";
+"httptest.ssl.expires_in" = "SSL : Expire dans %d jours";
+"httptest.ssl.invalid" = "SSL : Invalide";
+"httptest.ssl.none" = "SSL : Non";
+"httptest.redirects" = "Redirections : %@";
+"httptest.no_redirects" = "Aucune redirection";
+
+/* SSL Inspector - clés courtes */
+"ssl.domain" = "Domaine :";
+"ssl.inspect" = "Inspecter";
+"ssl.copy" = "Copier";
+"ssl.details" = "Détails";
+"ssl.chain" = "Chaîne de certificats";
+"ssl.subject" = "Sujet";
+"ssl.issuer" = "Émetteur";
+"ssl.issued_by" = "Émis par : %@";
+"ssl.valid_from" = "Valide du : %@";
+"ssl.valid_to" = "Au : %@";
+"ssl.serial" = "N° série : %@";
+"ssl.algorithm" = "Algorithme : %@";
+"ssl.public_key" = "Clé publique : %@";
+"ssl.days" = "%d jours";
+"ssl.unknown" = "Inconnu";
+"ssl.error.invalid_domain" = "Domaine invalide";
+"ssl.error.unknown" = "Erreur inconnue";
+"ssl.error.no_trust" = "Impossible d'établir la confiance";
+"ssl.error.no_cert" = "Aucun certificat trouvé";
+"ssl.error.timeout" = "Délai d'attente dépassé";
+"ssl.valid" = "Certificat valide";
+"ssl.warning.invalid" = "⛔️ Certificat invalide";
+"ssl.warning.expiring" = "⚠️ Expire dans %d jours";
+
+/* Dashboard - clés courtes */
+"dashboard.refresh" = "Rafraîchissement :";
+"dashboard.connection" = "CONNEXION";
+"dashboard.connected" = "Connecté";
+"dashboard.disconnected" = "Déconnecté";
+"dashboard.latency" = "LATENCE";
+"dashboard.throughput" = "DÉBIT";
+"dashboard.wifi" = "WIFI";
+"dashboard.no_wifi" = "Non connecté";
+"dashboard.public_ip" = "IP PUBLIQUE";
+"dashboard.ip_changed" = "(changée)";
+"dashboard.quality_24h" = "QUALITÉ 24H";
+"dashboard.quality_no_data" = "Pas de données";
+"dashboard.alerts" = "ALERTES";
+"dashboard.no_alerts" = "✓ Aucun problème";
+"dashboard.more_alerts" = "+%d autres alertes";
+"dashboard.timeout" = "Timeout";

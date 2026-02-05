@@ -90,6 +90,14 @@ class MainWindowController: NSWindowController {
             (NSLocalizedString("main.card.neighborhood", comment: ""), "desktopcomputer", #selector(openNeighborhood), true),
             (NSLocalizedString("main.card.bandwidth", comment: ""), "arrow.up.arrow.down", #selector(openBandwidth), true),
             (NSLocalizedString("main.card.whois", comment: ""), "globe.desk", #selector(openWhois), true),
+            (NSLocalizedString("main.card.reports", comment: ""), "chart.bar.doc.horizontal.fill", #selector(openReports), true),
+            // Nouvelles fonctionnalités avancées
+            (NSLocalizedString("main.card.mtr", comment: ""), "point.3.connected.trianglepath.dotted", #selector(openMTR), true),
+            // Multi-ping masqué temporairement
+            (NSLocalizedString("main.card.httptest", comment: ""), "globe.badge.chevron.backward", #selector(openHTTPTest), true),
+            (NSLocalizedString("main.card.ssl", comment: ""), "lock.shield.fill", #selector(openSSLInspector), true),
+            (NSLocalizedString("main.card.wol", comment: ""), "power", #selector(openWakeOnLAN), true),
+            (NSLocalizedString("main.card.dashboard", comment: ""), "rectangle.3.group.fill", #selector(openDashboard), false),
             (NSLocalizedString("main.card.teletravail", comment: ""), "person.and.arrow.left.and.arrow.right", #selector(openTeletravail), false),
             (NSLocalizedString("main.card.guide", comment: ""), "book.fill", #selector(openGuide), false),
             (NSLocalizedString("main.card.settings", comment: ""), "gearshape.fill", #selector(openSettings), false),
@@ -237,9 +245,17 @@ class MainWindowController: NSWindowController {
     @objc private func openNeighborhood() { appDelegate?.performShowNeighborhood() }
     @objc private func openBandwidth() { appDelegate?.performShowBandwidth() }
     @objc private func openWhois() { appDelegate?.performShowWhois() }
+    @objc private func openReports() { appDelegate?.performShowReports() }
     @objc private func openTeletravail() { appDelegate?.performShowTeletravail() }
     @objc private func openGuide() { appDelegate?.performShowGuide() }
     @objc private func openSettings() { appDelegate?.performShowSettings() }
+    // Nouvelles fonctionnalités avancées
+    @objc private func openMTR() { appDelegate?.performShowMTR() }
+    @objc private func openMultiPing() { appDelegate?.performShowMultiPing() }
+    @objc private func openHTTPTest() { appDelegate?.performShowHTTPTest() }
+    @objc private func openSSLInspector() { appDelegate?.performShowSSLInspector() }
+    @objc private func openWakeOnLAN() { appDelegate?.performShowWakeOnLAN() }
+    @objc private func openDashboard() { appDelegate?.performShowDashboard() }
 
     override func close() {
         NotificationCenter.default.removeObserver(self)

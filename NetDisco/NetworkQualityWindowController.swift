@@ -838,10 +838,40 @@ class NetworkGraphView: NSView {
 
 // MARK: - QualityHistoryWindowController
 
+// MARK: - Zoom Level for History
+
+enum HistoryZoomLevel: Int, CaseIterable {
+    case oneHour = 0
+    case sixHours = 1
+    case twentyFourHours = 2
+    case sevenDays = 3
+
+    var seconds: TimeInterval {
+        switch self {
+        case .oneHour: return 3600
+        case .sixHours: return 21600
+        case .twentyFourHours: return 86400
+        case .sevenDays: return 604800
+        }
+    }
+
+    var label: String {
+        switch self {
+        case .oneHour: return NSLocalizedString("quality.zoom.1h", comment: "")
+        case .sixHours: return NSLocalizedString("quality.zoom.6h", comment: "")
+        case .twentyFourHours: return NSLocalizedString("quality.zoom.24h", comment: "")
+        case .sevenDays: return NSLocalizedString("quality.zoom.7d", comment: "")
+        }
+    }
+}
+
 class QualityHistoryWindowController: NSWindowController {
 
     private var historyGraphView: QualityHistoryGraphView!
     private var summaryLabel: NSTextField!
+    private var zoomSegmented: NSSegmentedControl!
+    private var currentZoom: HistoryZoomLevel = .twentyFourHours
+    private var allSnapshots: [QualitySnapshot] = []
 
     convenience init() {
         let window = NSWindow(
@@ -862,11 +892,28 @@ class QualityHistoryWindowController: NSWindowController {
     private func setupUI() {
         guard let contentView = window?.contentView else { return }
 
+        // Top row: zoom control + summary
+        let topRow = NSStackView()
+        topRow.orientation = .horizontal
+        topRow.spacing = 16
+        topRow.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(topRow)
+
+        let zoomLabel = NSTextField(labelWithString: NSLocalizedString("quality.zoom.label", comment: ""))
+        zoomLabel.font = NSFont.systemFont(ofSize: 12)
+        topRow.addArrangedSubview(zoomLabel)
+
+        zoomSegmented = NSSegmentedControl(labels: HistoryZoomLevel.allCases.map { $0.label }, trackingMode: .selectOne, target: self, action: #selector(zoomChanged))
+        zoomSegmented.selectedSegment = 2 // 24h par défaut
+        topRow.addArrangedSubview(zoomSegmented)
+
+        topRow.addArrangedSubview(NSView()) // Spacer
+
         summaryLabel = NSTextField(wrappingLabelWithString: "")
         summaryLabel.translatesAutoresizingMaskIntoConstraints = false
         summaryLabel.font = NSFont.monospacedSystemFont(ofSize: 11, weight: .regular)
         summaryLabel.textColor = .secondaryLabelColor
-        contentView.addSubview(summaryLabel)
+        topRow.addArrangedSubview(summaryLabel)
 
         // Legend
         let legend = NSStackView()
@@ -903,11 +950,11 @@ class QualityHistoryWindowController: NSWindowController {
         contentView.addSubview(historyGraphView)
 
         NSLayoutConstraint.activate([
-            summaryLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
-            summaryLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            summaryLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            topRow.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
+            topRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            topRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
 
-            legend.topAnchor.constraint(equalTo: summaryLabel.bottomAnchor, constant: 8),
+            legend.topAnchor.constraint(equalTo: topRow.bottomAnchor, constant: 8),
             legend.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
 
             historyGraphView.topAnchor.constraint(equalTo: legend.bottomAnchor, constant: 8),
@@ -923,27 +970,38 @@ class QualityHistoryWindowController: NSWindowController {
     }
 
     private func loadHistory() {
-        let snapshots = QualityHistoryStorage.load()
-        historyGraphView.snapshots = snapshots
+        allSnapshots = QualityHistoryStorage.load()
+        applyZoomFilter()
+    }
 
-        guard !snapshots.isEmpty else {
+    @objc private func zoomChanged(_ sender: NSSegmentedControl) {
+        currentZoom = HistoryZoomLevel(rawValue: sender.selectedSegment) ?? .twentyFourHours
+        applyZoomFilter()
+    }
+
+    private func applyZoomFilter() {
+        let cutoff = Date().addingTimeInterval(-currentZoom.seconds)
+        let filteredSnapshots = allSnapshots.filter { $0.date >= cutoff }
+        historyGraphView.snapshots = filteredSnapshots
+
+        guard !filteredSnapshots.isEmpty else {
             summaryLabel.stringValue = NSLocalizedString("quality.history.no_data", comment: "")
             return
         }
 
-        let avgLat = snapshots.map(\.avgLatency).reduce(0, +) / Double(snapshots.count)
-        let avgJitter = snapshots.map(\.jitter).reduce(0, +) / Double(snapshots.count)
-        let avgLoss = snapshots.map(\.lossPercent).reduce(0, +) / Double(snapshots.count)
-        let oldest = snapshots.last?.date ?? Date()
-        let newest = snapshots.first?.date ?? Date()
+        let avgLat = filteredSnapshots.map(\.avgLatency).reduce(0, +) / Double(filteredSnapshots.count)
+        let avgJitter = filteredSnapshots.map(\.jitter).reduce(0, +) / Double(filteredSnapshots.count)
+        let avgLoss = filteredSnapshots.map(\.lossPercent).reduce(0, +) / Double(filteredSnapshots.count)
+        let oldest = filteredSnapshots.last?.date ?? Date()
+        let newest = filteredSnapshots.first?.date ?? Date()
 
         let df = DateFormatter()
         df.dateStyle = .short
         df.timeStyle = .short
 
         summaryLabel.stringValue = String(format:
-            "%d mesures de %@ à %@   |   Latence moy: %.1f ms   Jitter moy: %.1f ms   Perte moy: %.1f%%",
-            snapshots.count, df.string(from: oldest), df.string(from: newest), avgLat, avgJitter, avgLoss
+            "%d mesures   |   Latence moy: %.1f ms   Jitter moy: %.1f ms   Perte moy: %.1f%%",
+            filteredSnapshots.count, avgLat, avgJitter, avgLoss
         )
     }
 }
