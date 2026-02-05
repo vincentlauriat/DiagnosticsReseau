@@ -1178,3 +1178,185 @@
 "dashboard.no_alerts" = "✓ Aucun problème";
 "dashboard.more_alerts" = "+%d autres alertes";
 "dashboard.timeout" = "Timeout";
+
+/* =========================
+   Guide - Sections
+   ========================= */
+
+"guide.section.about" = "À propos";
+"guide.section.tools_basic" = "Outils de base";
+"guide.section.tools_advanced" = "Outils avancés";
+"guide.section.monitoring" = "Surveillance";
+"guide.section.concepts" = "Concepts réseau";
+"guide.section.tips" = "Astuces";
+"guide.section.teletravail" = "Télétravail";
+"guide.section.integration" = "Intégration";
+"guide.section.shortcuts" = "Raccourcis";
+
+/* Guide - About */
+"guide.about.features.title" = "Fonctionnalités principales";
+"guide.about.geekmode.title" = "Mode Geek";
+"guide.about.geekmode.desc" = "Le Mode Geek permet d'accéder aux outils avancés comme MTR, Multi-ping, DNS, WHOIS, etc. Activez-le dans les Réglages ou en faisant Option+clic sur l'icône de la barre de menus.";
+"guide.about.modes.title" = "Modes d'affichage";
+"guide.about.modes.desc" = "NetDisco peut fonctionner en mode barre de menus uniquement (discret) ou en mode application complète (avec Dock et fenêtre d'accueil). Choisissez votre mode préféré dans les Réglages.";
+
+/* Guide - Features list */
+"guide.feature.details" = "Détails réseau";
+"guide.feature.details.desc" = "Interfaces, WiFi, routage, DNS, IP publique";
+"guide.feature.quality" = "Qualité réseau";
+"guide.feature.quality.desc" = "Latence, gigue et perte de paquets en temps réel";
+"guide.feature.speedtest" = "Test de débit";
+"guide.feature.speedtest.desc" = "Vitesse de téléchargement et d'envoi";
+"guide.feature.wifi" = "WiFi";
+"guide.feature.wifi.desc" = "Signal, canal, bande et sécurité";
+"guide.feature.traceroute" = "Traceroute";
+"guide.feature.traceroute.desc" = "Chemin réseau avec carte géographique";
+"guide.feature.dns" = "DNS";
+"guide.feature.dns.desc" = "Requêtes avancées et benchmark de serveurs";
+"guide.feature.neighborhood" = "Voisinage réseau";
+"guide.feature.neighborhood.desc" = "Scanner d'appareils et de ports";
+"guide.feature.bandwidth" = "Bande passante";
+"guide.feature.bandwidth.desc" = "Débit en temps réel par interface";
+"guide.feature.whois" = "WHOIS";
+"guide.feature.whois.desc" = "Informations sur les domaines et IPs";
+"guide.feature.teletravail" = "Télétravail";
+"guide.feature.teletravail.desc" = "Diagnostic par type d'utilisation";
+
+/* Guide - Basic Tools */
+"guide.tools.basic.title" = "Outils de base";
+"guide.tools.basic.intro" = "Ces outils sont toujours accessibles et permettent de surveiller et diagnostiquer votre connexion réseau au quotidien.";
+
+"guide.tool.details.title" = "Détails réseau";
+"guide.tool.details.desc" = "Vue complète de votre configuration réseau avec toutes les interfaces, le WiFi, le routage, le DNS et les adresses IP publiques.";
+"guide.tool.details.feature1" = "État de connexion et type (WiFi, Ethernet, VPN)";
+"guide.tool.details.feature2" = "Détails de chaque interface réseau";
+"guide.tool.details.feature3" = "Configuration DNS et passerelle";
+"guide.tool.details.feature4" = "Adresses IP publiques IPv4 et IPv6";
+
+"guide.tool.quality.title" = "Qualité réseau";
+"guide.tool.quality.desc" = "Mesure en temps réel de la latence, de la gigue (jitter) et de la perte de paquets vers une cible configurable.";
+"guide.tool.quality.feature1" = "Graphique temps réel des métriques";
+"guide.tool.quality.feature2" = "Historique sur 24 heures";
+"guide.tool.quality.feature3" = "Cible configurable (Internet, passerelle, personnalisé)";
+
+"guide.tool.speedtest.title" = "Test de débit";
+"guide.tool.speedtest.desc" = "Mesure la vitesse de téléchargement et d'envoi de votre connexion via les serveurs Cloudflare.";
+"guide.tool.speedtest.feature1" = "Download, upload et latence";
+"guide.tool.speedtest.feature2" = "Historique des tests avec géolocalisation";
+"guide.tool.speedtest.feature3" = "Export CSV et partage";
+
+"guide.tool.wifi.title" = "WiFi";
+"guide.tool.wifi.desc" = "Informations détaillées sur votre connexion WiFi avec graphique du signal en temps réel.";
+"guide.tool.wifi.feature1" = "SSID, BSSID, canal et bande";
+"guide.tool.wifi.feature2" = "Signal RSSI avec jauge et graphique";
+"guide.tool.wifi.feature3" = "Mode PHY et sécurité";
+
+/* Guide - Advanced Tools */
+"guide.tools.advanced.title" = "Outils avancés";
+"guide.tools.advanced.intro" = "Ces outils sont accessibles en activant le Mode Geek. Ils offrent des fonctionnalités de diagnostic réseau approfondies.";
+
+"guide.tool.mtr.title" = "MTR (My Traceroute)";
+"guide.tool.mtr.desc" = "Combine traceroute et ping continu pour analyser chaque saut du chemin réseau avec des statistiques en temps réel.";
+"guide.tool.mtr.feature1" = "Statistiques par hop (latence, perte, jitter)";
+"guide.tool.mtr.feature2" = "Ping continu avec mise à jour temps réel";
+"guide.tool.mtr.feature3" = "Export CSV des résultats";
+
+"guide.tool.multiping.title" = "Multi-ping";
+"guide.tool.multiping.desc" = "Ping simultané vers plusieurs cibles pour comparer la connectivité et identifier les problèmes.";
+"guide.tool.multiping.feature1" = "Ping Google, Cloudflare, passerelle et cible personnalisée";
+"guide.tool.multiping.feature2" = "Graphique comparatif des latences";
+
+"guide.tool.traceroute.title" = "Traceroute";
+"guide.tool.traceroute.desc" = "Trace le chemin réseau vers une destination avec visualisation sur carte géographique.";
+"guide.tool.traceroute.feature1" = "Support IPv4 et IPv6";
+"guide.tool.traceroute.feature2" = "Géolocalisation des hops";
+"guide.tool.traceroute.feature3" = "Carte interactive avec annotations";
+
+"guide.tool.dns.title" = "DNS";
+"guide.tool.dns.desc" = "Requêtes DNS avancées avec support de tous les types d'enregistrements et benchmark de serveurs.";
+"guide.tool.dns.feature1" = "Tous les types (A, AAAA, MX, TXT, NS, etc.)";
+"guide.tool.dns.feature2" = "Test de latence des serveurs DNS";
+"guide.tool.dns.feature3" = "Favoris et coloration syntaxique";
+
+"guide.tool.whois.title" = "WHOIS";
+"guide.tool.whois.desc" = "Recherche d'informations sur les domaines et adresses IP via les serveurs WHOIS.";
+"guide.tool.whois.feature1" = "Support de 27+ TLDs avec redirection automatique";
+"guide.tool.whois.feature2" = "Favoris et coloration syntaxique";
+
+"guide.tool.http.title" = "Test HTTP/HTTPS";
+"guide.tool.http.desc" = "Teste la disponibilité et le temps de réponse d'un site web avec vérification SSL.";
+"guide.tool.http.feature1" = "Temps de réponse et code HTTP";
+"guide.tool.http.feature2" = "Vérification du certificat SSL";
+
+"guide.tool.ssl.title" = "Certificat SSL";
+"guide.tool.ssl.desc" = "Inspecte les certificats SSL/TLS d'un domaine avec tous les détails techniques.";
+"guide.tool.ssl.feature1" = "Sujet, émetteur, validité et algorithme";
+"guide.tool.ssl.feature2" = "Chaîne de certificats complète";
+
+"guide.tool.neighborhood.title" = "Voisinage réseau";
+"guide.tool.neighborhood.desc" = "Scanner les appareils présents sur votre réseau local avec détection des services et ports ouverts.";
+"guide.tool.neighborhood.feature1" = "Découverte ARP et ICMP";
+"guide.tool.neighborhood.feature2" = "Services Bonjour et scan de ports";
+"guide.tool.neighborhood.feature3" = "Identification du fabricant (OUI)";
+
+"guide.tool.wol.title" = "Wake on LAN";
+"guide.tool.wol.desc" = "Envoyez des magic packets pour réveiller des ordinateurs configurés pour le Wake on LAN.";
+"guide.tool.wol.feature1" = "Gestion des appareils enregistrés";
+"guide.tool.wol.feature2" = "Envoi de magic packets UDP";
+
+"guide.tool.bandwidth.title" = "Bande passante";
+"guide.tool.bandwidth.desc" = "Surveillance en temps réel du débit entrant et sortant sur chaque interface réseau.";
+"guide.tool.bandwidth.feature1" = "Graphique temps réel du débit";
+"guide.tool.bandwidth.feature2" = "Totaux de la session";
+
+/* Guide - Monitoring */
+"guide.monitoring.title" = "Surveillance";
+"guide.monitoring.intro" = "NetDisco peut surveiller votre réseau en arrière-plan et vous alerter en cas de problème.";
+
+"guide.tool.dashboard.title" = "Dashboard";
+"guide.tool.dashboard.desc" = "Vue d'ensemble en temps réel de l'état de votre réseau avec tous les indicateurs clés.";
+"guide.tool.dashboard.feature1" = "Connexion, latence, débit, WiFi, IP publique";
+"guide.tool.dashboard.feature2" = "Qualité 24h et alertes automatiques";
+"guide.tool.dashboard.feature3" = "Rafraîchissement configurable";
+
+"guide.tool.ipchange.title" = "Détection changement IP";
+"guide.tool.ipchange.desc" = "Surveille votre adresse IP publique et vous notifie en cas de changement.";
+"guide.tool.ipchange.feature1" = "Surveillance IPv4 et IPv6";
+"guide.tool.ipchange.feature2" = "Historique des changements";
+
+"guide.tool.scheduled.title" = "Tests planifiés";
+"guide.tool.scheduled.desc" = "Exécute automatiquement des tests de qualité à intervalles réguliers pour surveiller votre connexion.";
+"guide.tool.scheduled.feature1" = "Intervalle configurable (5, 15, 30, 60 min)";
+"guide.tool.scheduled.feature2" = "Rapports journaliers";
+"guide.tool.scheduled.feature3" = "Alertes en cas de dégradation";
+
+"guide.tool.analyzer.title" = "Analyse automatique";
+"guide.tool.analyzer.desc" = "Détecte automatiquement les problèmes réseau et propose des suggestions de résolution.";
+"guide.tool.analyzer.feature1" = "Détection latence, perte, DNS lent, WiFi faible";
+"guide.tool.analyzer.feature2" = "Suggestions contextuelles";
+
+"guide.tool.profiles.title" = "Profils réseau";
+"guide.tool.profiles.desc" = "Enregistrez vos réseaux WiFi favoris et suivez leurs performances au fil du temps.";
+"guide.tool.profiles.feature1" = "Détection automatique du réseau";
+"guide.tool.profiles.feature2" = "Historique des performances par réseau";
+
+/* Guide - Télétravail */
+"guide.teletravail.verdicts.title" = "Verdicts";
+
+/* Guide - Integration */
+"guide.integration.title" = "Intégration système";
+"guide.widgets.title" = "Widgets";
+"guide.widgets.desc" = "NetDisco propose des widgets pour le Centre de notifications et l'écran d'accueil :";
+"guide.widgets.small" = "Petit";
+"guide.widgets.small.desc" = "Icône de statut de connexion";
+"guide.widgets.medium" = "Moyen";
+"guide.widgets.medium.desc" = "Statut + dernier test de débit";
+"guide.widgets.large" = "Grand";
+"guide.widgets.large.desc" = "Statut détaillé + bouton test de débit";
+
+"guide.icloud.title" = "Synchronisation iCloud";
+"guide.icloud.desc" = "Activez la synchronisation iCloud dans les Réglages pour partager vos favoris, historique et profils réseau entre vos appareils. La synchronisation est optionnelle et respecte votre vie privée.";
+
+/* Guide - Shortcuts */
+"guide.shortcuts.global.title" = "Raccourcis globaux";
+"guide.shortcuts.global.desc" = "En mode barre de menus, les raccourcis Ctrl+Option+lettre fonctionnent même quand l'application n'est pas au premier plan. En mode application, utilisez Cmd+lettre dans les menus.";
