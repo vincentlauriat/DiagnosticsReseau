@@ -6,6 +6,8 @@
 
 import Cocoa
 import Darwin
+import MapKit
+import CoreLocation
 
 // MARK: - MTR Hop
 
@@ -13,6 +15,11 @@ class MTRHop {
     let hopNumber: Int
     var ipAddress: String
     var hostname: String?
+    var coordinate: CLLocationCoordinate2D?
+    var city: String?
+    var country: String?
+    var isp: String?
+    var asn: Int?
     private let lock = NSLock()
     private var _latencies: [Double] = []
     private var _sentCount: Int = 0
@@ -21,6 +28,15 @@ class MTRHop {
     init(hopNumber: Int, ipAddress: String) {
         self.hopNumber = hopNumber
         self.ipAddress = ipAddress
+    }
+
+    var isPrivateIP: Bool {
+        if ipAddress.hasPrefix("192.168.") || ipAddress.hasPrefix("10.") { return true }
+        if ipAddress.hasPrefix("172.") {
+            let parts = ipAddress.split(separator: ".")
+            if parts.count >= 2, let second = Int(parts[1]), second >= 16 && second <= 31 { return true }
+        }
+        return false
     }
 
     // Thread-safe accessors
@@ -114,7 +130,45 @@ class MTRHop {
 
 // MARK: - MTRWindowController
 
-class MTRWindowController: NSWindowController {
+// MARK: - MTR Hop Annotation
+
+class MTRHopAnnotation: NSObject, MKAnnotation {
+    let coordinate: CLLocationCoordinate2D
+    let title: String?
+    let subtitle: String?
+    let hopNumber: Int
+    let hop: MTRHop
+    let avgLatency: Double
+
+    init(hop: MTRHop) {
+        self.hop = hop
+        self.coordinate = hop.coordinate ?? CLLocationCoordinate2D()
+        self.hopNumber = hop.hopNumber
+        self.avgLatency = hop.avgLatency
+
+        if let hostname = hop.hostname {
+            self.title = "Hop \(hop.hopNumber) — \(hostname)"
+        } else {
+            self.title = "Hop \(hop.hopNumber) — \(hop.ipAddress)"
+        }
+
+        var parts: [String] = []
+        if let city = hop.city, let country = hop.country {
+            parts.append("\(city), \(country)")
+        }
+        if let isp = hop.isp {
+            parts.append(isp)
+        }
+        if hop.avgLatency > 0 {
+            parts.append(String(format: "%.1f ms", hop.avgLatency))
+        }
+        self.subtitle = parts.joined(separator: " · ")
+    }
+}
+
+// MARK: - MTRWindowController
+
+class MTRWindowController: NSWindowController, MKMapViewDelegate {
 
     private var targetField: NSTextField!
     private var startButton: NSButton!
@@ -122,6 +176,8 @@ class MTRWindowController: NSWindowController {
     private var progressIndicator: NSProgressIndicator!
     private var statusLabel: NSTextField!
     private var tableView: NSTableView!
+    private var mapView: MKMapView!
+    private var favoritesPopup: NSPopUpButton!
 
     private var hops: [MTRHop] = []
     private var pingTimer: Timer?
@@ -133,7 +189,7 @@ class MTRWindowController: NSWindowController {
 
     convenience init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 750, height: 500),
+            contentRect: NSRect(x: 0, y: 0, width: 900, height: 700),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
@@ -141,7 +197,7 @@ class MTRWindowController: NSWindowController {
         window.title = NSLocalizedString("mtr.title", comment: "")
         window.center()
         window.isReleasedWhenClosed = false
-        window.minSize = NSSize(width: 650, height: 400)
+        window.minSize = NSSize(width: 750, height: 550)
         self.init(window: window)
         setupUI()
     }
@@ -172,6 +228,20 @@ class MTRWindowController: NSWindowController {
         stopButton.isEnabled = false
         stopButton.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(stopButton)
+
+        let addFavButton = NSButton(title: "★", target: self, action: #selector(toggleFavorite))
+        addFavButton.bezelStyle = .rounded
+        addFavButton.toolTip = NSLocalizedString("favorites.add", comment: "")
+        addFavButton.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(addFavButton)
+
+        favoritesPopup = NSPopUpButton()
+        favoritesPopup.bezelStyle = .rounded
+        favoritesPopup.target = self
+        favoritesPopup.action = #selector(loadFavorite)
+        favoritesPopup.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(favoritesPopup)
+        refreshFavoritesPopup()
 
         progressIndicator = NSProgressIndicator()
         progressIndicator.style = .spinning
@@ -219,6 +289,15 @@ class MTRWindowController: NSWindowController {
 
         scrollView.documentView = tableView
 
+        // Map
+        mapView = MKMapView()
+        mapView.delegate = self
+        mapView.translatesAutoresizingMaskIntoConstraints = false
+        mapView.wantsLayer = true
+        mapView.layer?.cornerRadius = 8
+        mapView.layer?.masksToBounds = true
+        contentView.addSubview(mapView)
+
         // Buttons
         let copyButton = NSButton(title: NSLocalizedString("mtr.copy", comment: ""), target: self, action: #selector(copyResults))
         copyButton.bezelStyle = .rounded
@@ -245,13 +324,24 @@ class MTRWindowController: NSWindowController {
             stopButton.centerYAnchor.constraint(equalTo: targetLabel.centerYAnchor),
             stopButton.leadingAnchor.constraint(equalTo: startButton.trailingAnchor, constant: 8),
 
+            addFavButton.centerYAnchor.constraint(equalTo: targetLabel.centerYAnchor),
+            addFavButton.leadingAnchor.constraint(equalTo: stopButton.trailingAnchor, constant: 12),
+
+            favoritesPopup.centerYAnchor.constraint(equalTo: targetLabel.centerYAnchor),
+            favoritesPopup.leadingAnchor.constraint(equalTo: addFavButton.trailingAnchor, constant: 8),
+
             progressIndicator.centerYAnchor.constraint(equalTo: targetLabel.centerYAnchor),
-            progressIndicator.leadingAnchor.constraint(equalTo: stopButton.trailingAnchor, constant: 12),
+            progressIndicator.leadingAnchor.constraint(equalTo: favoritesPopup.trailingAnchor, constant: 12),
 
             statusLabel.centerYAnchor.constraint(equalTo: targetLabel.centerYAnchor),
             statusLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
 
-            scrollView.topAnchor.constraint(equalTo: targetLabel.bottomAnchor, constant: 16),
+            mapView.topAnchor.constraint(equalTo: targetLabel.bottomAnchor, constant: 12),
+            mapView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            mapView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            mapView.heightAnchor.constraint(equalToConstant: 220),
+
+            scrollView.topAnchor.constraint(equalTo: mapView.bottomAnchor, constant: 12),
             scrollView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             scrollView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             scrollView.bottomAnchor.constraint(equalTo: copyButton.topAnchor, constant: -12),
@@ -296,6 +386,39 @@ class MTRWindowController: NSWindowController {
         progressIndicator.stopAnimation(nil)
         progressIndicator.isHidden = true
         statusLabel.stringValue = NSLocalizedString("mtr.stopped", comment: "")
+    }
+
+    // MARK: - Favorites
+
+    @objc private func toggleFavorite() {
+        let target = targetField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !target.isEmpty else { return }
+        let existing = QueryFavoritesStorage.all()
+        if let fav = existing.first(where: { $0.target == target }) {
+            QueryFavoritesStorage.remove(id: fav.id)
+        } else {
+            _ = QueryFavoritesStorage.add(QueryFavorite(type: "mtr", target: target))
+        }
+        refreshFavoritesPopup()
+    }
+
+    @objc private func loadFavorite() {
+        let index = favoritesPopup.indexOfSelectedItem
+        let favorites = QueryFavoritesStorage.all()
+        guard index > 0, index - 1 < favorites.count else { return }
+        targetField.stringValue = favorites[index - 1].target
+    }
+
+    private func refreshFavoritesPopup() {
+        favoritesPopup.removeAllItems()
+        favoritesPopup.addItem(withTitle: NSLocalizedString("favorites.button", comment: ""))
+        let favorites = QueryFavoritesStorage.all()
+        if favorites.isEmpty {
+            let item = favoritesPopup.menu?.addItem(withTitle: NSLocalizedString("favorites.none", comment: ""), action: nil, keyEquivalent: "")
+            item?.isEnabled = false
+        } else {
+            for fav in favorites { favoritesPopup.addItem(withTitle: fav.target) }
+        }
     }
 
     private func performInitialTraceroute() {
@@ -343,9 +466,16 @@ class MTRWindowController: NSWindowController {
             }
         }
 
-        // Phase 2 : Résoudre les hostnames en arrière-plan
+        // Phase 2 : Résoudre les hostnames de manière synchrone (comme Traceroute)
         for hop in discoveredHops where hop.ipAddress != "*" {
-            resolveHostname(for: hop)
+            hop.hostname = reverseDNS(ip: hop.ipAddress)
+            geolocateHop(hop)
+        }
+
+        // Mettre à jour l'UI avec les hostnames résolus
+        DispatchQueue.main.async { [weak self] in
+            self?.hops = discoveredHops
+            self?.tableView.reloadData()
         }
 
         // Phase 3 : Démarrer le ping continu
@@ -480,29 +610,153 @@ class MTRWindowController: NSWindowController {
         return ip == String(cString: targetIP)
     }
 
-    private func resolveHostname(for hop: MTRHop) {
-        DispatchQueue.global(qos: .background).async { [weak self] in
-            var addr = sockaddr_in()
-            addr.sin_family = sa_family_t(AF_INET)
-            inet_pton(AF_INET, hop.ipAddress, &addr.sin_addr)
+    /// Reverse DNS synchrone — identique à TracerouteWindowController.reverseDNS
+    private func reverseDNS(ip: String) -> String? {
+        var hints = addrinfo()
+        hints.ai_family = AF_UNSPEC
+        hints.ai_socktype = SOCK_DGRAM
+        var infoPtr: UnsafeMutablePointer<addrinfo>?
+        guard getaddrinfo(ip, nil, &hints, &infoPtr) == 0, let info = infoPtr else { return nil }
+        defer { freeaddrinfo(infoPtr) }
 
-            var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
-            let result = withUnsafePointer(to: &addr) { ptr in
-                ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sa in
-                    getnameinfo(sa, socklen_t(MemoryLayout<sockaddr_in>.size),
-                               &hostname, socklen_t(hostname.count),
-                               nil, 0, NI_NAMEREQD)
-                }
+        var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+        let result = getnameinfo(info.pointee.ai_addr, info.pointee.ai_addrlen,
+                                 &hostname, socklen_t(hostname.count),
+                                 nil, 0, NI_NAMEREQD)
+        guard result == 0 else { return nil }
+        let name = String(cString: hostname)
+        if name == ip { return nil }
+        return name
+    }
+
+    private func geolocateHop(_ hop: MTRHop) {
+        guard !hop.isPrivateIP, hop.ipAddress != "*" else { return }
+
+        guard let url = URL(string: "https://ipwho.is/\(hop.ipAddress)") else { return }
+        let request = URLRequest(url: url, timeoutInterval: 5)
+
+        URLSession.shared.dataTask(with: request) { [weak self] data, _, _ in
+            guard let data = data,
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  json["success"] as? Bool == true,
+                  let lat = json["latitude"] as? Double,
+                  let lon = json["longitude"] as? Double else { return }
+
+            hop.coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+            hop.city = json["city"] as? String
+            hop.country = json["country"] as? String
+
+            if let connection = json["connection"] as? [String: Any] {
+                hop.asn = connection["asn"] as? Int
+                hop.isp = connection["isp"] as? String
             }
 
-            if result == 0 {
-                let name = String(cString: hostname)
-                DispatchQueue.main.async {
-                    hop.hostname = name
-                    self?.tableView.reloadData()
-                }
+            DispatchQueue.main.async {
+                self?.updateMap()
             }
+        }.resume()
+    }
+
+    private func updateMap() {
+        mapView.removeAnnotations(mapView.annotations)
+        mapView.removeOverlays(mapView.overlays)
+
+        var coordinates: [CLLocationCoordinate2D] = []
+
+        for hop in hops where hop.coordinate != nil {
+            let annotation = MTRHopAnnotation(hop: hop)
+            mapView.addAnnotation(annotation)
+            coordinates.append(hop.coordinate!)
         }
+
+        // Polyline
+        if coordinates.count >= 2 {
+            let polyline = MKPolyline(coordinates: coordinates, count: coordinates.count)
+            mapView.addOverlay(polyline)
+        }
+
+        // Zoom
+        let annotations = mapView.annotations.filter { $0 is MTRHopAnnotation }
+        if !annotations.isEmpty {
+            mapView.showAnnotations(annotations, animated: true)
+        }
+    }
+
+    // MARK: - MKMapViewDelegate
+
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+        guard let hopAnnotation = annotation as? MTRHopAnnotation else { return nil }
+
+        let identifier = "MTRHopPin"
+        var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? MKMarkerAnnotationView
+
+        if annotationView == nil {
+            annotationView = MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+            annotationView?.canShowCallout = true
+        } else {
+            annotationView?.annotation = annotation
+        }
+
+        // Callout detail view avec infos détaillées
+        let detailLabel = NSTextField(wrappingLabelWithString: calloutText(for: hopAnnotation.hop))
+        detailLabel.font = NSFont.systemFont(ofSize: 11)
+        detailLabel.preferredMaxLayoutWidth = 220
+        annotationView?.detailCalloutAccessoryView = detailLabel
+
+        // Couleur en fonction de la latence moyenne
+        let latency = hopAnnotation.avgLatency
+        if latency < 30 {
+            annotationView?.markerTintColor = .systemGreen
+        } else if latency < 100 {
+            annotationView?.markerTintColor = .systemOrange
+        } else {
+            annotationView?.markerTintColor = .systemRed
+        }
+
+        annotationView?.glyphText = "\(hopAnnotation.hopNumber)"
+
+        return annotationView
+    }
+
+    func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+        if let polyline = overlay as? MKPolyline {
+            let renderer = MKPolylineRenderer(polyline: polyline)
+            renderer.strokeColor = NSColor.systemBlue.withAlphaComponent(0.7)
+            renderer.lineWidth = 3
+            return renderer
+        }
+        return MKOverlayRenderer(overlay: overlay)
+    }
+
+    private func calloutText(for hop: MTRHop) -> String {
+        var lines: [String] = []
+        lines.append("\(NSLocalizedString("traceroute.callout.ip", comment: "")) \(hop.ipAddress)")
+        if let hostname = hop.hostname {
+            lines.append("\(NSLocalizedString("traceroute.callout.host", comment: "")) \(hostname)")
+        }
+        if let city = hop.city, let country = hop.country {
+            lines.append("\(NSLocalizedString("traceroute.callout.location", comment: "")) \(city), \(country)")
+        }
+        if let isp = hop.isp {
+            lines.append("\(NSLocalizedString("traceroute.callout.isp", comment: "")) \(isp)")
+        }
+        if let asn = hop.asn {
+            lines.append("\(NSLocalizedString("traceroute.callout.asn", comment: "")) AS\(asn)")
+        }
+        // Statistiques MTR spécifiques
+        if hop.sentCount > 0 {
+            lines.append(String(format: "%@ %d", NSLocalizedString("mtr.callout.sent", comment: ""), hop.sentCount))
+        }
+        if hop.lossPercent > 0 {
+            lines.append(String(format: "%@ %.1f%%", NSLocalizedString("mtr.callout.loss", comment: ""), hop.lossPercent))
+        }
+        if hop.avgLatency > 0 {
+            lines.append(String(format: "%@ %.1f ms", NSLocalizedString("mtr.callout.avg", comment: ""), hop.avgLatency))
+        }
+        if hop.jitter > 0 {
+            lines.append(String(format: "%@ %.1f ms", NSLocalizedString("mtr.callout.jitter", comment: ""), hop.jitter))
+        }
+        return lines.joined(separator: "\n")
     }
 
     private func startContinuousPing() {

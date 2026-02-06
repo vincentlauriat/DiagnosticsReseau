@@ -186,6 +186,77 @@ class TracerouteService {
                 }
 
                 if recvLen > 0 {
+                    var isOurPacket = false
+
+                    if isIPv6 {
+                        // ICMPv6 : pas de header IP dans le buffer (SOCK_DGRAM)
+                        guard recvLen >= 8 else { continue }
+                        let icmpType = recvBuf[0]
+
+                        // Valider le type : 129 = Echo Reply, 3 = Time Exceeded
+                        guard icmpType == 129 || icmpType == 3 else { continue }
+
+                        if icmpType == 129 {
+                            // Echo Reply : vérifier ID
+                            let recvId = UInt16(recvBuf[4]) << 8 | UInt16(recvBuf[5])
+                            isOurPacket = (recvId == pid)
+                        } else if icmpType == 3 {
+                            // Time Exceeded : vérifier IP destination IPv6 dans le paquet original
+                            // Structure: ICMPv6 header (8) + IPv6 original (40+)
+                            // L'IP destination IPv6 est aux octets 24-39 du header IPv6 (offset 8+24=32)
+                            if recvLen >= 48 {
+                                // Extraire l'IPv6 destination du paquet original
+                                var origDestBytes = [UInt8](repeating: 0, count: 16)
+                                for i in 0..<16 {
+                                    origDestBytes[i] = recvBuf[8 + 24 + i]  // offset 32
+                                }
+                                // Comparer avec notre destination
+                                var destBytes = [UInt8](repeating: 0, count: 16)
+                                var destAddr6 = sockaddr_in6()
+                                memcpy(&destAddr6, destAddr, Int(destLen))
+                                withUnsafeBytes(of: destAddr6.sin6_addr) { ptr in
+                                    for i in 0..<16 { destBytes[i] = ptr[i] }
+                                }
+                                isOurPacket = (origDestBytes == destBytes)
+                            } else {
+                                // Pas assez de données, accepter basé sur le type seulement
+                                isOurPacket = true
+                            }
+                        }
+                    } else {
+                        // IPv4 : le buffer inclut le header IP
+                        guard recvLen >= 28 else { continue }
+                        let ipHeaderLen = Int(recvBuf[0] & 0x0F) * 4
+                        guard ipHeaderLen >= 20 && ipHeaderLen <= 60 else { continue }
+                        guard recvLen > ipHeaderLen else { continue }
+
+                        let icmpType = recvBuf[ipHeaderLen]
+
+                        // Valider le type : 0 = Echo Reply, 11 = Time Exceeded
+                        guard icmpType == 0 || icmpType == 11 else { continue }
+
+                        if icmpType == 0 {
+                            // Echo Reply : vérifier ID
+                            if recvLen >= ipHeaderLen + 8 {
+                                let recvId = UInt16(recvBuf[ipHeaderLen + 4]) << 8 | UInt16(recvBuf[ipHeaderLen + 5])
+                                isOurPacket = (recvId == pid)
+                            }
+                        } else if icmpType == 11 {
+                            // Time Exceeded : vérifier IP destination dans le paquet original
+                            let origIPOffset = ipHeaderLen + 8
+                            if recvLen >= origIPOffset + 20 {
+                                // L'IP destination est aux octets 16-19 du header IP original
+                                let origDestIP = "\(recvBuf[origIPOffset + 16]).\(recvBuf[origIPOffset + 17]).\(recvBuf[origIPOffset + 18]).\(recvBuf[origIPOffset + 19])"
+                                isOurPacket = (origDestIP == destIP)
+                            } else {
+                                // Pas assez de données, accepter basé sur le type seulement
+                                isOurPacket = true
+                            }
+                        }
+                    }
+
+                    guard isOurPacket else { continue }
+
                     let elapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
                     // Extract source IP from sockaddr_storage
                     var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
@@ -208,7 +279,7 @@ class TracerouteService {
                 hop = TracerouteHop(hopNumber: ttl, ipAddress: "*", latencyMs: nil)
             }
 
-            // Reverse DNS
+            // Reverse DNS pour obtenir le hostname
             if !hop.isTimeout {
                 hop.hostname = self.reverseDNS(ip: hop.ipAddress)
             }
@@ -745,7 +816,7 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
     @objc private func toggleFavorite() {
         let target = targetTextField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !target.isEmpty else { return }
-        let existing = QueryFavoritesStorage.favorites(for: "traceroute")
+        let existing = QueryFavoritesStorage.all()
         if let fav = existing.first(where: { $0.target == target }) {
             QueryFavoritesStorage.remove(id: fav.id)
         } else {
@@ -756,7 +827,7 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
 
     @objc private func loadFavorite() {
         let index = favoritesPopup.indexOfSelectedItem
-        let favorites = QueryFavoritesStorage.favorites(for: "traceroute")
+        let favorites = QueryFavoritesStorage.all()
         guard index > 0, index - 1 < favorites.count else { return }
         targetTextField.stringValue = favorites[index - 1].target
     }
@@ -764,7 +835,7 @@ class TracerouteWindowController: NSWindowController, NSTableViewDataSource, NST
     private func refreshFavoritesPopup() {
         favoritesPopup.removeAllItems()
         favoritesPopup.addItem(withTitle: NSLocalizedString("favorites.button", comment: ""))
-        let favorites = QueryFavoritesStorage.favorites(for: "traceroute")
+        let favorites = QueryFavoritesStorage.all()
         if favorites.isEmpty {
             let item = favoritesPopup.menu?.addItem(withTitle: NSLocalizedString("favorites.none", comment: ""), action: nil, keyEquivalent: "")
             item?.isEnabled = false

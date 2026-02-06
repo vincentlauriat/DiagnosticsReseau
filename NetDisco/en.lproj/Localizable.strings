@@ -116,6 +116,11 @@
 "main.title" = "NetDisco";
 "main.checking" = "Checking…";
 
+"main.category.mesures" = "Measurements";
+"main.category.information" = "Information";
+"main.category.diagnostic" = "Diagnostic";
+"main.category.surveillance" = "Monitoring";
+
 "main.card.details" = "Network Details";
 "main.card.quality" = "Network Quality";
 "main.card.speedtest" = "Speed Test";
@@ -1060,20 +1065,44 @@
    AutoAnalyzer
    ========================= */
 
+"diagnostic.no_connection.title" = "No Internet connection";
+"diagnostic.no_connection.suggestion" = "Check your router and Internet service provider.";
+"diagnostic.critical_latency.title" = "Critical latency";
+"diagnostic.critical_latency.suggestion" = "Latency exceeds 300 ms. Your connection is severely degraded.";
 "diagnostic.high_latency.title" = "High latency";
-"diagnostic.high_latency.suggestion" = "Latency exceeds %d ms. Check your local network load or move closer to your WiFi router.";
+"diagnostic.high_latency.suggestion" = "Latency exceeds 100 ms. Check your local network load or move closer to your WiFi router.";
+"diagnostic.high_jitter.title" = "High jitter";
+"diagnostic.high_jitter.suggestion" = "Jitter exceeds 30 ms. This may affect video calls and streaming.";
+"diagnostic.critical_packet_loss.title" = "Critical packet loss";
+"diagnostic.critical_packet_loss.suggestion" = "More than 10%% packet loss. Your connection is very unstable.";
 "diagnostic.packet_loss.title" = "Packet loss";
-"diagnostic.packet_loss.suggestion" = "%.1f%% packet loss detected. Check your WiFi or Ethernet cable connection quality.";
-"diagnostic.dns_slow.title" = "Slow DNS";
-"diagnostic.dns_slow.suggestion" = "DNS resolution takes more than %d ms. Try changing DNS server (1.1.1.1 or 8.8.8.8).";
-"diagnostic.jitter_high.title" = "High jitter";
-"diagnostic.jitter_high.suggestion" = "Jitter exceeds %d ms. This may affect video calls and streaming.";
-"diagnostic.wifi_weak.title" = "Weak WiFi signal";
-"diagnostic.wifi_weak.suggestion" = "WiFi signal is weak (%d dBm). Move closer to your router or use a repeater.";
-"diagnostic.no_internet.title" = "No Internet connection";
-"diagnostic.no_internet.suggestion" = "Check your router and Internet service provider.";
-"diagnostic.vpn_overhead.title" = "VPN active";
-"diagnostic.vpn_overhead.suggestion" = "A VPN is active. It may add latency and reduce throughput.";
+"diagnostic.packet_loss.suggestion" = "Packet loss detected. Check your WiFi or Ethernet cable connection quality.";
+"diagnostic.slow_dns.title" = "Slow DNS";
+"diagnostic.slow_dns.suggestion" = "DNS resolution is slow. Try changing DNS server (1.1.1.1 or 8.8.8.8).";
+"diagnostic.critical_wifi_signal.title" = "Critical WiFi signal";
+"diagnostic.critical_wifi_signal.suggestion" = "WiFi signal is very weak. Move closer to your router or use a repeater.";
+"diagnostic.weak_wifi_signal.title" = "Weak WiFi signal";
+"diagnostic.weak_wifi_signal.suggestion" = "WiFi signal is weak. Move closer to your router or use a repeater.";
+"diagnostic.slow_download.title" = "Slow download speed";
+"diagnostic.slow_download.suggestion" = "Download speed is below 5 Mbps. Check your connection.";
+"diagnostic.slow_upload.title" = "Slow upload speed";
+"diagnostic.slow_upload.suggestion" = "Upload speed is below 1 Mbps. This may affect file uploads and video calls.";
+"diagnostic.vpn_latency.title" = "VPN overhead";
+"diagnostic.vpn_latency.suggestion" = "A VPN is active and adds latency. This is normal but may affect performance.";
+"diagnostic.status.disconnected" = "Disconnected";
+"diagnostic.status.good" = "Network OK";
+"diagnostic.status.critical" = "%d critical issue(s)";
+"diagnostic.status.warning" = "%d warning(s)";
+"diagnostic.status.info" = "%d notice(s)";
+"diagnostic.report.title" = "Network Diagnostic Report";
+"diagnostic.report.current_state" = "Current state:";
+"diagnostic.report.connection" = "Connection";
+"diagnostic.report.latency" = "Latency";
+"diagnostic.report.jitter" = "Jitter";
+"diagnostic.report.packet_loss" = "Packet loss";
+"diagnostic.report.wifi_signal" = "WiFi signal";
+"diagnostic.report.no_issues" = "No issues detected.";
+"diagnostic.report.issues_found" = "Issues detected:";
 
 /* =========================
    IPChangeMonitor
@@ -1104,6 +1133,10 @@
 "mtr.col.min" = "Min";
 "mtr.col.max" = "Max";
 "mtr.col.jitter" = "Jitter";
+"mtr.callout.sent" = "Sent:";
+"mtr.callout.loss" = "Loss:";
+"mtr.callout.avg" = "Avg latency:";
+"mtr.callout.jitter" = "Jitter:";
 
 /* Multi-ping - short keys */
 "multiping.targets" = "Targets";

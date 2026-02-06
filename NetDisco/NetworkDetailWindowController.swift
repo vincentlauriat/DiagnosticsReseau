@@ -250,11 +250,14 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
         detailTextView.scrollToBeginningOfDocument(nil)
     }
 
+    private static let ipv4Regex = try! NSRegularExpression(pattern: "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b")
+    private static let ipv6Regex = try! NSRegularExpression(pattern: "\\b[0-9a-fA-F:]{6,39}\\b")
+
     private func formatSection(_ section: (section: String, icon: String, items: [(String, String)])) -> NSAttributedString {
         let result = NSMutableAttributedString()
 
         let titleFont = NSFont.boldSystemFont(ofSize: 17)
-        let labelFont = NSFont.monospacedSystemFont(ofSize: 12, weight: .semibold)
+        let labelFont = NSFont.monospacedSystemFont(ofSize: 12, weight: .bold)
         let valueFont = NSFont.monospacedSystemFont(ofSize: 12, weight: .regular)
 
         // Title
@@ -269,12 +272,26 @@ class NetworkDetailWindowController: NSWindowController, NSTableViewDataSource, 
             let paddedLabel = label.padding(toLength: maxLabelLen + 3, withPad: " ", startingAt: 0)
             result.append(NSAttributedString(string: "  \(paddedLabel)", attributes: [
                 .font: labelFont,
-                .foregroundColor: NSColor.secondaryLabelColor,
+                .foregroundColor: NSColor.systemTeal,
             ]))
-            result.append(NSAttributedString(string: value + "\n", attributes: [
+
+            // Coloriser les IPs en bleu dans les valeurs
+            let attrValue = NSMutableAttributedString(string: value + "\n", attributes: [
                 .font: valueFont,
                 .foregroundColor: NSColor.labelColor,
-            ]))
+            ])
+            let nsValue = value as NSString
+            let range = NSRange(location: 0, length: nsValue.length)
+            for match in Self.ipv4Regex.matches(in: value, range: range) {
+                attrValue.addAttribute(.foregroundColor, value: NSColor.systemBlue, range: match.range)
+            }
+            for match in Self.ipv6Regex.matches(in: value, range: range) {
+                let matched = nsValue.substring(with: match.range)
+                if matched.contains(":") {
+                    attrValue.addAttribute(.foregroundColor, value: NSColor.systemBlue, range: match.range)
+                }
+            }
+            result.append(attrValue)
         }
 
         return result

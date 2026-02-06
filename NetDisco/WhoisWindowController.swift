@@ -425,7 +425,7 @@ class WhoisWindowController: NSWindowController {
     @objc private func toggleFavorite() {
         let target = targetTextField.stringValue.trimmingCharacters(in: .whitespaces)
         guard !target.isEmpty else { return }
-        let existing = QueryFavoritesStorage.favorites(for: "whois")
+        let existing = QueryFavoritesStorage.all()
         if let fav = existing.first(where: { $0.target == target }) {
             QueryFavoritesStorage.remove(id: fav.id)
         } else {
@@ -436,7 +436,7 @@ class WhoisWindowController: NSWindowController {
 
     @objc private func loadFavorite() {
         let index = favoritesPopup.indexOfSelectedItem
-        let favorites = QueryFavoritesStorage.favorites(for: "whois")
+        let favorites = QueryFavoritesStorage.all()
         guard index > 0, index - 1 < favorites.count else { return }
         targetTextField.stringValue = favorites[index - 1].target
     }
@@ -444,7 +444,7 @@ class WhoisWindowController: NSWindowController {
     private func refreshFavoritesPopup() {
         favoritesPopup.removeAllItems()
         favoritesPopup.addItem(withTitle: NSLocalizedString("favorites.button", comment: ""))
-        let favorites = QueryFavoritesStorage.favorites(for: "whois")
+        let favorites = QueryFavoritesStorage.all()
         if favorites.isEmpty {
             let item = favoritesPopup.menu?.addItem(withTitle: NSLocalizedString("favorites.none", comment: ""), action: nil, keyEquivalent: "")
             item?.isEnabled = false

@@ -44,8 +44,8 @@ class QueryFavoritesStorage {
     static func add(_ entry: QueryFavorite) -> Bool {
         var entries = load()
         guard entries.count < maxEntries else { return false }
-        // Avoid duplicates
-        if entries.contains(where: { $0.type == entry.type && $0.target == entry.target }) { return false }
+        // Avoid duplicates by target (shared across all screens)
+        if entries.contains(where: { $0.target == entry.target }) { return false }
         entries.insert(entry, at: 0)
         save(entries)
         return true
@@ -55,6 +55,10 @@ class QueryFavoritesStorage {
         var entries = load()
         entries.removeAll { $0.id == id }
         save(entries)
+    }
+
+    static func all() -> [QueryFavorite] {
+        return load()
     }
 
     static func favorites(for type: String) -> [QueryFavorite] {
@@ -1050,6 +1054,33 @@ class DNSWindowController: NSWindowController {
                 continue
             }
 
+            // Key: Value lines (clé en teal bold, valeur colorisée)
+            if let colonIdx = line.firstIndex(of: ":"), colonIdx > line.startIndex,
+               !line.trimmingCharacters(in: .whitespaces).hasPrefix("//") {
+                let key = String(line[..<colonIdx])
+                let rest = String(line[colonIdx...])
+                let attrKey = NSMutableAttributedString(string: key, attributes: [
+                    .font: boldFont, .foregroundColor: NSColor.systemTeal
+                ])
+                let attrVal = NSMutableAttributedString(string: rest, attributes: [
+                    .font: baseFont, .foregroundColor: NSColor.labelColor
+                ])
+                let nsRest = rest as NSString
+                let restRange = NSRange(location: 0, length: nsRest.length)
+                for match in ipv4Regex.matches(in: rest, range: restRange) {
+                    attrVal.addAttribute(.foregroundColor, value: NSColor.systemBlue, range: match.range)
+                }
+                for match in ipv6Regex.matches(in: rest, range: restRange) {
+                    let matched = nsRest.substring(with: match.range)
+                    if matched.contains(":") {
+                        attrVal.addAttribute(.foregroundColor, value: NSColor.systemBlue, range: match.range)
+                    }
+                }
+                attrKey.append(attrVal)
+                result.append(attrKey)
+                continue
+            }
+
             // Normal line with IP colorization
             let attrLine = NSMutableAttributedString(string: line, attributes: [
                 .font: baseFont, .foregroundColor: NSColor.labelColor
@@ -1092,7 +1123,7 @@ class DNSWindowController: NSWindowController {
         let domain = domainField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !domain.isEmpty else { return }
 
-        let existing = QueryFavoritesStorage.favorites(for: "dns")
+        let existing = QueryFavoritesStorage.all()
         if let fav = existing.first(where: { $0.target == domain }) {
             QueryFavoritesStorage.remove(id: fav.id)
         } else {
@@ -1105,7 +1136,7 @@ class DNSWindowController: NSWindowController {
 
     @objc private func loadFavorite() {
         let index = favoritesPopup.indexOfSelectedItem
-        let favorites = QueryFavoritesStorage.favorites(for: "dns")
+        let favorites = QueryFavoritesStorage.all()
         guard index > 0, index - 1 < favorites.count else { return }
         let fav = favorites[index - 1]
         domainField.stringValue = fav.target
@@ -1118,14 +1149,13 @@ class DNSWindowController: NSWindowController {
     private func refreshFavoritesPopup() {
         favoritesPopup.removeAllItems()
         favoritesPopup.addItem(withTitle: NSLocalizedString("favorites.button", comment: ""))
-        let favorites = QueryFavoritesStorage.favorites(for: "dns")
+        let favorites = QueryFavoritesStorage.all()
         if favorites.isEmpty {
             let item = favoritesPopup.menu?.addItem(withTitle: NSLocalizedString("favorites.none", comment: ""), action: nil, keyEquivalent: "")
             item?.isEnabled = false
         } else {
             for fav in favorites {
-                let title = fav.dnsRecordType != nil ? "\(fav.target) (\(fav.dnsRecordType!))" : fav.target
-                favoritesPopup.addItem(withTitle: title)
+                favoritesPopup.addItem(withTitle: fav.target)
             }
         }
     }

@@ -150,7 +150,17 @@ class WakeOnLANWindowController: NSWindowController {
         formStack.spacing = 8
         formStack.alignment = .leading
         formStack.translatesAutoresizingMaskIntoConstraints = false
-        formBox.contentView = formStack
+
+        // Ajouter le formStack au contentView du box avec contraintes
+        if let boxContentView = formBox.contentView {
+            boxContentView.addSubview(formStack)
+            NSLayoutConstraint.activate([
+                formStack.topAnchor.constraint(equalTo: boxContentView.topAnchor, constant: 8),
+                formStack.leadingAnchor.constraint(equalTo: boxContentView.leadingAnchor, constant: 8),
+                formStack.trailingAnchor.constraint(lessThanOrEqualTo: boxContentView.trailingAnchor, constant: -8),
+                formStack.bottomAnchor.constraint(equalTo: boxContentView.bottomAnchor, constant: -8)
+            ])
+        }
 
         // Name row
         let nameRow = NSStackView()

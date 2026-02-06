@@ -116,6 +116,11 @@
 "main.title" = "NetDisco";
 "main.checking" = "Vérification…";
 
+"main.category.mesures" = "Mesures";
+"main.category.information" = "Information";
+"main.category.diagnostic" = "Diagnostic";
+"main.category.surveillance" = "Surveillance";
+
 "main.card.details" = "Détails réseau";
 "main.card.quality" = "Qualité réseau";
 "main.card.speedtest" = "Test de débit";
@@ -1061,20 +1066,44 @@
    AutoAnalyzer
    ========================= */
 
+"diagnostic.no_connection.title" = "Pas de connexion Internet";
+"diagnostic.no_connection.suggestion" = "Vérifiez votre routeur et votre fournisseur d'accès Internet.";
+"diagnostic.critical_latency.title" = "Latence critique";
+"diagnostic.critical_latency.suggestion" = "La latence dépasse 300 ms. Votre connexion est très dégradée.";
 "diagnostic.high_latency.title" = "Latence élevée";
-"diagnostic.high_latency.suggestion" = "La latence dépasse %d ms. Vérifiez la charge de votre réseau local ou rapprochez-vous de votre routeur WiFi.";
+"diagnostic.high_latency.suggestion" = "La latence dépasse 100 ms. Vérifiez la charge de votre réseau local ou rapprochez-vous de votre routeur WiFi.";
+"diagnostic.high_jitter.title" = "Gigue élevée";
+"diagnostic.high_jitter.suggestion" = "La gigue dépasse 30 ms. Cela peut affecter les appels vidéo et le streaming.";
+"diagnostic.critical_packet_loss.title" = "Perte de paquets critique";
+"diagnostic.critical_packet_loss.suggestion" = "Plus de 10%% de paquets perdus. Votre connexion est très instable.";
 "diagnostic.packet_loss.title" = "Perte de paquets";
-"diagnostic.packet_loss.suggestion" = "%.1f%% de paquets perdus. Vérifiez la qualité de votre connexion WiFi ou câble Ethernet.";
-"diagnostic.dns_slow.title" = "DNS lent";
-"diagnostic.dns_slow.suggestion" = "La résolution DNS prend plus de %d ms. Essayez de changer de serveur DNS (1.1.1.1 ou 8.8.8.8).";
-"diagnostic.jitter_high.title" = "Gigue élevée";
-"diagnostic.jitter_high.suggestion" = "La gigue dépasse %d ms. Cela peut affecter les appels vidéo et le streaming.";
-"diagnostic.wifi_weak.title" = "Signal WiFi faible";
-"diagnostic.wifi_weak.suggestion" = "Le signal WiFi est faible (%d dBm). Rapprochez-vous de votre routeur ou utilisez un répéteur.";
-"diagnostic.no_internet.title" = "Pas de connexion Internet";
-"diagnostic.no_internet.suggestion" = "Vérifiez votre routeur et votre fournisseur d'accès Internet.";
-"diagnostic.vpn_overhead.title" = "VPN actif";
-"diagnostic.vpn_overhead.suggestion" = "Un VPN est actif. Il peut ajouter de la latence et réduire le débit.";
+"diagnostic.packet_loss.suggestion" = "Paquets perdus détectés. Vérifiez la qualité de votre connexion WiFi ou câble Ethernet.";
+"diagnostic.slow_dns.title" = "DNS lent";
+"diagnostic.slow_dns.suggestion" = "La résolution DNS est lente. Essayez de changer de serveur DNS (1.1.1.1 ou 8.8.8.8).";
+"diagnostic.critical_wifi_signal.title" = "Signal WiFi critique";
+"diagnostic.critical_wifi_signal.suggestion" = "Le signal WiFi est très faible. Rapprochez-vous de votre routeur ou utilisez un répéteur.";
+"diagnostic.weak_wifi_signal.title" = "Signal WiFi faible";
+"diagnostic.weak_wifi_signal.suggestion" = "Le signal WiFi est faible. Rapprochez-vous de votre routeur ou utilisez un répéteur.";
+"diagnostic.slow_download.title" = "Débit descendant lent";
+"diagnostic.slow_download.suggestion" = "Le débit descendant est inférieur à 5 Mbps. Vérifiez votre connexion.";
+"diagnostic.slow_upload.title" = "Débit montant lent";
+"diagnostic.slow_upload.suggestion" = "Le débit montant est inférieur à 1 Mbps. Cela peut affecter les envois de fichiers et appels vidéo.";
+"diagnostic.vpn_latency.title" = "Surcharge VPN";
+"diagnostic.vpn_latency.suggestion" = "Un VPN est actif et ajoute de la latence. C'est normal mais peut affecter les performances.";
+"diagnostic.status.disconnected" = "Déconnecté";
+"diagnostic.status.good" = "Réseau OK";
+"diagnostic.status.critical" = "%d problème(s) critique(s)";
+"diagnostic.status.warning" = "%d avertissement(s)";
+"diagnostic.status.info" = "%d information(s)";
+"diagnostic.report.title" = "Rapport de diagnostic réseau";
+"diagnostic.report.current_state" = "État actuel :";
+"diagnostic.report.connection" = "Connexion";
+"diagnostic.report.latency" = "Latence";
+"diagnostic.report.jitter" = "Gigue";
+"diagnostic.report.packet_loss" = "Perte de paquets";
+"diagnostic.report.wifi_signal" = "Signal WiFi";
+"diagnostic.report.no_issues" = "Aucun problème détecté.";
+"diagnostic.report.issues_found" = "Problèmes détectés :";
 
 /* =========================
    IPChangeMonitor
@@ -1105,6 +1134,10 @@
 "mtr.col.min" = "Min";
 "mtr.col.max" = "Max";
 "mtr.col.jitter" = "Jitter";
+"mtr.callout.sent" = "Envoyés :";
+"mtr.callout.loss" = "Perte :";
+"mtr.callout.avg" = "Latence moy :";
+"mtr.callout.jitter" = "Jitter :";
 
 /* Multi-ping - clés courtes */
 "multiping.targets" = "Cibles";
