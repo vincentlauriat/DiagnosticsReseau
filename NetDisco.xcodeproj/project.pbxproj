@@ -3,14 +3,12 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 56;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		8B9A0001290000000000001B /* GuideWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B9A0001290000000000001A /* GuideWindowController.swift */; };
 		8B9A000200000000000000F4 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 8B9A000200000000000000F3 /* Localizable.strings */; };
-		FF000000000000000000001 /* AppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF000000000000000000002 /* AppIntents.swift */; };
-		FF000000000000000000003 /* iCloudSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF000000000000000000004 /* iCloudSyncManager.swift */; };
 		A1000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002 /* AppDelegate.swift */; };
 		A1000006 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000007 /* main.swift */; };
 		A1000008 /* NetworkDetailWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000009 /* NetworkDetailWindowController.swift */; };
@@ -24,9 +22,7 @@
 		A2000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000002 /* Assets.xcassets */; };
 		AA000000000000000000001 /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000002 /* MainWindowController.swift */; };
 		BB000000000000000000001 /* TeletravailWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002 /* TeletravailWindowController.swift */; };
-		DD000000000000000000003 /* BandwidthWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD000000000000000000004 /* BandwidthWindowController.swift */; };
-		EE000000000000000000001 /* WhoisWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE000000000000000000002 /* WhoisWindowController.swift */; };
-		EE000000000000000000003 /* ReportsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE000000000000000000004 /* ReportsWindowController.swift */; };
+		BF77DD002F2B892E00DDF5E2 /* ARCHITECTURE.md in Resources */ = {isa = PBXBuildFile; fileRef = BF77DCFF2F2B892E00DDF5E2 /* ARCHITECTURE.md */; };
 		CC100001 /* MultiTargetGraphView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC100002 /* MultiTargetGraphView.swift */; };
 		CC100003 /* AutoAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC100004 /* AutoAnalyzer.swift */; };
 		CC100005 /* IPChangeMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC100006 /* IPChangeMonitor.swift */; };
@@ -36,22 +32,13 @@
 		CC10000D /* SSLInspectorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC10000E /* SSLInspectorWindowController.swift */; };
 		CC10000F /* MTRWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC100010 /* MTRWindowController.swift */; };
 		CC100011 /* DashboardWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC100012 /* DashboardWindowController.swift */; };
-		BF3F57E62F2F1372007A3185 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF3F57E52F2F1372007A3185 /* WidgetKit.framework */; };
-		BF3F57E82F2F1372007A3185 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF3F57E72F2F1372007A3185 /* SwiftUI.framework */; };
-		BF3F57F72F2F1373007A3185 /* NetDiscoWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BF3F57E32F2F1372007A3185 /* NetDiscoWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		BF77DD002F2B892E00DDF5E2 /* ARCHITECTURE.md in Resources */ = {isa = PBXBuildFile; fileRef = BF77DCFF2F2B892E00DDF5E2 /* ARCHITECTURE.md */; };
 		DD000000000000000000001 /* SharedWidgetData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD000000000000000000002 /* SharedWidgetData.swift */; };
+		DD000000000000000000003 /* BandwidthWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD000000000000000000004 /* BandwidthWindowController.swift */; };
+		EE000000000000000000001 /* WhoisWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE000000000000000000002 /* WhoisWindowController.swift */; };
+		EE000000000000000000003 /* ReportsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE000000000000000000004 /* ReportsWindowController.swift */; };
+		FF000000000000000000001 /* AppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF000000000000000000002 /* AppIntents.swift */; };
+		FF000000000000000000003 /* iCloudSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF000000000000000000004 /* iCloudSyncManager.swift */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		BF3F57F52F2F1373007A3185 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A1000040 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = BF3F57E22F2F1372007A3185;
-			remoteInfo = NetDiscoWidgetExtension;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		BF3F57F82F2F1373007A3185 /* Embed Foundation Extensions */ = {
@@ -60,7 +47,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				BF3F57F72F2F1373007A3185 /* NetDiscoWidgetExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -87,18 +73,9 @@
 		A2000002 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA000000000000000000002 /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
 		BB000000000000000000002 /* TeletravailWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeletravailWindowController.swift; sourceTree = "<group>"; };
-		DD000000000000000000004 /* BandwidthWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BandwidthWindowController.swift; sourceTree = "<group>"; };
-		EE000000000000000000002 /* WhoisWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhoisWindowController.swift; sourceTree = "<group>"; };
-		EE000000000000000000004 /* ReportsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportsWindowController.swift; sourceTree = "<group>"; };
-		BF3F57E32F2F1372007A3185 /* NetDiscoWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NetDiscoWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		BF3F57E52F2F1372007A3185 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		BF3F57E72F2F1372007A3185 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
-		BF3F58082F2F143B007A3185 /* NetDiscoWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NetDiscoWidgetExtension.entitlements; sourceTree = "<group>"; };
 		BF77DCFF2F2B892E00DDF5E2 /* ARCHITECTURE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ARCHITECTURE.md; sourceTree = "<group>"; };
 		BF8500B02F2A5ABC00D6E513 /* CLAUDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CLAUDE.md; sourceTree = "<group>"; };
-		DD000000000000000000002 /* SharedWidgetData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedWidgetData.swift; sourceTree = "<group>"; };
-		FF000000000000000000002 /* AppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntents.swift; sourceTree = "<group>"; };
-		FF000000000000000000004 /* iCloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iCloudSyncManager.swift; sourceTree = "<group>"; };
 		CC100002 /* MultiTargetGraphView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiTargetGraphView.swift; sourceTree = "<group>"; };
 		CC100004 /* AutoAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoAnalyzer.swift; sourceTree = "<group>"; };
 		CC100006 /* IPChangeMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPChangeMonitor.swift; sourceTree = "<group>"; };
@@ -108,21 +85,13 @@
 		CC10000E /* SSLInspectorWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSLInspectorWindowController.swift; sourceTree = "<group>"; };
 		CC100010 /* MTRWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTRWindowController.swift; sourceTree = "<group>"; };
 		CC100012 /* DashboardWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardWindowController.swift; sourceTree = "<group>"; };
+		DD000000000000000000002 /* SharedWidgetData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedWidgetData.swift; sourceTree = "<group>"; };
+		DD000000000000000000004 /* BandwidthWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BandwidthWindowController.swift; sourceTree = "<group>"; };
+		EE000000000000000000002 /* WhoisWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhoisWindowController.swift; sourceTree = "<group>"; };
+		EE000000000000000000004 /* ReportsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportsWindowController.swift; sourceTree = "<group>"; };
+		FF000000000000000000002 /* AppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntents.swift; sourceTree = "<group>"; };
+		FF000000000000000000004 /* iCloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iCloudSyncManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		BF3F57FB2F2F1373007A3185 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = BF3F57E22F2F1372007A3185 /* NetDiscoWidgetExtension */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		BF3F57E92F2F1372007A3185 /* NetDiscoWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (BF3F57FB2F2F1373007A3185 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = NetDiscoWidget; sourceTree = "<group>"; };
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A1000022 /* Frameworks */ = {
@@ -132,26 +101,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		BF3F57E02F2F1372007A3185 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				BF3F57E82F2F1372007A3185 /* SwiftUI.framework in Frameworks */,
-				BF3F57E62F2F1372007A3185 /* WidgetKit.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		A1000010 = {
 			isa = PBXGroup;
 			children = (
-				BF3F58082F2F143B007A3185 /* NetDiscoWidgetExtension.entitlements */,
 				BF77DCFF2F2B892E00DDF5E2 /* ARCHITECTURE.md */,
 				BF8500B02F2A5ABC00D6E513 /* CLAUDE.md */,
 				A1000011 /* NetDisco */,
-				BF3F57E92F2F1372007A3185 /* NetDiscoWidget */,
 				BF3F57E42F2F1372007A3185 /* Frameworks */,
 				A1000012 /* Products */,
 			);
@@ -200,7 +158,6 @@
 			isa = PBXGroup;
 			children = (
 				A1000004 /* NetDisco.app */,
-				BF3F57E32F2F1372007A3185 /* NetDiscoWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -208,7 +165,6 @@
 		BF3F57E42F2F1372007A3185 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				BF3F57E52F2F1372007A3185 /* WidgetKit.framework */,
 				BF3F57E72F2F1372007A3185 /* SwiftUI.framework */,
 			);
 			name = Frameworks;
@@ -230,34 +186,11 @@
 			buildRules = (
 			);
 			dependencies = (
-				BF3F57F62F2F1373007A3185 /* PBXTargetDependency */,
 			);
 			name = NetDisco;
 			productName = NetDisco;
 			productReference = A1000004 /* NetDisco.app */;
 			productType = "com.apple.product-type.application";
-		};
-		BF3F57E22F2F1372007A3185 /* NetDiscoWidgetExtension */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = BF3F57FC2F2F1373007A3185 /* Build configuration list for PBXNativeTarget "NetDiscoWidgetExtension" */;
-			buildPhases = (
-				BF3F57DF2F2F1372007A3185 /* Sources */,
-				BF3F57E02F2F1372007A3185 /* Frameworks */,
-				BF3F57E12F2F1372007A3185 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				BF3F57E92F2F1372007A3185 /* NetDiscoWidget */,
-			);
-			name = NetDiscoWidgetExtension;
-			packageProductDependencies = (
-			);
-			productName = NetDiscoWidgetExtension;
-			productReference = BF3F57E32F2F1372007A3185 /* NetDiscoWidgetExtension.appex */;
-			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -268,11 +201,6 @@
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2620;
-				TargetAttributes = {
-					BF3F57E22F2F1372007A3185 = {
-						CreatedOnToolsVersion = 26.2;
-					};
-				};
 			};
 			buildConfigurationList = A1000041 /* Build configuration list for PBXProject "NetDisco" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -289,7 +217,6 @@
 			projectRoot = "";
 			targets = (
 				A1000020 /* NetDisco */,
-				BF3F57E22F2F1372007A3185 /* NetDiscoWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -302,13 +229,6 @@
 				A2000001 /* Assets.xcassets in Resources */,
 				8B9A000200000000000000F4 /* Localizable.strings in Resources */,
 				BF77DD002F2B892E00DDF5E2 /* ARCHITECTURE.md in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		BF3F57E12F2F1372007A3185 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -369,22 +289,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		BF3F57DF2F2F1372007A3185 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		BF3F57F62F2F1373007A3185 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = BF3F57E22F2F1372007A3185 /* NetDiscoWidgetExtension */;
-			targetProxy = BF3F57F52F2F1373007A3185 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		8B9A000200000000000000F3 /* Localizable.strings */ = {
@@ -510,7 +415,7 @@
 				ENABLE_APP_SANDBOX = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = NetDisco/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "NetDisco";
+				INFOPLIST_KEY_CFBundleDisplayName = NetDisco;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Vincent LAURIAT. Tous droits reserves.";
@@ -551,7 +456,7 @@
 				ENABLE_RESOURCE_ACCESS_USB = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = NetDisco/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "NetDisco";
+				INFOPLIST_KEY_CFBundleDisplayName = NetDisco;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Vincent LAURIAT. Tous droits reserves.";
@@ -565,117 +470,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Release;
-		};
-		BF3F57F92F2F1373007A3185 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_ENTITLEMENTS = NetDiscoWidgetExtension.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = KFLACS69T9;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = NetDiscoWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = NetDiscoWidget;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@executable_path/../../../../Frameworks",
-				);
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 26.2;
-				MARKETING_VERSION = 1.0;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.SmartColibri.NetDisco.NetDiscoWidget;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				REGISTER_APP_GROUPS = YES;
-				SKIP_INSTALL = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Debug;
-		};
-		BF3F57FA2F2F1373007A3185 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_ENTITLEMENTS = NetDiscoWidgetExtension.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = KFLACS69T9;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_NS_ASSERTIONS = NO;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = NetDiscoWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = NetDiscoWidget;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@executable_path/../../../../Frameworks",
-				);
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 26.2;
-				MARKETING_VERSION = 1.0;
-				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.SmartColibri.NetDisco.NetDiscoWidget;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				REGISTER_APP_GROUPS = YES;
-				SKIP_INSTALL = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -697,15 +491,6 @@
 			buildConfigurations = (
 				A1000050 /* Debug */,
 				A1000051 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		BF3F57FC2F2F1373007A3185 /* Build configuration list for PBXNativeTarget "NetDiscoWidgetExtension" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				BF3F57F92F2F1373007A3185 /* Debug */,
-				BF3F57FA2F2F1373007A3185 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
